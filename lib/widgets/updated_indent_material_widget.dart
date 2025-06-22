@@ -1,44 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:in_setu/constants/app_colors.dart';
+import 'package:intl/intl.dart';
 
-class MaterialRequirement {
+class IndentsMaterialRequirement {
   String material;
   String quantity;
   String unit;
 
-  MaterialRequirement({this.material = '', this.quantity = '', this.unit = ''});
+  IndentsMaterialRequirement({
+    this.material = '',
+    this.quantity = '',
+    this.unit = '',
+  });
 }
 
-class MaterialRequirementsPopup extends StatefulWidget {
-  final String buttonTxt;
-  const MaterialRequirementsPopup({Key? key, required this.buttonTxt}) : super(key: key);
+class UpdatedIndentMaterialWidget extends StatefulWidget {
+  const UpdatedIndentMaterialWidget({super.key});
 
   @override
-  State<MaterialRequirementsPopup> createState() =>
-      _MaterialRequirementsPopupState();
+  State<UpdatedIndentMaterialWidget> createState() =>
+      _UpdatedIndentMaterialWidgetState();
 }
 
-class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
-  List<MaterialRequirement> requirements = [MaterialRequirement()];
-  List<MaterialRequirement> additionalRequirements = [MaterialRequirement()];
-  Color mainColor = Color(0xFFFBBF24);
+class _UpdatedIndentMaterialWidgetState
+    extends State<UpdatedIndentMaterialWidget> {
+  List<IndentsMaterialRequirement> indentsMaterialRequirement = [
+    IndentsMaterialRequirement(),
+  ];
+  final specificationDetailsTxtCntl = TextEditingController();
+  final purposeTxtCntl = TextEditingController();
+  final deliveryDate = TextEditingController();
 
   void _addRequirement(bool isAdditional) {
     setState(() {
-      if (isAdditional) {
-        additionalRequirements.add(MaterialRequirement());
-      } else {
-        requirements.add(MaterialRequirement());
-      }
+      indentsMaterialRequirement.add(IndentsMaterialRequirement());
     });
   }
 
   void _removeRequirement(bool isAdditional, int index) {
     setState(() {
-      if (isAdditional && additionalRequirements.length > 1) {
-        additionalRequirements.removeAt(index);
-      } else if (!isAdditional && requirements.length > 1) {
-        requirements.removeAt(index);
+      if (indentsMaterialRequirement.length > 1) {
+        indentsMaterialRequirement.removeAt(index);
       }
     });
   }
@@ -46,19 +48,16 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
   void _saveRequirements() {
     // Handle save logic here
     print(
-      'Requirements: ${requirements.map((r) => '${r.material}: ${r.quantity} ${r.unit}').join(', ')}',
-    );
-    print(
-      'Additional: ${additionalRequirements.map((r) => '${r.material}: ${r.quantity} ${r.unit}').join(', ')}',
+      'indentsMaterialRequirement: ${indentsMaterialRequirement.map((r) => '${r.material}: ${r.quantity} ${r.unit}').join(', ')}',
     );
     Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.black54,
-      child: Center(
+    return Scaffold(
+      backgroundColor: Colors.black26,
+      body: Center(
         child: Container(
           margin: const EdgeInsets.all(20),
           constraints: BoxConstraints(
@@ -86,24 +85,159 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildSection(
-                        title: 'Requirements',
-                        icon: Icons.inventory_2_outlined,
-                        items: requirements,
-                        isAdditional: false,
+                      SizedBox(height: 10),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                          border: Border.all(
+                            width: 1,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: _buildSection(
+                            title: 'Additional Requirements',
+                            icon: Icons.add_box_outlined,
+                            items: indentsMaterialRequirement,
+                            isAdditional: true,
+                          ),
+                        ),
                       ),
-                      const SizedBox(height: 24),
-                      _buildSection(
-                        title: 'Additional Requirements',
-                        icon: Icons.add_box_outlined,
-                        items: additionalRequirements,
-                        isAdditional: true,
+                      SizedBox(height: 20),
+                      Column(
+                        children: [
+                          TextFormField(
+                            controller: specificationDetailsTxtCntl,
+                            decoration: InputDecoration(
+                              labelText: 'Specification',
+                              prefixIcon: Icon(
+                                Icons.details,
+                                color: Colors.grey.shade600,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                  color: Colors.blue.shade400,
+                                  width: 2,
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 15),
+                          TextFormField(
+                            controller: purposeTxtCntl,
+                            decoration: InputDecoration(
+                              labelText: 'Purpose',
+                              prefixIcon: Icon(
+                                Icons.description_rounded,
+                                color: Colors.grey.shade600,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                  color: Colors.blue.shade400,
+                                  width: 2,
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 15),
+                          TextField(
+                            controller: deliveryDate,
+                            readOnly: true,  // Important - allows tap but prevents keyboard
+                            decoration: InputDecoration(
+                              labelText: 'Delivery Date',
+                              prefixIcon: Icon(
+                                Icons.calendar_month,
+                                color: Colors.grey.shade600,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(color: Colors.grey.shade300),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide(
+                                  color: Colors.blue.shade400,
+                                  width: 2,
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                            ),
+                            onTap: () async {
+                              FocusScope.of(context).requestFocus(FocusNode()); // Remove keyboard focus
+                              DateTime? pickedDate = await showDatePicker(
+                                context: context,
+                                initialDate: DateTime.now(),
+                                firstDate: DateTime(2000),
+                                lastDate: DateTime(2100),
+                              );
+
+                              if (pickedDate != null) {
+                                String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
+                                setState(() {
+                                  deliveryDate.text = formattedDate;
+                                });
+                              }
+                            },
+                          ),
+                          SizedBox(height: 15),
+                          Container(
+                            height: 50,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(12),
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                "Done",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
               ),
-              _buildFooter(),
             ],
           ),
         ),
@@ -116,11 +250,6 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.primary,
-        // gradient: LinearGradient(
-        //   colors: [Colors.blue.shade600, Colors.blue.shade700],
-        //   begin: Alignment.topLeft,
-        //   end: Alignment.bottomRight,
-        // ),
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),
@@ -135,7 +264,7 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(
-              Icons.construction,
+              Icons.people_sharp,
               color: Colors.white,
               size: 24,
             ),
@@ -143,7 +272,7 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
           const SizedBox(width: 12),
           const Expanded(
             child: Text(
-              'Material Requirements',
+              'Additional Requirement',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 20,
@@ -170,30 +299,15 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
   Widget _buildSection({
     required String title,
     required IconData icon,
-    required List<MaterialRequirement> items,
+    required List<IndentsMaterialRequirement> items,
     required bool isAdditional,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Icon(icon, color: AppColors.primary, size: 22),
-            const SizedBox(width: 8),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey.shade800,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
         ...items.asMap().entries.map((entry) {
           int index = entry.key;
-          MaterialRequirement item = entry.value;
+          IndentsMaterialRequirement item = entry.value;
 
           return Container(
             margin: const EdgeInsets.only(bottom: 16),
@@ -375,70 +489,4 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
     );
   }
 
-  Widget _buildFooter() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(20),
-          bottomRight: Radius.circular(20),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () => Navigator.of(context).pop(),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                side: BorderSide(color: Colors.grey.shade400),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
-                'Cancel',
-                style: TextStyle(
-                  color: Colors.grey.shade700,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            flex: 2,
-            child: ElevatedButton(
-              onPressed: _saveRequirements,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 2,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.save, color: Colors.white, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    widget.buttonTxt,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

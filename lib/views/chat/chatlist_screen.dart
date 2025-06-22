@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/views/chat/chatdetail_screen.dart';
 import 'package:in_setu/views/material_screen.dart';
+import 'package:in_setu/widgets/app_drawer_widget.dart';
 import 'package:in_setu/widgets/custom_app_bar.dart';
 
 class ChatListScreen extends StatefulWidget {
@@ -64,6 +65,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: getDrawerItems(context),
       backgroundColor: Color(0xFFF8FAFC),
       body: SafeArea(
         child: Column(

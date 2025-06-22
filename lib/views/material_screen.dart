@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/widgets/add_material_widget.dart';
+import 'package:in_setu/widgets/app_drawer_widget.dart';
 import 'package:in_setu/widgets/custom_app_bar.dart';
 import 'package:in_setu/widgets/intent_management.dart';
+import 'package:in_setu/widgets/updated_indent_material_widget.dart';
 
 class StockManagementScreen extends StatefulWidget {
   @override
@@ -122,6 +124,7 @@ class _StockManagementScreenState extends State<StockManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: getDrawerItems(context),
       floatingActionButton:
           _activeTab == 'Stocks'
               ? FloatingActionButton(
@@ -130,7 +133,7 @@ class _StockManagementScreenState extends State<StockManagementScreen> {
                   showDialog(
                     context: context,
                     barrierDismissible: false,
-                    builder: (context) => const MaterialRequirementsPopup(),
+                    builder: (context) => const MaterialRequirementsPopup(buttonTxt: "Add Material",),
                   );
                 },
                 tooltip: 'Add Stock',
@@ -138,7 +141,9 @@ class _StockManagementScreenState extends State<StockManagementScreen> {
               )
               : FloatingActionButton(
                 backgroundColor: AppColors.primary,
-                onPressed: () {},
+                onPressed: () {
+                  showDialog(context: context, builder: (context) => UpdatedIndentMaterialWidget());
+                },
                 tooltip: 'Add Indent',
                 child: Icon(Icons.add, color: Colors.white),
               ),
@@ -323,7 +328,9 @@ class _StockManagementScreenState extends State<StockManagementScreen> {
                   children: [
                     Icon(Icons.copy, color: Colors.white, size: 20),
                     SizedBox(width: 10),
-                    Icon(Icons.edit, color: Colors.white, size: 20),
+                    GestureDetector(onTap: ()=>{
+                      showDialog(context: context, builder: (context) => const UpdatedIndentMaterialWidget())
+                    },child: Icon(Icons.edit, color: Colors.white, size: 20)),
                     SizedBox(width: 10),
                     Icon(Icons.delete, color: Colors.white, size: 20),
                     SizedBox(width: 10),
@@ -473,7 +480,11 @@ class _StockManagementScreenState extends State<StockManagementScreen> {
                   children: [
                     Icon(Icons.copy_outlined, color: Colors.blue, size: 20),
                     SizedBox(width: 12),
-                    Icon(Icons.edit_outlined, color: Colors.purple, size: 20),
+                    GestureDetector(
+                        onTap: ()=> {
+                          showDialog(context: context, builder: (context) => const MaterialRequirementsPopup(buttonTxt: "Update Material"))
+                        },
+                        child: Icon(Icons.edit_outlined, color: Colors.purple, size: 20)),
                     SizedBox(width: 12),
                     Icon(Icons.delete_outline, color: Colors.red, size: 20),
                     Spacer(),

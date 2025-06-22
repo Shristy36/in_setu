@@ -48,13 +48,15 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: isSelected ? AppColors.primary : Colors.grey),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: isSelected ? AppColors.primary : Colors.grey,
+          Expanded(child: Icon(icon, color: isSelected ? AppColors.primary : Colors.grey)),
+          const SizedBox(height: 5),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: isSelected ? AppColors.primary : Colors.grey,
+              ),overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -69,11 +71,11 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
         notchMargin: 9.0,
-        color: Colors.white,
+        height: 60,
         child: SizedBox(
-          height: 65,
+          height: 60,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            padding: const EdgeInsets.symmetric(horizontal: 5.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -99,13 +101,13 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
                   children: [
                     _buildNavItem(
                       icon: Icons.assignment,
-                      label: 'Plan',
+                      label: '  Plan ',
                       index: 3,
                     ),
                     const SizedBox(width: 32),
                     _buildNavItem(
                       icon: Icons.chat_bubble_outline,
-                      label: 'Chat',
+                      label: ' Chat ',
                       index: 4,
                     ),
                   ],
@@ -115,11 +117,27 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _onItemTapped(2),
-        backgroundColor: _selectedIndex == 2 ? AppColors.primary : Colors.grey,
-        child: const Icon(Icons.home, color: Colors.white),
-        tooltip: 'Home',
+      floatingActionButton: Container(
+        width: 50.0, // Adjust width as needed
+        height: 50.0, // Adjust height as needed
+        decoration: BoxDecoration(
+          shape: BoxShape.circle, // Makes it circular
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.5),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: FloatingActionButton(
+          onPressed: () => _onItemTapped(2),
+          backgroundColor: _selectedIndex == 2 ? AppColors.primary : Colors.grey,
+          tooltip: 'Home',
+          elevation: 0,
+          child: const Icon(Icons.home, color: Colors.white), // Remove default elevation since we're using Container's shadow
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );

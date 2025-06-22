@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/views/material_screen.dart';
+import 'package:in_setu/widgets/add_manpower_widget.dart';
+import 'package:in_setu/widgets/app_drawer_widget.dart';
 import 'package:in_setu/widgets/custom_app_bar.dart';
 
 class ManpowerScreen extends StatefulWidget {
@@ -32,9 +34,16 @@ class _ManpowerScreenState extends State<ManpowerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: getDrawerItems(context),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
-        onPressed: () {},
+        onPressed: () {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => const AddManpowerWidget(),
+          );
+        },
         tooltip: 'Add Requirements',
         child: Icon(Icons.add, color: Colors.white),
       ),
@@ -211,14 +220,19 @@ class _ManpowerScreenState extends State<ManpowerScreen> {
   }
 
   Widget _buildActionButton(IconData icon, Color color) {
-    return Container(
-      padding: EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+    return GestureDetector(
+      onTap: () => {
+        showDialog(context: context, builder: (context) => const AddManpowerWidget())
+      },
+      child: Container(
+        padding: EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color.withOpacity(0.3)),
+        ),
+        child: Icon(icon, color: color, size: 18),
       ),
-      child: Icon(icon, color: color, size: 18),
     );
   }
 

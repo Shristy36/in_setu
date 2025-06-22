@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:in_setu/views/cash_details_view/cash_details_view.dart';
 import 'package:in_setu/views/material_screen.dart';
+import 'package:in_setu/views/notification_view/notificationscreen.dart';
+import 'package:in_setu/widgets/add_cashbook_widget.dart';
 import 'package:in_setu/widgets/add_project_widget.dart';
+import 'package:in_setu/widgets/app_drawer_widget.dart';
 import 'package:in_setu/widgets/bottomnav.dart';
 import 'package:in_setu/widgets/custom_app_bar.dart';
 
@@ -15,6 +19,7 @@ class _ProjectListScreenState extends State<ProjectListScreen>
   late Animation<double> _modalScaleAnimation;
   late Animation<double> _modalOpacityAnimation;
   late Animation<Offset> _modalSlideAnimation;
+  final GlobalKey<PopupMenuButtonState<int>> _popupMenuKey = GlobalKey();
 
   @override
   void initState() {
@@ -72,13 +77,14 @@ class _ProjectListScreenState extends State<ProjectListScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: getDrawerItems(context),
       backgroundColor: Color(0xFFF8FAFC),
       appBar: CustomAppBar(
         greetingName: 'Khurshid',
         subText: 'Kalmani',
-        onArticleTap: () => print('Article tapped'),
-        onNotificationTap: () => print('Notifications tapped'),
-        onMoreTap: () => print('More tapped'),
+        onArticleTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => CashDetailsView())),
+        onNotificationTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => NotificationScreen())),
+        onMoreTap: () => print("more btn tab"),
       ),
       body: Padding(
         padding: EdgeInsets.all(20),

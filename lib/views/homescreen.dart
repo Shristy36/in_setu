@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:in_setu/constants/app_colors.dart';
+import 'package:in_setu/views/add_member_screen.dart';
 import 'package:in_setu/views/material_screen.dart';
+import 'package:in_setu/views/user/profile_screen.dart';
+import 'package:in_setu/widgets/add_contact_widget.dart';
+import 'package:in_setu/widgets/app_drawer_widget.dart';
 import 'package:in_setu/widgets/custom_app_bar.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -20,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: getDrawerItems(context),
       backgroundColor: Color(0xFFF8FAFC),
       body: SafeArea(
         child: Column(
@@ -307,7 +313,9 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
             TextButton.icon(
-              onPressed: () {},
+              onPressed: ()=> {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => AddMemberScreen()))
+              },
               icon: Icon(Icons.person_add, size: 18),
               label: Text('Add Member'),
               style: TextButton.styleFrom(

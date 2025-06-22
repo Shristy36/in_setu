@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/views/material_screen.dart';
+import 'package:in_setu/widgets/app_drawer_widget.dart';
 import 'package:in_setu/widgets/custom_app_bar.dart';
 
 class ProjectPlansScreen extends StatefulWidget {
@@ -388,6 +389,7 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
         }).toList();
 
     return Scaffold(
+      drawer: getDrawerItems(context),
       backgroundColor: Colors.grey[50],
       body: SafeArea(
         child: Column(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:in_setu/views/project_list_screen.dart';
+import 'package:in_setu/views/walkthrough_screen/walkthrough_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -38,7 +39,7 @@ class _SplashScreenState extends State<SplashScreen> {
     // Simulate a delay then navigate to home screen
     Future.delayed(const Duration(seconds: 3), () {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => ProjectListScreen()),
+        MaterialPageRoute(builder: (context) => WalkthroughScreen()),
       );
     });
   }

@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:in_setu/views/cash_details_view/cash_details_view.dart';
+import 'package:in_setu/views/link_device_screen.dart';
+import 'package:in_setu/views/login_view/sign_in_screen.dart';
+import 'package:in_setu/views/notification_view/notificationscreen.dart';
 import 'package:in_setu/views/user/profile_screen.dart';
+import 'package:in_setu/widgets/add_cashbook_widget.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String greetingName;
@@ -31,20 +36,23 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         padding: padding,
         child: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFFB800), Color(0xFFFFA000)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+            InkWell(
+              onTap: Scaffold.of(context).openDrawer,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFFB800), Color(0xFFFFA000)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.folder_open,
-                color: Colors.white,
-                size: 20,
+                child: const Icon(
+                  Icons.folder_open,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -109,7 +117,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class APPBarWidget extends StatelessWidget {
-  const APPBarWidget({super.key});
+
+  APPBarWidget({super.key});
+
+  final CashBookUserModel cashBook = CashBookUserModel(userName: "");
 
   @override
   Widget build(BuildContext context) {
@@ -120,10 +131,8 @@ class APPBarWidget extends StatelessWidget {
           // Profile section
           InkWell(
             onTap: () {
-              // Navigator.push(
-              //   context,
-              //   MaterialPageRoute(builder: (context) => ProfilePage()),
-              // );
+              Scaffold.of(context).openDrawer();
+               // Navigator.push(context,MaterialPageRoute(builder: (context) => ProfilePage()),);
             },
             child: Container(
               padding: EdgeInsets.all(12),
@@ -167,13 +176,68 @@ class APPBarWidget extends StatelessWidget {
             ),
           ),
           // Action buttons
-          Icon(Icons.description_outlined, color: Colors.grey[600]),
+          GestureDetector(
+            onTap: ()=>{
+              Navigator.push(context, MaterialPageRoute(builder: (context) => CashDetailsView()))
+            },
+              child: Icon(Icons.description_outlined, color: Colors.grey[600])),
           SizedBox(width: 16),
-          Icon(Icons.notifications_outlined, color: Colors.grey[600]),
+          GestureDetector(
+              onTap: ()=> Navigator.push(context, MaterialPageRoute(builder: (context) => NotificationScreen())),child: Icon(Icons.notifications_outlined, color: Colors.grey[600])),
           SizedBox(width: 16),
-          Icon(Icons.more_vert, color: Colors.grey[600]),
+          // Icon(Icons.more_vert, color: Colors.grey[600])
+          PopupMenuButton<String>(
+            icon: Icon(Icons.more_vert, color: Colors.grey[600]),
+            onSelected: (value) {
+              if (value == 'settings') {
+                print("Settings clicked");
+              } else if (value == 'link_device') {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => LinkDeviceScreen()));
+              } else if (value == 'logout') {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => SignInScreen()));
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'settings',
+                child: Row(
+                  children: [
+                    Icon(Icons.settings),
+                    SizedBox(width: 5,),
+                    Text("Settings"),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'link_device',
+                child: Row(
+                  children: [
+                    Icon(Icons.devices_rounded),
+                    SizedBox(width: 5,),
+                    Text("Link Device"),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'logout',
+                child: Row(
+                  children: [
+                    Icon(Icons.logout),
+                    SizedBox(width: 5,),
+                    Text("Logout"),
+                  ],
+                ),
+              ),
+            ],
+          )
         ],
       ),
     );
   }
+}
+
+enum MenuAction {
+  settings,
+  linkDevice,
+  logout,
 }

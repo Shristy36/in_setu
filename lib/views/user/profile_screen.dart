@@ -1,8 +1,161 @@
-import 'package:flutter/material.dart';
-import 'package:in_setu/constants/app_colors.dart';
+import 'dart:io';
 
-class ProfilePage extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:in_setu/constants/app_colors.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  File? _profileImage;
+
+  Future<void> _handleImageSource(BuildContext context, ImageSource source) async {
+    Permission permission;
+
+    if (source == ImageSource.gallery) {
+      permission = Platform.isAndroid ? Permission.storage : Permission.photos;
+    } else {
+      permission = Permission.camera;
+    }
+
+    var status = await permission.status;
+
+    if (status.isGranted) {
+      await _pickImage(source);
+    } else if (status.isDenied || status.isLimited) {
+      await showPermissionRationaleDialog(
+        context,
+        title: 'Permission Required',
+        message: source == ImageSource.gallery
+            ? 'We need access to your gallery to pick an image.'
+            : 'We need access to your camera to take a picture.',
+        permission: permission,
+      );
+
+      if (await permission.isGranted) {
+        await _pickImage(source);
+      }
+    } else if (status.isPermanentlyDenied) {
+      openAppSettings();
+    }
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final pickedImage = await ImagePicker().pickImage(
+        source: source,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+
+      if (pickedImage != null) {
+        setState(() {
+          _profileImage = File(pickedImage.path);
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to pick image: ${e.toString()}')),
+      );
+    }
+  }
+
+  static Future<void> showPermissionRationaleDialog(
+      BuildContext context, {
+        required String title,
+        required String message,
+        required Permission permission,
+      }) async {
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            child: const Text('Deny'),
+            onPressed: () => Navigator.pop(context),
+          ),
+          TextButton(
+            child: const Text('Allow'),
+            onPressed: () async {
+              Navigator.pop(context);
+              await permission.request();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEditImageOptions(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Edit Profile Picture",
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Take Photo',
+                    style: TextStyle(fontSize: 16, color: Colors.black45)),
+                onTap: () {
+                  Navigator.pop(context);
+                  _handleImageSource(context, ImageSource.camera);
+                },
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Choose from Gallery',
+                    style: TextStyle(fontSize: 16, color: Colors.black45)),
+                onTap: () {
+                  Navigator.pop(context);
+                  _handleImageSource(context, ImageSource.gallery);
+                },
+              ),
+              if (_profileImage != null) ...[
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.delete),
+                  title: const Text('Remove Photo',
+                      style: TextStyle(fontSize: 16, color: Colors.black45)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    setState(() {
+                      _profileImage = null;
+                    });
+                  },
+                ),
+              ],
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,32 +180,64 @@ class ProfilePage extends StatelessWidget {
               child: Column(
                 children: [
                   const SizedBox(height: 20),
-                  // Profile Picture
-                  Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 4),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          spreadRadius: 2,
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+                  // Profile Picture with Edit Button
+                  Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 4),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              spreadRadius: 2,
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: const CircleAvatar(
-                      radius: 60,
-                      child: Icon(Icons.person, size: 80, color: Colors.white),
-                      // backgroundImage: NetworkImage(''),
-                    ),
+                        child: CircleAvatar(
+                          radius: 60,
+                          backgroundImage: _profileImage != null
+                              ? FileImage(_profileImage!)
+                              : null,
+                          child: _profileImage == null
+                              ? const Icon(Icons.person,
+                              size: 80, color: Colors.white)
+                              : null,
+                        ),
+                      ),
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: GestureDetector(
+                          onTap: () {
+                            _showEditImageOptions(context);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.blue,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                            child: const Icon(
+                              Icons.edit,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 40),
                 ],
               ),
             ),
 
-            // Profile Information Cards
+            // Rest of your existing UI remains the same...
             Transform.translate(
               offset: const Offset(0, -20),
               child: Container(
@@ -80,7 +265,6 @@ class ProfilePage extends StatelessWidget {
                                 color: Colors.black87,
                               ),
                             ),
-
                             const SizedBox(height: 8),
                             Column(
                               mainAxisAlignment: MainAxisAlignment.start,
@@ -123,9 +307,7 @@ class ProfilePage extends StatelessWidget {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 20),
-
                     // Contact Information Card
                     Card(
                       color: Colors.white,
@@ -148,7 +330,6 @@ class ProfilePage extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 20),
-
                             // Email
                             _buildInfoRow(
                               Icons.email_outlined,
@@ -156,9 +337,7 @@ class ProfilePage extends StatelessWidget {
                               'khursid_258@yahoo.com',
                               Colors.red,
                             ),
-
                             const SizedBox(height: 16),
-
                             // Phone
                             _buildInfoRow(
                               Icons.phone_outlined,
@@ -170,7 +349,6 @@ class ProfilePage extends StatelessWidget {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 40),
                   ],
                 ),
@@ -183,11 +361,11 @@ class ProfilePage extends StatelessWidget {
   }
 
   Widget _buildInfoRow(
-    IconData icon,
-    String label,
-    String value,
-    Color iconColor,
-  ) {
+      IconData icon,
+      String label,
+      String value,
+      Color iconColor,
+      ) {
     return Row(
       children: [
         Container(
