@@ -1,17 +1,27 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:in_setu/constants/app_colors.dart';
+import 'package:in_setu/networkSupport/ErrorHandler.dart';
+import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
+import 'package:in_setu/supports/LoadingDialog.dart';
+import 'package:in_setu/supports/utility.dart';
+import 'package:in_setu/screens/project_list/bloc/sites_bloc.dart';
+import 'package:in_setu/screens/project_list/model/AllSitesResponse.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class AddSiteModal extends StatefulWidget {
-  final Animation<double> scaleAnimation;
-  final Animation<double> opacityAnimation;
-  final Animation<Offset> slideAnimation;
   final VoidCallback onClose;
+  final VoidCallback onSiteAdded;
+  final Data? siteObject;
 
   const AddSiteModal({
     Key? key,
-    required this.scaleAnimation,
-    required this.opacityAnimation,
-    required this.slideAnimation,
     required this.onClose,
+    required this.onSiteAdded,
+    this.siteObject,
   }) : super(key: key);
 
   @override
@@ -23,153 +33,161 @@ class _AddSiteModalState extends State<AddSiteModal> {
   final _siteNameController = TextEditingController();
   final _locationController = TextEditingController();
   final _companyController = TextEditingController();
-  bool _hasSelectedImage = false;
+  File? _siteImg;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.siteObject != null) {
+      final site = widget.siteObject!;
+      _siteNameController.text = site.siteName ?? '';
+      _locationController.text = site.siteLocation ?? '';
+      _companyController.text = site.companyName ?? '';
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      setState(() {
+        _siteImg = File(image.path);
+      });
+    } else {
+      // User canceled
+      debugPrint('No image selected.');
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: widget.opacityAnimation,
-      builder: (context, child) {
-        return FadeTransition(
-          opacity: widget.opacityAnimation,
-          child: SlideTransition(
-            position: widget.slideAnimation,
-            child: ScaleTransition(
-              scale: widget.scaleAnimation,
-              child: Dialog(
-                backgroundColor: Colors.transparent,
-                insetPadding: EdgeInsets.all(20),
-                child: Container(
-                  width: double.infinity,
-                  constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(context).size.height * 0.85,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.15),
-                        blurRadius: 30,
-                        offset: Offset(0, 15),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _buildModalHeader(),
-                      Flexible(
-                        child: SingleChildScrollView(
-                          padding: EdgeInsets.fromLTRB(24, 0, 24, 24),
-                          child: Form(
-                            key: _formKey,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(height: 20),
-                                _buildImageUploadSection(),
-                                SizedBox(height: 24),
-                                _buildInputField(
-                                  label: 'Site Name',
-                                  controller: _siteNameController,
-                                  icon: Icons.location_city_rounded,
-                                  validator: (value) {
-                                    if (value?.isEmpty ?? true) {
-                                      return 'Please enter site name';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                SizedBox(height: 20),
-                                _buildInputField(
-                                  label: 'Site Location',
-                                  controller: _locationController,
-                                  icon: Icons.location_on_rounded,
-                                  validator: (value) {
-                                    if (value?.isEmpty ?? true) {
-                                      return 'Please enter site location';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                SizedBox(height: 20),
-                                _buildInputField(
-                                  label: 'Company Name',
-                                  controller: _companyController,
-                                  icon: Icons.business_rounded,
-                                  validator: (value) {
-                                    if (value?.isEmpty ?? true) {
-                                      return 'Please enter company name';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                SizedBox(height: 32),
-                                _buildActionButtons(),
-                              ],
-                            ),
-                          ),
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: EdgeInsets.all(20),
+      child: BlocListener<SitesBloc, GlobalApiResponseState>(
+        listener: (context, state) async {
+          switch (state.status) {
+            case GlobalApiStatus.loading:
+              // LoadingDialog.show(context, key: const ObjectKey("requesting add site.."));
+              break;
+
+            case GlobalApiStatus.completed:
+              LoadingDialog.hide(context);
+              if (state is SitesCreateStateSuccess) {
+                widget.onSiteAdded();
+                Utility.showToast(state.data!.message);
+                Navigator.of(context).pop(true);
+              }
+              else if (state is SiteUpdateStateSuccess) {
+                widget.onSiteAdded();
+                Utility.showToast(state.data!.message);
+                Navigator.of(context).pop(true);
+              }
+              break;
+
+            case GlobalApiStatus.error:
+              LoadingDialog.hide(context);
+              widget.onSiteAdded();
+              ErrorHandler.errorHandle(state.message, "Invalid Auth", context);
+              break;
+
+            default:
+              LoadingDialog.hide(context);
+          }
+        },
+        child: Container(
+          width: double.infinity,
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 30,
+                offset: Offset(0, 15),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildModalHeader(),
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(24, 0, 24, 24),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 5),
+                        _buildImageUploadSection(),
+                        SizedBox(height: 24),
+                        _buildInputField(
+                          label: 'Site Name',
+                          controller: _siteNameController,
+                          icon: Icons.location_city_rounded,
+                          validator: (value) => value?.isEmpty ?? true ? 'Please enter site name' : null,
                         ),
-                      ),
-                    ],
+                        SizedBox(height: 20),
+                        _buildInputField(
+                          label: 'Site Location',
+                          controller: _locationController,
+                          icon: Icons.location_on_rounded,
+                          validator: (value) => value?.isEmpty ?? true ? 'Please enter site location' : null,
+                        ),
+                        SizedBox(height: 20),
+                        _buildInputField(
+                          label: 'Company Name',
+                          controller: _companyController,
+                          icon: Icons.business_rounded,
+                          validator: (value) => value?.isEmpty ?? true ? 'Please enter company name' : null,
+                        ),
+                        SizedBox(height: 32),
+                        _buildActionButtons(),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
   Widget _buildModalHeader() {
-    return Container(
-      padding: EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFFFFB800), Color(0xFFFFA000)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
       child: Row(
         children: [
-          Container(
-            padding: EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              Icons.add_location_alt_rounded,
-              color: Colors.white,
-              size: 24,
-            ),
-          ),
-          SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Add New Site',
+              widget.siteObject != null ? 'Edit Site' : 'Add New Site',
               style: TextStyle(
-                color: Colors.white,
-                fontSize: 22,
+                color: AppColors.colorBlack,
+                fontSize: 20,
                 fontWeight: FontWeight.w700,
               ),
             ),
           ),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: IconButton(
-              icon: Icon(Icons.close_rounded, color: Colors.white),
-              onPressed: widget.onClose,
+          GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                  Icons.close, color: AppColors.colorBlack, size: 20),
             ),
           ),
         ],
@@ -182,58 +200,38 @@ class _AddSiteModalState extends State<AddSiteModal> {
       width: double.infinity,
       height: 180,
       decoration: BoxDecoration(
-        color: _hasSelectedImage ? Color(0xFFE0F2FE) : Color(0xFFF8FAFC),
+        color: Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: _hasSelectedImage ? Color(0xFF0EA5E9) : Color(0xFFE2E8F0),
-          width: 2,
-          style: BorderStyle.solid,
-        ),
+        border: Border.all(color: Color(0xFFE2E8F0), width: 2),
       ),
-      child: Material(
+      child: _siteImg != null
+          ? GestureDetector(
+        onTap: () => _pickImage()/*_handleImageSource(context, ImageSource.gallery)*/,
+        child: Image.file(_siteImg!, fit: BoxFit.cover),
+      )
+          : Material(
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () {
-            setState(() {
-              _hasSelectedImage = !_hasSelectedImage;
-            });
-          },
+          onTap: () => _pickImage()/*_handleImageSource(context, ImageSource.gallery)*/,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color:
-                      _hasSelectedImage ? Color(0xFF0EA5E9) : Color(0xFFE2E8F0),
+                  color: Color(0xFFE2E8F0),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  _hasSelectedImage
-                      ? Icons.check_rounded
-                      : Icons.cloud_upload_rounded,
-                  color: _hasSelectedImage ? Colors.white : Color(0xFF64748B),
-                  size: 32,
-                ),
+                child: Icon(Icons.cloud_upload_rounded, color: Color(0xFF64748B), size: 32),
               ),
               SizedBox(height: 12),
               Text(
-                _hasSelectedImage ? 'Image Selected!' : 'Upload Site Image',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color:
-                      _hasSelectedImage ? Color(0xFF0EA5E9) : Color(0xFF64748B),
-                ),
+                'Upload Site Image',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
               ),
               SizedBox(height: 4),
-              Text(
-                _hasSelectedImage
-                    ? 'Tap to change image'
-                    : 'Tap to select an image',
-                style: TextStyle(fontSize: 14, color: Color(0xFF94A3B8)),
-              ),
+              Text('Tap to select an image', style: TextStyle(fontSize: 14, color: Color(0xFF94A3B8))),
             ],
           ),
         ),
@@ -250,14 +248,8 @@ class _AddSiteModalState extends State<AddSiteModal> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF1E293B),
-          ),
-        ),
+        Text(label,
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Color(0xFF1E293B))),
         SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
@@ -268,24 +260,14 @@ class _AddSiteModalState extends State<AddSiteModal> {
           child: TextFormField(
             controller: controller,
             validator: validator,
-            style: TextStyle(fontSize: 16, color: Color(0xFF1E293B)),
+            style: TextStyle(fontSize: 14, color: AppColors.colorGray),
             decoration: InputDecoration(
-              prefixIcon: Container(
-                margin: EdgeInsets.all(12),
-                padding: EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFFFFB800), Color(0xFFFFA000)],
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, color: Colors.white, size: 20),
+              labelStyle: TextStyle(
+                fontSize: 14,
+                color: AppColors.colorGray,
               ),
               border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               hintText: 'Enter $label',
               hintStyle: TextStyle(color: Color(0xFF94A3B8)),
             ),
@@ -298,48 +280,13 @@ class _AddSiteModalState extends State<AddSiteModal> {
   Widget _buildActionButtons() {
     return Row(
       children: [
-        Expanded(
-          child: Container(
-            height: 50,
-            decoration: BoxDecoration(
-              color: Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: widget.onClose,
-                child: Center(
-                  child: Text(
-                    'Cancel',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF64748B),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
         SizedBox(width: 12),
         Expanded(
           child: Container(
             height: 50,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFFFFB800), Color(0xFFFFA000)],
-              ),
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0xFFFFB800).withOpacity(0.3),
-                  blurRadius: 8,
-                  offset: Offset(0, 4),
-                ),
-              ],
+              color: AppColors.primary
             ),
             child: Material(
               color: Colors.transparent,
@@ -347,18 +294,28 @@ class _AddSiteModalState extends State<AddSiteModal> {
                 borderRadius: BorderRadius.circular(12),
                 onTap: () {
                   if (_formKey.currentState?.validate() ?? false) {
-                    // Handle form submission
-                    widget.onClose();
+                    if (widget.siteObject == null) {
+                      context.read<SitesBloc>().add(CreateSiteProject(
+                        siteName: _siteNameController.text,
+                        siteLocation: _locationController.text,
+                        companyName: _companyController.text,
+                        image: _siteImg,
+                      ));
+                    } else {
+                      context.read<SitesBloc>().add(SiteProjectUpdate(
+                        widget.siteObject!.id,
+                        _siteNameController.text,
+                        _locationController.text,
+                        _companyController.text,
+                        _siteImg,
+                      ));
+                    }
                   }
                 },
                 child: Center(
                   child: Text(
                     'Add Site',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
                   ),
                 ),
               ),
@@ -366,6 +323,33 @@ class _AddSiteModalState extends State<AddSiteModal> {
           ),
         ),
       ],
+    );
+  }
+
+  static Future<void> showPermissionRationaleDialog(
+      BuildContext context, {
+        required String title,
+        required String message,
+        required Permission permission,
+      }) async {
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(child: Text('Deny'), onPressed: () => Navigator.pop(context)),
+          TextButton(
+            child: Text('Allow'),
+            onPressed: () async {
+              await permission.request();
+              Navigator.pop(context);
+
+            },
+          ),
+        ],
+      ),
     );
   }
 }

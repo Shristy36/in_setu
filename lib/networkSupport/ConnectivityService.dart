@@ -8,7 +8,7 @@ class ConnectivityService {
 
   ConnectivityService() {
     _connectivity.onConnectivityChanged.listen((event) {
-      connectivityStream.add(event);
+      connectivityStream.add(event.first);
     });
   }
 }

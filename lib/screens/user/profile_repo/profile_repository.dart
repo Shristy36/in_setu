@@ -3,7 +3,7 @@ import 'package:in_setu/networkSupport/ApiConstants.dart';
 import 'package:in_setu/networkSupport/base/ApiResult.dart';
 import 'package:in_setu/networkSupport/base/NetworkService.dart';
 import 'package:in_setu/supports/AppException.dart';
-import 'package:in_setu/views/user/model/ProfileUserResponse.dart';
+import 'package:in_setu/screens/user/model/ProfileUserResponse.dart';
 
 class ProfileRepository{
   final NetworkService networkService = NetworkService();

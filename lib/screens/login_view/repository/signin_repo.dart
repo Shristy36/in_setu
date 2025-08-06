@@ -3,7 +3,7 @@ import 'package:in_setu/networkSupport/base/ApiResult.dart';
 import 'package:in_setu/networkSupport/base/NetworkService.dart';
 import 'package:in_setu/supports/AppException.dart';
 import 'package:in_setu/supports/AppLog.dart';
-import 'package:in_setu/views/login_view/model/LoginAuthModel.dart';
+import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
 
 class SignInRepository{
   final NetworkService networkService = NetworkService();

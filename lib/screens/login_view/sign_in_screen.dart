@@ -5,15 +5,13 @@ import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/constants/strings.dart';
 import 'package:in_setu/networkSupport/ErrorHandler.dart';
 import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
-import 'package:in_setu/supports/AppException.dart';
 import 'package:in_setu/supports/LoadingDialog.dart';
 import 'package:in_setu/supports/utility.dart';
-import 'package:in_setu/views/login_view/bloc/signin_bloc.dart';
-import 'package:in_setu/views/login_view/forgot_password_screen.dart';
-import 'package:in_setu/views/login_view/model/LoginAuthModel.dart';
-import 'package:in_setu/views/login_view/repository/signin_repo.dart';
-import 'package:in_setu/views/login_view/signup_screen.dart';
-import 'package:in_setu/views/project_list/project_list_screen.dart';
+import 'package:in_setu/screens/login_view/bloc/signin_bloc.dart';
+import 'package:in_setu/screens/login_view/forgot_password_screen.dart';
+import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
+import 'package:in_setu/screens/login_view/signup_screen.dart';
+import 'package:in_setu/screens/project_list/project_list_screen.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});

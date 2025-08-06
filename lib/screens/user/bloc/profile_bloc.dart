@@ -2,8 +2,8 @@ import 'package:bloc/bloc.dart';
 import 'package:in_setu/networkSupport/base/ApiResult.dart';
 import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
 import 'package:in_setu/supports/AppException.dart';
-import 'package:in_setu/views/user/model/ProfileUserResponse.dart';
-import 'package:in_setu/views/user/profile_repo/profile_repository.dart';
+import 'package:in_setu/screens/user/model/ProfileUserResponse.dart';
+import 'package:in_setu/screens/user/profile_repo/profile_repository.dart';
 import 'package:meta/meta.dart';
 
 part 'profile_event.dart';

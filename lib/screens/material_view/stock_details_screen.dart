@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/screens/material_view/model/MaterialStockReponse.dart';
+import 'package:in_setu/screens/material_view/widget/update_stock_consumption.dart';
 import 'package:in_setu/supports/utility.dart';
 import '../project_list/model/AllSitesResponse.dart';
 
@@ -118,7 +119,9 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
             Expanded(
               child: OutlinedButton(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Update Consumption'), behavior: SnackBarBehavior.floating));
+                  showDialog(context: context, builder: (context) => UpdateStockConsumption());
+                  // Navigator.push(context, MaterialPageRoute(builder: (context) => UpdateStockConsumption()));
+                  //ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Update Consumption'), behavior: SnackBarBehavior.floating));
                 },
                 style: OutlinedButton.styleFrom(
                   side: BorderSide(color: Colors.red, width: 2),

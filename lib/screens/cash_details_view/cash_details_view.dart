@@ -5,9 +5,9 @@ import 'package:in_setu/commonWidget/no_data_found.dart';
 import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/networkSupport/ErrorHandler.dart';
 import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
+import 'package:in_setu/screens/cash_details_view/bloc/cashbook_bloc.dart';
+import 'package:in_setu/screens/cash_details_view/model/CashbookDetailResponse.dart';
 import 'package:in_setu/supports/utility.dart';
-import 'package:in_setu/views/cash_details_view/bloc/cashbook_bloc.dart';
-import 'package:in_setu/views/cash_details_view/model/CashbookDetailResponse.dart';
 import 'package:in_setu/widgets/add_cashbook_widget.dart';
 import 'package:in_setu/widgets/cash_in_out_widget.dart';
 
@@ -61,33 +61,42 @@ class _CashDetailsViewState extends State<CashDetailsView> {
       ),
       bottomNavigationBar: BlocBuilder<CashbookBloc, GlobalApiResponseState>(
         builder: (context, state) {
-          if (state is CashbookStateSuccess &&
-              state.data != null &&
-              state.data!.firstCashbook != null &&
-              state.data!.firstCashbook!.isNotEmpty) {
-            return BottomAppBar(
-              height: 70,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildBottomNavButton(
-                    title: "Cash In",
-                    color: AppColors.primary,
-                    onTap: () => _showCashDialog("Cash In", "cashin"),
-                  ),
-                  _buildBottomNavButton(
-                    title: "Cash Out",
-                    color: Colors.red,
-                    onTap: () => _showCashDialog("Cash Out", "cashout"),
-                  ),
-                  _buildBottomNavButton(
-                    title: "Options",
-                    color: Colors.green,
-                    onTap: _showAddDialog,
-                  ),
-                ],
-              ),
-            );
+          if (state is CashbookStateSuccess && state.data != null) {
+            final isDefault = state.data!.data?.any((item) => item.isDefault == 1) ?? false;
+            final dataList = state.data!.data ?? [];
+            final hasDefault = dataList.any((item) => item.isDefault == 1);
+            Data? cashBookObj;
+            if (hasDefault) {
+              cashBookObj = dataList.firstWhere(
+                    (item) => item.isDefault == 1,
+              );
+            }
+
+            if (isDefault) {
+              return BottomAppBar(
+                height: 70,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildBottomNavButton(
+                      title: "Cash In",
+                      color: AppColors.primary,
+                      onTap: () => _showCashDialog("Cash In", "cashin", cashBookObj),
+                    ),
+                    _buildBottomNavButton(
+                      title: "Cash Out",
+                      color: Colors.red,
+                      onTap: () => _showCashDialog("Cash Out", "cashout", cashBookObj),
+                    ),
+                    _buildBottomNavButton(
+                      title: "Options",
+                      color: Colors.green,
+                      onTap: _showAddDialog,
+                    ),
+                  ],
+                ),
+              );
+            }
           }
           return const SizedBox.shrink();
         },
@@ -100,6 +109,7 @@ class _CashDetailsViewState extends State<CashDetailsView> {
     required Color color,
     required VoidCallback onTap,
   }) {
+
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -129,7 +139,6 @@ class _CashDetailsViewState extends State<CashDetailsView> {
   }
 
   Widget getCashbookDetailView(CashbookDetailResponse response) {
-    // final bookName = response.bookName ?? "Select";
     final firstCashbook = response.firstCashbook ?? [];
     final hasData = firstCashbook.isNotEmpty;
 
@@ -170,9 +179,6 @@ class _CashDetailsViewState extends State<CashDetailsView> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             getCashbookWidget(),
-                           /* ...response.data!
-                                .where((item) => item.isDefault == 1)
-                                .map((item) => CustomViews.setSubTitle(item.cashbookName ?? "Select")),*/
                             InkWell(
                               onTap: () => showDialog(
                                 context: context,
@@ -182,12 +188,6 @@ class _CashDetailsViewState extends State<CashDetailsView> {
                                         CashbookFetchEvent(widget.siteId));
                                   }
                                 })
-                                /*AddCahbookWidget(
-                                  cashbookDetailResponse: cashbookDetailResponse,
-                                  cashBookUserSave: (cashBook) {
-                                    setState(() {});
-                                  },
-                                ),*/
                               ),
                               child: const Icon(
                                 Icons.arrow_drop_down,
@@ -215,13 +215,10 @@ class _CashDetailsViewState extends State<CashDetailsView> {
             ],
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-          child: SizedBox(
-            width: double.infinity,
-            height: 400,
-            child: !hasData
-                ? const Center(child: NoDataFound(noDataFoundTxt: "No Cashbook Found"))
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 20.0, right: 20.0),
+            child: !hasData ? const Center(child: NoDataFound(noDataFoundTxt: "No Cashbook Found"))
                 : ListView.builder(
               itemCount: firstCashbook.length,
               itemBuilder: (context, index) {
@@ -264,21 +261,29 @@ class _CashDetailsViewState extends State<CashDetailsView> {
                         ),
                         Row(
                           children: [
-                            Text(
-                              "${transaction.amount ?? 0}",
-                              style: TextStyle(
-                                color: transaction.type == 'credit'
-                                    ? Colors.green
-                                    : Colors.red,
-                                fontSize: 14,
+                            SizedBox(
+                              width: 80,
+                              child: Text(
+                                "${transaction.amount ?? 0}",
+                                style: TextStyle(
+                                  color: transaction.type == 'credit'
+                                      ? Colors.green
+                                      : Colors.red,
+                                  fontSize: 14,
+                                ),
+                                textAlign: TextAlign.right,
                               ),
                             ),
                             const SizedBox(width: 20),
-                            Text(
-                              "${transaction.amount ?? 0}",
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontSize: 14,
+                            SizedBox(
+                              width: 80,
+                              child: Text(
+                                "${transaction.amount ?? 0}",
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 14,
+                                ),
+                                textAlign: TextAlign.right,
                               ),
                             ),
                           ],
@@ -295,14 +300,17 @@ class _CashDetailsViewState extends State<CashDetailsView> {
     );
   }
 
-  void _showCashDialog(String title, String type) {
+  void _showCashDialog(String title, String type, Data? cashBookObj) {
     showDialog(
       context: context,
       builder: (context) => CashInOutWidget(
         cashTitle: title,
         type: type,
-        onSave: (cashInOutModel) {
-          setState(() {});
+        cashBookObj: cashBookObj,
+        transactionAdd: (value){
+          if (value) {
+            context.read<CashbookBloc>().add(CashbookFetchEvent(widget.siteId));
+          }
         },
       ),
     );
@@ -480,22 +488,7 @@ class _CashDetailsViewState extends State<CashDetailsView> {
         ),
         Expanded(
           child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.wallet, size: 60, color: Colors.grey[400]),
-                const SizedBox(height: 16),
-                const Text(
-                  'No cash books available',
-                  style: TextStyle(fontSize: 18, color: Colors.grey),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Add a cash book to get started',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-              ],
-            ),
+            child: NoDataFound(noDataFoundTxt: "No Data Found"),
           ),
         ),
       ],

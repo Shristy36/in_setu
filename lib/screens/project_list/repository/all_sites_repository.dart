@@ -5,9 +5,9 @@ import 'package:in_setu/networkSupport/ApiConstants.dart';
 import 'package:in_setu/networkSupport/base/ApiResult.dart';
 import 'package:in_setu/networkSupport/base/NetworkService.dart';
 import 'package:in_setu/supports/AppException.dart';
-import 'package:in_setu/views/project_list/model/CreateSiteResponse.dart';
-import 'package:in_setu/views/project_list/model/AllSitesResponse.dart';
-import 'package:in_setu/views/project_list/model/SiteUpdateResponse.dart';
+import 'package:in_setu/screens/project_list/model/CreateSiteResponse.dart';
+import 'package:in_setu/screens/project_list/model/AllSitesResponse.dart';
+import 'package:in_setu/screens/project_list/model/SiteUpdateResponse.dart';
 
 import '../model/SiteDeleteResponse.dart';
 

@@ -5,7 +5,7 @@
 class ManPowerModelResponse {
   ManPowerModelResponse({
       bool? success, 
-      List<Data>? data, 
+      List<MainPowerData>? data,
       List<AllDates>? allDates,}){
     _success = success;
     _data = data;
@@ -17,7 +17,7 @@ class ManPowerModelResponse {
     if (json['data'] != null) {
       _data = [];
       json['data'].forEach((v) {
-        _data?.add(Data.fromJson(v));
+        _data?.add(MainPowerData.fromJson(v));
       });
     }
     if (json['all_dates'] != null) {
@@ -28,17 +28,17 @@ class ManPowerModelResponse {
     }
   }
   bool? _success;
-  List<Data>? _data;
+  List<MainPowerData>? _data;
   List<AllDates>? _allDates;
 ManPowerModelResponse copyWith({  bool? success,
-  List<Data>? data,
+  List<MainPowerData>? data,
   List<AllDates>? allDates,
 }) => ManPowerModelResponse(  success: success ?? _success,
   data: data ?? _data,
   allDates: allDates ?? _allDates,
 );
   bool? get success => _success;
-  List<Data>? get data => _data;
+  List<MainPowerData>? get data => _data;
   List<AllDates>? get allDates => _allDates;
 
   Map<String, dynamic> toJson() {
@@ -107,8 +107,8 @@ AllDates copyWith({  num? id,
 /// manpowers : [{"member_name":"Dbdndn","member_count":"2"}]
 /// staffs : [{"member_name":"Rahul","member_count":"5"}]
 
-class Data {
-  Data({
+class MainPowerData {
+  MainPowerData({
       num? id, 
       num? userId, 
       num? siteId, 
@@ -127,7 +127,7 @@ class Data {
     _staffs = staffs;
 }
 
-  Data.fromJson(dynamic json) {
+  MainPowerData.fromJson(dynamic json) {
     _id = json['id'];
     _userId = json['user_id'];
     _siteId = json['site_id'];
@@ -160,7 +160,7 @@ class Data {
   List<Tasks>? _tasks;
   List<Manpowers>? _manpowers;
   List<Staffs>? _staffs;
-Data copyWith({  num? id,
+  MainPowerData copyWith({  num? id,
   num? userId,
   num? siteId,
   String? agencyName,
@@ -168,7 +168,7 @@ Data copyWith({  num? id,
   List<Tasks>? tasks,
   List<Manpowers>? manpowers,
   List<Staffs>? staffs,
-}) => Data(  id: id ?? _id,
+}) => MainPowerData(  id: id ?? _id,
   userId: userId ?? _userId,
   siteId: siteId ?? _siteId,
   agencyName: agencyName ?? _agencyName,

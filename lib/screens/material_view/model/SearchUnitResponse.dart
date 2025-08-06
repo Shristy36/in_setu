@@ -4,7 +4,7 @@
 class SearchUnitResponse {
   SearchUnitResponse({
       bool? success, 
-      List<Data>? data,}){
+      List<SearchUnitData>? data,}){
     _success = success;
     _data = data;
 }
@@ -14,19 +14,19 @@ class SearchUnitResponse {
     if (json['data'] != null) {
       _data = [];
       json['data'].forEach((v) {
-        _data?.add(Data.fromJson(v));
+        _data?.add(SearchUnitData.fromJson(v));
       });
     }
   }
   bool? _success;
-  List<Data>? _data;
+  List<SearchUnitData>? _data;
 SearchUnitResponse copyWith({  bool? success,
-  List<Data>? data,
+  List<SearchUnitData>? data,
 }) => SearchUnitResponse(  success: success ?? _success,
   data: data ?? _data,
 );
   bool? get success => _success;
-  List<Data>? get data => _data;
+  List<SearchUnitData>? get data => _data;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -43,8 +43,8 @@ SearchUnitResponse copyWith({  bool? success,
 /// name : "PCS"
 /// created_at : "2025-01-18T14:19:34.000000Z"
 
-class Data {
-  Data({
+class SearchUnitData {
+  SearchUnitData({
       num? id, 
       String? name, 
       String? createdAt,}){
@@ -53,7 +53,7 @@ class Data {
     _createdAt = createdAt;
 }
 
-  Data.fromJson(dynamic json) {
+  SearchUnitData.fromJson(dynamic json) {
     _id = json['id'];
     _name = json['name'];
     _createdAt = json['created_at'];
@@ -61,10 +61,10 @@ class Data {
   num? _id;
   String? _name;
   String? _createdAt;
-Data copyWith({  num? id,
+  SearchUnitData copyWith({  num? id,
   String? name,
   String? createdAt,
-}) => Data(  id: id ?? _id,
+}) => SearchUnitData(  id: id ?? _id,
   name: name ?? _name,
   createdAt: createdAt ?? _createdAt,
 );

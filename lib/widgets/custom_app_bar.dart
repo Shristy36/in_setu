@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:in_setu/views/cash_details_view/cash_details_view.dart';
-import 'package:in_setu/views/link_device_screen.dart';
-import 'package:in_setu/views/login_view/sign_in_screen.dart';
-import 'package:in_setu/views/notification_view/notificationscreen.dart';
-import 'package:in_setu/views/user/profile_screen.dart';
+import 'package:in_setu/constants/app_colors.dart';
+import 'package:in_setu/screens/cash_details_view/cash_details_view.dart';
+import 'package:in_setu/screens/link_device_screen.dart';
+import 'package:in_setu/screens/login_view/sign_in_screen.dart';
+import 'package:in_setu/screens/notification_view/notificationscreen.dart';
+import 'package:in_setu/screens/user/profile_screen.dart';
 import 'package:in_setu/widgets/add_cashbook_widget.dart';
+
+import '../screens/login_view/model/LoginAuthModel.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String greetingName;
@@ -117,39 +120,28 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 class APPBarWidget extends StatelessWidget {
-
-  APPBarWidget({super.key});
-
-  final CashBookUserModel cashBook = CashBookUserModel(userName: "");
+  bool isSiteNameVisible;
+  final User user;
+  final String siteName;
+  final num siteId;
+  APPBarWidget({super.key, required this.isSiteNameVisible, required this.user, required this.siteName, required this.siteId});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.only(top: 16, left: 20),
       child: Row(
         children: [
           // Profile section
           InkWell(
             onTap: () {
               Scaffold.of(context).openDrawer();
-               // Navigator.push(context,MaterialPageRoute(builder: (context) => ProfilePage()),);
             },
             child: Container(
               padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.green[400]!, Colors.green[600]!],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                color: AppColors.tabBarColor,
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.green.withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: Offset(0, 4),
-                  ),
-                ],
               ),
               child: Icon(Icons.person_outline, color: Colors.white, size: 28),
             ),
@@ -161,15 +153,15 @@ class APPBarWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Hi, khurshid',
+                  'Hi ,${user.firstName}',
                   style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
                 Text(
-                  'Kalmani',
+                  "${user.lastName}",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
-                Text(
-                  'shreeji skyrise',
+                if(isSiteNameVisible)Text(
+                  siteName,
                   style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                 ),
               ],
@@ -178,36 +170,22 @@ class APPBarWidget extends StatelessWidget {
           // Action buttons
           GestureDetector(
             onTap: ()=>{
-              Navigator.push(context, MaterialPageRoute(builder: (context) => CashDetailsView()))
+              Navigator.push(context, MaterialPageRoute(builder: (context) => CashDetailsView(siteId: siteId)))
             },
               child: Icon(Icons.description_outlined, color: Colors.grey[600])),
-          SizedBox(width: 16),
+          SizedBox(width: 20),
           GestureDetector(
               onTap: ()=> Navigator.push(context, MaterialPageRoute(builder: (context) => NotificationScreen())),child: Icon(Icons.notifications_outlined, color: Colors.grey[600])),
-          SizedBox(width: 16),
+          SizedBox(width: 5),
           // Icon(Icons.more_vert, color: Colors.grey[600])
           PopupMenuButton<String>(
             icon: Icon(Icons.more_vert, color: Colors.grey[600]),
             onSelected: (value) {
-              if (value == 'settings') {
-                print("Settings clicked");
-              } else if (value == 'link_device') {
+              if (value == 'link_device') {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => LinkDeviceScreen()));
-              } else if (value == 'logout') {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => SignInScreen()));
               }
             },
             itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'settings',
-                child: Row(
-                  children: [
-                    Icon(Icons.settings),
-                    SizedBox(width: 5,),
-                    Text("Settings"),
-                  ],
-                ),
-              ),
               PopupMenuItem(
                 value: 'link_device',
                 child: Row(
@@ -215,16 +193,6 @@ class APPBarWidget extends StatelessWidget {
                     Icon(Icons.devices_rounded),
                     SizedBox(width: 5,),
                     Text("Link Device"),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'logout',
-                child: Row(
-                  children: [
-                    Icon(Icons.logout),
-                    SizedBox(width: 5,),
-                    Text("Logout"),
                   ],
                 ),
               ),
@@ -237,7 +205,5 @@ class APPBarWidget extends StatelessWidget {
 }
 
 enum MenuAction {
-  settings,
   linkDevice,
-  logout,
 }

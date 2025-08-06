@@ -1,4 +1,9 @@
 part of 'chats_bloc.dart';
 
-@immutable
-sealed class ChatsEvent {}
+abstract class ChatsDetailEvent{
+  const ChatsDetailEvent();
+}
+
+class FetchChatsDetails extends ChatsDetailEvent{
+  const FetchChatsDetails();
+}

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:in_setu/constants/app_colors.dart';
-import 'package:in_setu/views/login_view/sign_in_screen.dart';
+import 'package:in_setu/screens/login_view/sign_in_screen.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class WalkthroughScreen extends StatefulWidget {

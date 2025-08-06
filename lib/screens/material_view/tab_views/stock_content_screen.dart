@@ -1,16 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:in_setu/commonWidget/no_data_found.dart';
+import 'package:in_setu/constants/strings.dart';
+import 'package:in_setu/networkSupport/ErrorHandler.dart';
+import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
+import 'package:in_setu/screens/material_view/model/MaterialSearchKeyword.dart';
+import 'package:in_setu/screens/material_view/model/SearchUnitResponse.dart';
+import 'package:in_setu/screens/material_view/stock_details_screen.dart';
+import 'package:in_setu/screens/material_view/bloc/material_stock_bloc.dart';
+import 'package:in_setu/screens/material_view/delete_intent_item_dialog/delete_stock_item.dart';
+import 'package:in_setu/screens/material_view/loading_screen.dart';
 import 'package:in_setu/screens/material_view/material_stock_summary_screen.dart';
+import 'package:in_setu/screens/material_view/model/MaterialStockReponse.dart';
+import 'package:in_setu/screens/project_list/model/AllSitesResponse.dart';
 import 'package:in_setu/widgets/add_material_widget.dart';
 import 'package:in_setu/widgets/intent_management.dart';
 
+import '../delete_intent_item_dialog/delete_intent_dialog.dart';
+
 class StockContentScreen extends StatefulWidget {
-  const StockContentScreen({super.key});
+  final Data siteObject;
+  final List<SearchData> searchDataList;
+  final List<SearchUnitData> searchUnitData;
+  const StockContentScreen({super.key, required this.siteObject, required this.searchDataList, required this.searchUnitData});
 
   @override
   State<StockContentScreen> createState() => _StockContentScreenState();
 }
 
 class _StockContentScreenState extends State<StockContentScreen> {
+  bool _isLoading = true;
   List<StockItem> stockItems = [
     StockItem(
       id: 1,
@@ -62,17 +81,6 @@ class _StockContentScreenState extends State<StockContentScreen> {
     ),
   ];
 
-  // List<StockItem> get filteredItems {
-  //   if (_searchQuery.isEmpty) {
-  //     return stockItems;
-  //   }
-  //   return stockItems
-  //       .where(
-  //         (item) =>
-  //         item.createdBy.toLowerCase().contains(_searchQuery.toLowerCase()),
-  //   )
-  //       .toList();
-  // }
 
   void _handleStockIn(int itemId) {
     setState(() {
@@ -93,204 +101,240 @@ class _StockContentScreenState extends State<StockContentScreen> {
     });
   }
 
-  void _toggleExpanded(int itemId) {
-    setState(() {
-      final item = stockItems.firstWhere((item) => item.id == itemId);
-      item.isExpanded = !item.isExpanded;
-    });
-  }
 
-
-  void updateMaterialReceived(int indentId, int materialIndex, bool value) {
-    setState(() {
-      final indent = indentItems.firstWhere((item) => item.id == indentId);
-      indent.materials[materialIndex].isReceived = value;
-    });
-  }
+  List<StocksData> stockItemsList = [];
 
   @override
+  void initState() {
+    super.initState();
+    context.read<MaterialStockBloc>().add(MaterialStockFetchEvent(siteId: widget.siteObject.id));
+  }
+  @override
   Widget build(BuildContext context) {
-    return Column(
+    return BlocListener<MaterialStockBloc, GlobalApiResponseState>(
+      listener: (context, state) {
+        switch (state.status) {
+          case GlobalApiStatus.loading:
+            setState(() => _isLoading = true);
+            break;
+          case GlobalApiStatus.completed:
+            if (state is MaterialStockStateSuccess) {
+              setState(() {
+                _isLoading = false;
+                stockItemsList = state.data.stocksData!;
+              });
+            }
+            break;
+          case GlobalApiStatus.error:
+            setState(() => _isLoading = false);
+            ErrorHandler.errorHandle(
+              state.message,
+              "Something wrong",
+              context,
+            );
+            break;
+          default:
+            setState(() => _isLoading = false);
+        }
+      },
+      child: _isLoading ? LoadingScreen() : getStockDetails(stockItemsList),
+    );
+  }
+  Widget getStockDetails(List<StocksData> stockList){
+    return stockList.isEmpty ? NoDataFound(noDataFoundTxt: "No Stock Data Found") : Column(
       children: [
         Expanded(
           child: ListView.builder(
             padding: EdgeInsets.all(16),
-            itemCount: stockItems.length,
+            itemCount: stockItemsList.length,
             itemBuilder: (context, index) {
-              return _buildStockItemCard(stockItems[index]);
+              return _buildStockItemCard(stockItems[index], stockItemsList[index]);
             },
           ),
         ),
       ],
     );
   }
-
-  Widget _buildStockItemCard(StockItem item) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 12),
-      padding: EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Main content
-          Padding(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Action buttons row
-                Row(
-                  children: [
-                    Icon(Icons.copy_outlined, color: Colors.blue, size: 20),
-                    SizedBox(width: 12),
-                    GestureDetector(
-                        onTap: ()=> {
-                          showDialog(context: context, builder: (context) => const MaterialRequirementsPopup(buttonTxt: "Update Material"))
-                        },
-                        child: Icon(Icons.edit_outlined, color: Colors.purple, size: 20)),
-                    SizedBox(width: 12),
-                    Icon(Icons.delete_outline, color: Colors.red, size: 20),
-                    Spacer(),
-                    GestureDetector(
-                      onTap: () => _toggleExpanded(item.id),
-                      child: Icon(
-                        item.isExpanded ? Icons.expand_less : Icons.expand_more,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16),
-                // Created by
-                Text(
-                  'Created By- ${item.createdBy}',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 16),
-                // Stock numbers
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text.rich(
-                            TextSpan(
-                              text: 'Stock IN:- ',
-                              style: TextStyle(color: Colors.grey[600]),
-                              children: [
-                                TextSpan(
-                                  text: '${item.stockIn}',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
+  Widget _buildStockItemCard(StockItem item, StocksData stockData) {
+    return GestureDetector(
+      onTap: (){
+        Navigator.push(context, MaterialPageRoute(builder: (context) => StockDetailsScreen(stockData: stockData, siteObject: widget.siteObject)));
+      },
+      child: Container(
+        margin: EdgeInsets.only(bottom: 12),
+        padding: EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            // Main content
+            Padding(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Action buttons row
+                  Row(
+                    children: [
+                      Icon(Icons.copy_outlined, color: Colors.blue, size: 20),
+                      SizedBox(width: 12),
+                      GestureDetector(
+                          onTap: ()=> {
+                            showDialog(context: context, builder: (context) =>
+                                MaterialRequirementsPopup(
+                                  buttonTxt: "Update Material", siteObject: widget.siteObject, stockMaterialAdded: (){
+                              context.read<MaterialStockBloc>().add(MaterialStockFetchEvent(siteId: widget.siteObject.id));
+                            },initialStockData: stockData, searchDataList: widget.searchDataList, searchUnitData: widget.searchUnitData,))
+                          },
+                          child: Icon(Icons.edit_outlined, color: Colors.purple, size: 20)),
+                      SizedBox(width: 12),
+                      GestureDetector(
+                          onTap: ()async {
+                            final delete = await DeleteStockItem.showDeleteManPowerDialog(
+                                context,
+                                siteDeleteMsg,
+                                siteDeleteTitle,
+                                stockData.id,
+                            );
+                            if(delete){
+                              context.read<MaterialStockBloc>().add(MaterialStockFetchEvent(siteId: widget.siteObject.id));
+                            }
+                          },
+                          child: Icon(Icons.delete_outline, color: Colors.red, size: 20)),
+                      Spacer(),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  // Created by
+                  Text(
+                    '${stockData.requirement1}',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 16),
+                  // Stock numbers
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text.rich(
+                              TextSpan(
+                                text: 'Stock IN:- ',
+                                style: TextStyle(color: Colors.grey[600]),
+                                children: [
+                                  TextSpan(
+                                    text: '${item.stockIn}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text.rich(
-                            TextSpan(
-                              text: 'Stock OUT:- ',
-                              style: TextStyle(color: Colors.grey[600]),
-                              children: [
-                                TextSpan(
-                                  text: '${item.stockOut}',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text.rich(
+                              TextSpan(
+                                text: 'Stock OUT:- ',
+                                style: TextStyle(color: Colors.grey[600]),
+                                children: [
+                                  TextSpan(
+                                    text: '${item.stockOut}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16),
-                // Buttons and remaining stock
-                Row(
-                  children: [
-                    OutlinedButton(
-                      onPressed: () => _handleStockIn(item.id),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.red, width: 2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(6),
+                          ],
                         ),
                       ),
-                      child: Text(
-                        'IN',
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    OutlinedButton(
-                      onPressed: () => _handleStockOut(item.id),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.green, width: 2),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                      ),
-                      child: Text(
-                        'OUT',
-                        style: TextStyle(
-                          color: Colors.green,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    Spacer(),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          'Remaining Stock',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[500],
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  // Buttons and remaining stock
+                  Row(
+                    children: [
+                      OutlinedButton(
+                        onPressed: () => _handleStockIn(item.id),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: Colors.red, width: 2),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
                           ),
                         ),
-                        Text(
-                          '${item.remainingStock} ${item.unit}',
+                        child: Text(
+                          'IN',
                           style: TextStyle(
-                            fontSize: 18,
+                            color: Colors.red,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
+                      ),
+                      SizedBox(width: 8),
+                      OutlinedButton(
+                        onPressed: () => _handleStockOut(item.id),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: Colors.green, width: 2),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                        child: Text(
+                          'OUT',
+                          style: TextStyle(
+                            color: Colors.green,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Spacer(),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            'Remaining Stock',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                          Text(
+                            '${item.remainingStock} ${item.unit}',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-          // Expanded details
-          if (item.isExpanded) _buildExpandedDetails(item),
-        ],
+            // Expanded details
+            if (item.isExpanded) _buildExpandedDetails(item),
+          ],
+        ),
       ),
     );
   }

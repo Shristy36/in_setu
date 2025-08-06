@@ -1,19 +1,21 @@
 // add_contact_widget.dart
 import 'package:contacts_service_plus/contacts_service_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:in_setu/constants/app_colors.dart';
+import 'package:in_setu/networkSupport/ErrorHandler.dart';
+import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
+import 'package:in_setu/screens/home_page/bloc/home_bloc.dart';
 import 'package:in_setu/supports/utility.dart';
+import 'package:logger/logger.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-class AddContactWidget extends StatefulWidget {
-  final Function(List<Contact>) onContactsSelected;
-  final List<Contact>? preSelectedContacts;
+import '../../project_list/model/AllSitesResponse.dart';
 
-  const AddContactWidget({
-    Key? key,
-    required this.onContactsSelected,
-    this.preSelectedContacts,
-  }) : super(key: key);
+class AddContactWidget extends StatefulWidget {
+  final Data siteObj;
+  final VoidCallback onContactSelected;
+  const AddContactWidget({Key? key, required this.siteObj, required this.onContactSelected}) : super(key: key);
 
   @override
   _AddContactWidgetState createState() => _AddContactWidgetState();
@@ -26,12 +28,18 @@ class _AddContactWidgetState extends State<AddContactWidget> {
   String errorMessage = '';
   TextEditingController searchController = TextEditingController();
 
+  final List<Color> backgroundColors = [
+    Color(0xFFb2ae92),
+    Color(0xFF5a9e42),
+    Color(0xFF567cd9),
+    Color(0xFFf5a623),
+    Color(0xFF50e3c2),
+    Color(0xFF9013fe),
+  ];
+
   @override
   void initState() {
     super.initState();
-    if (widget.preSelectedContacts != null) {
-      selectedContacts.addAll(widget.preSelectedContacts!);
-    }
     _fetchContacts();
   }
 
@@ -97,7 +105,7 @@ class _AddContactWidgetState extends State<AddContactWidget> {
           topLeft: Radius.circular(20),
         ),
       ),
-      child: Column(
+      child:  Column(
         children: [
           Container(
             decoration: BoxDecoration(
@@ -108,7 +116,12 @@ class _AddContactWidgetState extends State<AddContactWidget> {
               ),
             ),
             child: Padding(
-              padding: const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 10),
+              padding: const EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: 10,
+              ),
               child: Column(
                 children: [
                   SizedBox(height: 10),
@@ -122,13 +135,19 @@ class _AddContactWidgetState extends State<AddContactWidget> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.colorGray, width: 1),
+                      border: Border.all(
+                        color: AppColors.colorGray,
+                        width: 1,
+                      ),
                     ),
                     child: TextField(
                       controller: searchController,
                       decoration: InputDecoration(
                         hintText: 'Search contacts...',
-                        prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: Colors.grey[500],
+                        ),
                         border: InputBorder.none,
                         isDense: true,
                         // Reduces the height for better alignment
@@ -140,28 +159,6 @@ class _AddContactWidgetState extends State<AddContactWidget> {
                     ),
                   ),
                   const SizedBox(height: 10),
-
-                  /*
-                        if (selectedContacts.isNotEmpty) ...[
-              SizedBox(
-                height: 60,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: selectedContacts.map((contact) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Chip(
-                        label: Text(contact.displayName ?? 'No name'),
-                        avatar: const Icon(Icons.person, size: 18),
-                        onDeleted: () => _toggleContactSelection(contact),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-              const SizedBox(height: 10),
-                        ],
-                    */
                 ],
               ),
             ),
@@ -169,81 +166,100 @@ class _AddContactWidgetState extends State<AddContactWidget> {
           // Contacts list
           Expanded(
             child:
-                isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : errorMessage.isNotEmpty
-                    ? Center(child: Text(errorMessage))
-                    : filteredContacts.isEmpty
-                    ? const Center(child: Text('No contacts found'))
-                    : Padding(
-                      padding: const EdgeInsets.only(
-                        top: 10,
-                        bottom: 10,
-                        left: 20,
-                        right: 20,
-                      ),
-                      child: ListView.builder(
-                        itemCount: filteredContacts.length,
-                        itemBuilder: (context, index) {
-                          final contact = filteredContacts[index];
-                          final isSelected = _isContactSelected(contact);
+            isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : errorMessage.isNotEmpty
+                ? Center(child: Text(errorMessage))
+                : filteredContacts.isEmpty
+                ? const Center(child: Text('No contacts found'))
+                : Padding(
+              padding: const EdgeInsets.only(
+                top: 10,
+                bottom: 10,
+                left: 20,
+                right: 20,
+              ),
+              child: ListView.builder(
+                itemCount: filteredContacts.length,
+                itemBuilder: (context, index) {
+                  final contact = filteredContacts[index];
+                  final bgColor =
+                  backgroundColors[index %
+                      backgroundColors.length];
+                  final isSelected = _isContactSelected(contact);
 
-                          return Card(
-                            margin: const EdgeInsets.symmetric(vertical: 4),
-                            elevation: 0,
-                            color:
-                                isSelected
-                                    ? AppColors.primary
-                                    : Colors.black12,
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Row(
-                                children: [
-                                  SizedBox(width: 5),
-                                  const Icon(Icons.person, size: 30),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          contact.displayName ?? 'No name',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            color:
-                                                isSelected
-                                                    ? AppColors.colorWhite
-                                                    : AppColors.colorBlack,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                        if (contact.phones?.isNotEmpty ?? false)
-                                          Text(
-                                            contact.phones!.first.value ?? '',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color:
-                                                  isSelected
-                                                      ? AppColors.colorWhite
-                                                      : AppColors.colorBlack,
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                  Checkbox(
-                                    value: isSelected,
-                                    onChanged:
-                                        (_) => _toggleContactSelection(contact),
-                                  ),
-                                ],
+                  return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    elevation: 0,
+                    color:
+                    isSelected
+                        ? AppColors.primary
+                        : Colors.black12,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        children: [
+                          SizedBox(width: 5),
+                          CircleAvatar(
+                            backgroundColor: bgColor,
+                            child: Text(
+                              contact.displayName!
+                                  .split(' ')
+                                  .map((e) => e[0])
+                                  .take(1)
+                                  .join(),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.colorWhite,
                               ),
                             ),
-                          );
-                        },
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment:
+                              CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  contact.displayName ?? 'No name',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color:
+                                    isSelected
+                                        ? AppColors.colorWhite
+                                        : AppColors.colorBlack,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                if (contact.phones?.isNotEmpty ??
+                                    false)
+                                  Text(
+                                    contact.phones!.first.value ?? '',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color:
+                                      isSelected
+                                          ? AppColors.colorWhite
+                                          : AppColors.colorBlack,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          Checkbox(
+                            value: isSelected,
+                            onChanged:
+                                (_) =>
+                                _toggleContactSelection(contact),
+                          ),
+                        ],
                       ),
                     ),
+                  );
+                },
+              ),
+            ),
           ),
 
           // Action buttons
@@ -260,19 +276,44 @@ class _AddContactWidgetState extends State<AddContactWidget> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: GestureDetector(
-                    onTap: (){
-                      widget.onContactsSelected(selectedContacts);
+                    onTap: () {
+                      /* context.read<HomeBloc>().add(
+                          AddMemberEvent(
+                            siteId: widget.siteObj.id,
+                            members:
+                                selectedContacts.map((contact) {
+                                  final name = contact.displayName ?? '';
+                                  final contactNo =
+                                      contact.phones?.isNotEmpty == true
+                                          ? contact.phones!.first.value ?? ''
+                                          : '';
+                                  return {
+                                    "name": name,
+                                    "contact": contactNo,
+                                    "isAdmin": false,
+                                  };
+                                }).toList(),
+                          ),
+                        );*/
+
                       Navigator.pop(context);
                     },
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.all(Radius.circular(20)),
-                        color: AppColors.primary
+                        color: AppColors.primary,
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(10.0),
                         child: Center(
-                          child: Text("Add Members", style: TextStyle(fontSize: 14, color: AppColors.colorWhite, fontWeight: FontWeight.bold),),
+                          child: Text(
+                            "Add Members",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppColors.colorWhite,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -282,7 +323,23 @@ class _AddContactWidgetState extends State<AddContactWidget> {
             ),
           ),
         ],
-      ),
+      ),/*BlocListener<HomeBloc, GlobalApiResponseState>(
+        listener: (context, state) {
+          switch(state.status){
+            case GlobalApiStatus.completed:
+               if(state is AddMemberStateSuccess){
+                  widget.onContactSelected;
+                  Navigator.of(context).pop();
+               }
+              break;
+            case GlobalApiStatus.error:
+              ErrorHandler.errorHandle(state.message, "Invalid Auth", context);
+              break;
+            default:
+          }
+        },
+        child:
+      ),*/
     );
   }
 }

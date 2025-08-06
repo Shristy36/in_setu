@@ -1,4 +1,5 @@
-import 'package:mbank_app_flutter/support/exceptions/AppException.dart';
+
+import 'package:in_setu/supports/AppException.dart';
 
 enum GlobalApiStatus { loading, completed, error, initial }
 

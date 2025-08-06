@@ -30,6 +30,7 @@ class _UpdatedIndentMaterialWidgetState
   final specificationDetailsTxtCntl = TextEditingController();
   final purposeTxtCntl = TextEditingController();
   final deliveryDate = TextEditingController();
+  final formKey = GlobalKey<FormState>();
 
   void _addRequirement(bool isAdditional) {
     setState(() {
@@ -66,7 +67,7 @@ class _UpdatedIndentMaterialWidgetState
           ),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(5),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.2),
@@ -82,159 +83,209 @@ class _UpdatedIndentMaterialWidgetState
               Flexible(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 10),
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                          border: Border.all(
-                            width: 1,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: _buildSection(
-                            title: 'Additional Requirements',
-                            icon: Icons.add_box_outlined,
-                            items: indentsMaterialRequirement,
-                            isAdditional: true,
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      Column(
-                        children: [
-                          TextFormField(
-                            controller: specificationDetailsTxtCntl,
-                            decoration: InputDecoration(
-                              labelText: 'Specification',
-                              prefixIcon: Icon(
-                                Icons.details,
-                                color: Colors.grey.shade600,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade300,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(
-                                  color: Colors.blue.shade400,
-                                  width: 2,
-                                ),
-                              ),
-                              filled: true,
-                              fillColor: Colors.white,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 15),
-                          TextFormField(
-                            controller: purposeTxtCntl,
-                            decoration: InputDecoration(
-                              labelText: 'Purpose',
-                              prefixIcon: Icon(
-                                Icons.description_rounded,
-                                color: Colors.grey.shade600,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade300,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(
-                                  color: Colors.blue.shade400,
-                                  width: 2,
-                                ),
-                              ),
-                              filled: true,
-                              fillColor: Colors.white,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 15),
-                          TextField(
-                            controller: deliveryDate,
-                            readOnly: true,  // Important - allows tap but prevents keyboard
-                            decoration: InputDecoration(
-                              labelText: 'Delivery Date',
-                              prefixIcon: Icon(
-                                Icons.calendar_month,
-                                color: Colors.grey.shade600,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(color: Colors.grey.shade300),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(
-                                  color: Colors.blue.shade400,
-                                  width: 2,
-                                ),
-                              ),
-                              filled: true,
-                              fillColor: Colors.white,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                            ),
-                            onTap: () async {
-                              FocusScope.of(context).requestFocus(FocusNode()); // Remove keyboard focus
-                              DateTime? pickedDate = await showDatePicker(
-                                context: context,
-                                initialDate: DateTime.now(),
-                                firstDate: DateTime(2000),
-                                lastDate: DateTime(2100),
-                              );
-
-                              if (pickedDate != null) {
-                                String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
-                                setState(() {
-                                  deliveryDate.text = formattedDate;
-                                });
-                              }
-                            },
-                          ),
-                          SizedBox(height: 15),
-                          Container(
-                            height: 50,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
+                  child: Form(
+                    key: formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 10),
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(Radius.circular(12)),
+                            border: Border.all(
+                              width: 1,
                               color: AppColors.primary,
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(12),
-                              ),
                             ),
-                            child: Center(
-                              child: Text(
-                                "Done",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: _buildSection(
+                              title: 'Additional Requirements',
+                              icon: Icons.add_box_outlined,
+                              items: indentsMaterialRequirement,
+                              isAdditional: true,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                        Column(
+                          children: [
+                            TextFormField(
+                              validator: (value){
+                                if(value == null || value.isEmpty){
+                                  return 'Please enter specification';
+                                }
+                                return null;
+                              },
+                              controller: specificationDetailsTxtCntl,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppColors.colorGray,
+                              ),
+                              decoration: InputDecoration(
+                                labelText: 'Specification',
+                                labelStyle: TextStyle(
+                                  fontSize: 14,
+                                  color: AppColors.colorGray,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade300,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                    color: AppColors.primary,
+                                    width: 2,
+                                  ),
+                                ),
+                                filled: true,
+                                fillColor: Colors.white,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
                                 ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                            SizedBox(height: 15),
+                            TextFormField(
+                              validator: (value){
+                                if(value == null || value.isEmpty){
+                                  return 'Please enter purpose';
+                                }
+                                return null;
+                              },
+                              controller: purposeTxtCntl,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppColors.colorGray,
+                              ),
+                              decoration: InputDecoration(
+                                labelStyle: TextStyle(
+                                  fontSize: 14,
+                                  color: AppColors.colorGray,
+                                ),
+                                labelText: 'Purpose',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade300,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                    color: AppColors.primary,
+                                    width: 2,
+                                  ),
+                                ),
+                                filled: true,
+                                fillColor: Colors.white,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 15),
+                            TextFormField(
+                              validator: (value){
+                                if(value == null || value.isEmpty){
+                                  return 'Please enter delivery date';
+                                }
+                                return null;
+                              },
+                              controller: deliveryDate,
+                              readOnly: true,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppColors.colorGray,
+                              ),
+                              decoration: InputDecoration(
+                                labelStyle: TextStyle(
+                                  fontSize: 14,
+                                  color: AppColors.colorGray,
+                                ),
+                                labelText: 'Delivery Date',
+                                prefixIcon: Icon(
+                                  Icons.calendar_month,
+                                  color: Colors.grey.shade600,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey.shade300,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                    color: AppColors.primary,
+                                    width: 2,
+                                  ),
+                                ),
+                                filled: true,
+                                fillColor: Colors.white,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                              ),
+                              onTap: () async {
+                                FocusScope.of(context).requestFocus(
+                                  FocusNode(),
+                                ); // Remove keyboard focus
+                                DateTime? pickedDate = await showDatePicker(
+                                  context: context,
+                                  initialDate: DateTime.now(),
+                                  firstDate: DateTime(2000),
+                                  lastDate: DateTime(2100),
+                                );
+
+                                if (pickedDate != null) {
+                                  String formattedDate = DateFormat(
+                                    'yyyy-MM-dd',
+                                  ).format(pickedDate);
+                                  setState(() {
+                                    deliveryDate.text = formattedDate;
+                                  });
+                                }
+                              },
+                            ),
+                            SizedBox(height: 15),
+                            GestureDetector(
+                              onTap: ()=>{
+                                if(formKey.currentState!.validate()){
+                                  Navigator.of(context).pop()
+                                }
+                              },
+                              child: Container(
+                                height: 45,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary,
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(12),
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    "Done",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -246,35 +297,15 @@ class _UpdatedIndentMaterialWidgetState
   }
 
   Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.only(left: 20.0, right: 20, top: 20),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(
-              Icons.people_sharp,
-              color: Colors.white,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 12),
           const Expanded(
             child: Text(
               'Additional Requirement',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.colorBlack,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -285,10 +316,14 @@ class _UpdatedIndentMaterialWidgetState
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: AppColors.primary.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.close, color: Colors.white, size: 20),
+              child: const Icon(
+                Icons.close,
+                color: AppColors.colorBlack,
+                size: 20,
+              ),
             ),
           ),
         ],
@@ -321,16 +356,6 @@ class _UpdatedIndentMaterialWidgetState
               children: [
                 Row(
                   children: [
-                    Expanded(
-                      child: Text(
-                        'Item ${index + 1}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade700,
-                        ),
-                      ),
-                    ),
                     if (items.length > 1)
                       GestureDetector(
                         onTap: () => _removeRequirement(isAdditional, index),
@@ -350,12 +375,19 @@ class _UpdatedIndentMaterialWidgetState
                   ],
                 ),
                 const SizedBox(height: 12),
-                TextField(
+                TextFormField(
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter material name';
+                    }
+                    return null;
+                  },
+                  style: TextStyle(fontSize: 14, color: AppColors.colorGray),
                   decoration: InputDecoration(
                     labelText: 'Name of Material',
-                    prefixIcon: Icon(
-                      Icons.inventory,
-                      color: Colors.grey.shade600,
+                    labelStyle: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.colorGray,
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -364,7 +396,7 @@ class _UpdatedIndentMaterialWidgetState
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(
-                        color: Colors.blue.shade400,
+                        color: AppColors.primary,
                         width: 2,
                       ),
                     ),
@@ -386,10 +418,23 @@ class _UpdatedIndentMaterialWidgetState
                   children: [
                     Expanded(
                       flex: 3,
-                      child: TextField(
+                      child: TextFormField(
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter quantity';
+                          }
+                          return null;
+                        },
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.colorGray,
+                        ),
                         decoration: InputDecoration(
                           labelText: 'Quantity',
-
+                          labelStyle: TextStyle(
+                            fontSize: 14,
+                            color: AppColors.colorGray,
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                             borderSide: BorderSide(color: Colors.grey.shade300),
@@ -397,7 +442,7 @@ class _UpdatedIndentMaterialWidgetState
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                             borderSide: BorderSide(
-                              color: Colors.blue.shade400,
+                              color: AppColors.primary,
                               width: 2,
                             ),
                           ),
@@ -419,10 +464,23 @@ class _UpdatedIndentMaterialWidgetState
                     const SizedBox(width: 12),
                     Expanded(
                       flex: 3,
-                      child: TextField(
+                      child: TextFormField(
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter unit';
+                          }
+                          return null;
+                        },
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.colorGray,
+                        ),
                         decoration: InputDecoration(
                           labelText: 'Unit',
-
+                          labelStyle: TextStyle(
+                            fontSize: 14,
+                            color: AppColors.colorGray,
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                             borderSide: BorderSide(color: Colors.grey.shade300),
@@ -454,22 +512,16 @@ class _UpdatedIndentMaterialWidgetState
             ),
           );
         }).toList(),
-        const SizedBox(height: 8),
-        GestureDetector(
-          onTap: () => _addRequirement(isAdditional),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            decoration: BoxDecoration(
-              color: AppColors.primary50,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: AppColors.primary200,
-                style: BorderStyle.solid,
-              ),
-            ),
+        Padding(
+          padding: const EdgeInsets.only(right: 10.0, bottom: 10),
+          child: GestureDetector(
+            onTap: () => {
+              if(formKey.currentState!.validate()){
+                _addRequirement(isAdditional)
+              }
+            },
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Icon(Icons.add, color: AppColors.primary, size: 20),
                 const SizedBox(width: 8),
@@ -488,5 +540,4 @@ class _UpdatedIndentMaterialWidgetState
       ],
     );
   }
-
 }

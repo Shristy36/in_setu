@@ -5,13 +5,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/networkSupport/ErrorHandler.dart';
 import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
-import 'package:in_setu/views/home_page/bloc/home_bloc.dart';
-import 'package:in_setu/views/home_page/dashboard_screen.dart';
-import 'package:in_setu/views/home_page/loading_screen/dashboard_loading_screen.dart';
-import 'package:in_setu/views/home_page/model/DashBoardResponse.dart';
-import 'package:in_setu/views/home_page/time_line_screen.dart';
-import 'package:in_setu/views/login_view/model/LoginAuthModel.dart';
-import 'package:in_setu/views/project_list/model/AllSitesResponse.dart' hide UserData;
+import 'package:in_setu/screens/home_page/bloc/home_bloc.dart';
+import 'package:in_setu/screens/home_page/dashboard_screen.dart';
+import 'package:in_setu/screens/home_page/loading_screen/dashboard_loading_screen.dart';
+import 'package:in_setu/screens/home_page/model/DashBoardResponse.dart';
+import 'package:in_setu/screens/home_page/time_line_screen.dart';
+import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
+import 'package:in_setu/screens/project_list/model/AllSitesResponse.dart'
+    hide UserData;
 import 'package:in_setu/widgets/app_drawer_widget.dart';
 import 'package:in_setu/widgets/custom_app_bar.dart';
 
@@ -31,7 +32,8 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _isLoading = true;
   List<Feed> feeds = [];
@@ -97,33 +99,34 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             length: 2,
             child: NestedScrollView(
               controller: _scrollController,
-              headerSliverBuilder: (context, innerBoxIsScrolled) => [
-                SliverToBoxAdapter(
-                  child: APPBarWidget(
-                    isSiteNameVisible: true,
-                    user: widget.user,
-                    siteName: widget.siteObject.siteName!,
-                    siteId: widget.siteObject.id!,
-                  ),
-                ),
-                const SliverToBoxAdapter(child: SizedBox(height: 20)),
-                SliverToBoxAdapter(child: _buildTabBar()),
-              ],
-              body: _isLoading
-                  ? const DashboardLoadingScreen()
-                  : TabBarView(
-                controller: _tabController,
-                children: [
-                  DashboardScreen(
-                    dashboardResponse: dashboardResponse!,
-                    scrollController: _scrollController,
-                  ),
-                  TimeLineScreen(
-                    feeds: feeds,
-                    userData: userData,
-                  ),
-                ],
-              ),
+              headerSliverBuilder:
+                  (context, innerBoxIsScrolled) => [
+                    SliverToBoxAdapter(
+                      child: APPBarWidget(
+                        isSiteNameVisible: true,
+                        user: widget.user,
+                        siteName: widget.siteObject.siteName!,
+                        siteId: widget.siteObject.id!,
+                      ),
+                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                    SliverToBoxAdapter(child: _buildTabBar()),
+                  ],
+              body:
+                  _isLoading
+                      ? const DashboardLoadingScreen()
+                      : TabBarView(
+                        controller: _tabController,
+                        children: [
+                          DashboardScreen(
+                            dashboardResponse: dashboardResponse!,
+                            scrollController: _scrollController,
+                            siteObject: widget.siteObject,
+                            user: widget.user,
+                          ),
+                          TimeLineScreen(feeds: feeds, userData: userData),
+                        ],
+                      ),
             ),
           ),
         ),
@@ -133,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   Widget _buildTabBar() {
     return Container(
-      height: 40,
+      height: 30,
       margin: const EdgeInsets.only(left: 20, right: 20, bottom: 15),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -153,22 +156,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             ),
           ],
         ),
-        labelColor: Colors.white,
-        unselectedLabelColor: const Color(0xFF6B7280),
-        labelStyle: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-        ),
+        labelColor: AppColors.primary,
+        unselectedLabelColor: AppColors.colorBlack,
+        labelStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         unselectedLabelStyle: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w500,
         ),
         isScrollable: false,
         indicatorSize: TabBarIndicatorSize.tab,
-        tabs: const [
-          Tab(text: 'Dashboard'),
-          Tab(text: 'Timeline'),
-        ],
+        tabs: const [Tab(text: 'Dashboard'), Tab(text: 'Timeline')],
       ),
     );
   }

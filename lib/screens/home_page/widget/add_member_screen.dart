@@ -1,128 +1,66 @@
 import 'package:contacts_service_plus/contacts_service_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:in_setu/commonWidget/no_data_found.dart';
 import 'package:in_setu/constants/app_colors.dart';
+import 'package:in_setu/networkSupport/ErrorHandler.dart';
+import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
+import 'package:in_setu/screens/home_page/bloc/home_bloc.dart';
+import 'package:in_setu/screens/home_page/model/SiteTeamMemberResponse.dart';
+import 'package:in_setu/screens/home_page/model/UpdateSiteMemberResponse.dart';
+import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
 import 'package:in_setu/supports/utility.dart';
-import 'package:in_setu/widgets/add_contact_widget.dart';
+import 'package:in_setu/screens/home_page/widget/add_contact_widget.dart';
+import 'package:in_setu/widgets/bottomnav.dart';
+
+import '../../project_list/model/AllSitesResponse.dart';
 
 class AddMemberScreen extends StatefulWidget {
-  const AddMemberScreen({super.key});
+  final Data siteObj;
+  final User user;
+  const AddMemberScreen({super.key, required this.siteObj, required this.user});
 
   @override
   State<AddMemberScreen> createState() => _AddMemberScreenState();
 }
 
 class _AddMemberScreenState extends State<AddMemberScreen> {
-  List<Contact> selectedContacts = [];
+
+  final List<Color> backgroundColors = [
+    Color(0xFFb2ae92),
+    Color(0xFF5a9e42),
+    Color(0xFF567cd9),
+    Color(0xFFf5a623),
+    Color(0xFF50e3c2),
+    Color(0xFF9013fe),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<HomeBloc>().add(GetSiteMemberEvent(siteId: widget.siteObj.id));
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            height: 90,
-            color: AppColors.primary,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 20, top: 30),
-              child: Row(
-                children: [
-                  InkWell(
-                    onTap: () => Navigator.pop(context),
-                    child: const SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: Icon(Icons.arrow_back, color: Colors.white),
-                    ),
-                  ),
-                  const SizedBox(width: 20),
-                  const Text(
-                    "Teams",
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+      appBar: AppBar(
+        backgroundColor: AppColors.primary,
+        title: Text(
+          "Teams",
+          style: TextStyle(
+            fontSize: 18,
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
           ),
-          Expanded(
-            child:
-                selectedContacts.isEmpty
-                    ? const Center(
-                      child: Text(
-                        "No members added yet",
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
-                      ),
-                    )
-                    : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: selectedContacts.length,
-                      itemBuilder: (context, index) {
-                        final contact = selectedContacts[index];
-                        return GestureDetector(
-                          onTap: (){
-                            _showContactDetails(context, contact, index);
-                          },
-                          child: Container(
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: Colors.black12,
-                              borderRadius: BorderRadius.all(Radius.circular(15))
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(10.0),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  SizedBox(
-                                    child: Row(
-                                      children: [
-                                        CircleAvatar(
-                                          backgroundColor: Colors.transparent,
-                                          child: Icon(Icons.person),
-                                        ),
-                                        SizedBox(width: 10,),
-                                        Column(
-                                          mainAxisAlignment: MainAxisAlignment.start,
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(contact.displayName ?? 'No name',
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                            SizedBox(height: 2,),
-                                            Text(
-                                              contact.phones?.isNotEmpty ?? false
-                                                  ? contact.phones!.first.value ?? ''
-                                                  : 'No phone number',
-                                            ),
-                                          ],
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(right: 8.0),
-                                    child: Icon(
-                                      Icons.arrow_forward_ios_rounded,
-                                      color: Colors.black,
-                                      size: 15,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-          ),
-        ],
+        ),
+        leading: IconButton(
+          onPressed: (){
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => BottomNavScreen(user: widget.user, siteObject: widget.siteObj,)));
+          },
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+        ),
       ),
       floatingActionButton: Container(
         width: 120.0,
@@ -154,10 +92,115 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
           ),
         ),
       ),
+      body: BlocBuilder<HomeBloc, GlobalApiResponseState>(
+          builder: (context, state){
+            if(state.status == GlobalApiStatus.loading){
+              return Utility.getLoadingView(context);
+            }else if(state.status == GlobalApiStatus.completed){
+              if(state is SiteTeamMemberStateSuccess){
+                if(state.data.data.isNotEmpty){
+                  return getSiteMemberView(state.data.data);
+                }else{
+                  return Center(child: NoDataFound(noDataFoundTxt: "Site member are not found"),);
+                }
+              }
+            }else if(state.status == GlobalApiStatus.error){
+              return ErrorHandler.builderErr(
+                state.message,
+                "Something wrong",
+                context,
+              );
+            }
+            return Center(child: Utility.getLoadingView(context),);
+          }
+      ),
+
     );
   }
 
-  void _showContactDetails(BuildContext context, Contact contact, int index) {
+  Widget getSiteMemberView(List<UserInofoData> siteTeamList){
+   /* List<UserInfo> memberList = siteTeamList.values.toList();*/
+    return Expanded(
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: siteTeamList.length,
+        itemBuilder: (context, index) {
+          final contact = siteTeamList[index];
+          final bgColor = backgroundColors[index % backgroundColors.length];
+          return Padding(
+            padding: const EdgeInsets.all(4.0),
+            child: GestureDetector(
+              onTap: (){
+                _showContactDetails(context, contact, index);
+              },
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                    color: Colors.black12,
+                    borderRadius: BorderRadius.all(Radius.circular(15))
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SizedBox(
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              backgroundColor: bgColor,
+                              child: Text(
+                                  contact.name!
+                                      .split(' ')
+                                      .map((e) => e[0])
+                                      .take(1)
+                                      .join(),
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.colorWhite,
+                                  ),
+                            ),
+                            ),
+                            SizedBox(width: 10,),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(contact.name!,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                SizedBox(height: 2,),
+                                Text(
+                                  contact.contact!,
+                                ),
+                              ],
+                            )
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          color: Colors.black,
+                          size: 15,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+
+  }
+  void _showContactDetails(BuildContext context, UserInofoData contact, int index) {
     showModalBottomSheet(
       backgroundColor: AppColors.colorWhite,
       context: context,
@@ -192,84 +235,48 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
                    ),
                  ),
                ),
-              if (contact.phones?.isNotEmpty ?? false)
-                Padding(
-                  padding: const EdgeInsets.only(top: 5.0, left: 25, right: 30, bottom: 10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 15,),
-                      SizedBox(
-                        width: double.infinity,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: SizedBox(
-                                width: MediaQuery.of(context).size.width,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Utility.subTitle(contact.displayName ?? 'No name', AppColors.colorBlack),
-                                    Utility.smlText(contact.phones!.first.value ?? '', AppColors.colorGray),
-                                  ],
+              Padding(
+                padding: const EdgeInsets.only(top: 5.0, left: 25, right: 30, bottom: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 15,),
+                    SizedBox(
+                      width: double.infinity,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: SizedBox(
+                              width: MediaQuery.of(context).size.width,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Utility.subTitle(contact.name! , AppColors.colorBlack),
+                                  Utility.smlText(contact.contact!, AppColors.colorGray),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.topRight,
+                              child: Text(
+                                "${widget.siteObj.siteName}",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
-                            Expanded(
-                              child: Align(
-                                alignment: Alignment.topRight,
-                                child: Text(
-                                  "shreeji skyrise",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            /* ListTile(
-                        leading: const Icon(Icons.phone),
-                        title: Text(contact.phones!.first.value ?? ''),
-                        subtitle: Text(contact.phones!.first.label ?? ''),
-                      ),*/
-
-                          ],
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-
-              if (contact.emails?.isNotEmpty ?? false)
-                Padding(
-                  padding: const EdgeInsets.only(top: 5.0, left: 25, right: 30, bottom: 10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        child: Text(
-                          'EMAILS',
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
-                        ),
+                          ),
+                        ],
                       ),
-                      ...contact.emails!
-                          .map(
-                            (email) => ListTile(
-                              leading: const Icon(Icons.email),
-                              title: Text(email.value ?? ''),
-                              subtitle: Text(email.label ?? ''),
-                            ),
-                          )
-                          .toList(),
-                    ],
-                  ),
+                    )
+                  ],
                 ),
+              ),
 
               const SizedBox(height: 10),
               Padding(
@@ -309,7 +316,7 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
                         () => {
                           setState(() {
                             Navigator.pop(context);
-                            selectedContacts.removeAt(index);
+
                           }),
                         },
                     child: Text(
@@ -336,15 +343,10 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
       context: context,
       isScrollControlled: true,
       builder: (context) {
-        return AddContactWidget(
-          onContactsSelected: (newlySelectedContacts) {
-            setState(() {
-              // Merge new selections with existing ones
-              selectedContacts = newlySelectedContacts;
-            });
-          },
-          preSelectedContacts: selectedContacts,
-        );
+        return AddContactWidget(siteObj: widget.siteObj,
+        onContactSelected: (){
+          context.read<HomeBloc>().add(GetSiteMemberEvent(siteId: widget.siteObj.id));
+        },);
       },
     );
   }

@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/supports/utility.dart';
-import 'package:in_setu/views/material_view/material_screen.dart';
+import 'package:in_setu/screens/material_view/material_screen.dart';
 import 'package:in_setu/widgets/app_drawer_widget.dart';
 import 'package:in_setu/widgets/custom_app_bar.dart';
 

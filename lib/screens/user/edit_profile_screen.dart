@@ -5,10 +5,13 @@ import 'package:image_picker/image_picker.dart';
 import 'package:in_setu/commonWidget/custom_text_field.dart';
 import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/constants/strings.dart';
+import 'package:in_setu/screens/user/model/ProfileUserResponse.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class EditProfileScreen extends StatefulWidget {
-  const EditProfileScreen({super.key});
+
+  ProfileUserResponse? profileObj;
+  EditProfileScreen({super.key, required this.profileObj});
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -144,7 +147,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
                 onTap: () {
                   Navigator.pop(context);
-                  _handleImageSource(context, ImageSource.gallery);
+                  _pickImageFromGallery();
+                  /*_handleImageSource(context, ImageSource.gallery);*/
                 },
               ),
               if (_profileImage != null) ...[
@@ -179,6 +183,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    if(widget.profileObj!.data != null){
+      firstName.text = widget.profileObj!.data!.firstName!;
+      lastName.text = widget.profileObj!.data!.lastName!;
+      contactNo.text = widget.profileObj!.data!.userMobile!;
+      designerTxt.text = widget.profileObj!.data!.designation!;
+      emailId.text = widget.profileObj!.data!.emailId!;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.colorWhite,
@@ -187,7 +203,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           'Edit Profile',
           style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black),
         ),
-        backgroundColor: AppColors.primary50,
+        backgroundColor: AppColors.primary,
         elevation: 0,
         centerTitle: true,
       ),
@@ -202,7 +218,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           // Top section with gradient background
           Container(
             width: double.infinity,
-            decoration: BoxDecoration(color: AppColors.primary50),
+            decoration: BoxDecoration(color: AppColors.primary),
             child: Column(
               children: [
                 const SizedBox(height: 20),
@@ -358,5 +374,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ],
       ),
     );
+  }
+  Future<void> _pickImageFromGallery() async {
+    final ImagePicker picker = ImagePicker();
+
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      setState(() {
+        _profileImage = File(image.path);
+      });
+    } else {
+      // User canceled
+      debugPrint('No image selected.');
+    }
   }
 }

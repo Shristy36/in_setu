@@ -8,9 +8,9 @@ import 'package:in_setu/networkSupport/ErrorHandler.dart';
 import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
 import 'package:in_setu/supports/DialogManager.dart';
 import 'package:in_setu/supports/utility.dart';
-import 'package:in_setu/views/login_view/model/LoginAuthModel.dart';
-import 'package:in_setu/views/project_list/bloc/sites_bloc.dart';
-import 'package:in_setu/views/project_list/model/AllSitesResponse.dart';
+import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
+import 'package:in_setu/screens/project_list/bloc/sites_bloc.dart';
+import 'package:in_setu/screens/project_list/model/AllSitesResponse.dart';
 import 'package:in_setu/widgets/add_project_widget.dart';
 import 'package:in_setu/widgets/app_drawer_widget.dart';
 import 'package:in_setu/widgets/bottomnav.dart';
@@ -337,19 +337,8 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
         width: double.infinity,
         height: 50,
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFFFB800), Color(0xFFFFA000)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: AppColors.primary,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Color(0xFFFFB800).withOpacity(0.4),
-              blurRadius: 15,
-              offset: Offset(0, 8),
-            ),
-          ],
         ),
         child: Material(
           color: Colors.transparent,

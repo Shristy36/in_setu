@@ -1,4 +1,5 @@
-import '../../support/exceptions/AppException.dart';
+
+import 'package:in_setu/supports/AppException.dart';
 
 enum Status { loading, completed, error, initial }
 

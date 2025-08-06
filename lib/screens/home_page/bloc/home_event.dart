@@ -9,3 +9,16 @@ class GetDashBoardApi extends HomeEvent{
 
   GetDashBoardApi(this.userId);
 }
+
+class GetSiteMemberEvent extends HomeEvent{
+  dynamic siteId;
+  GetSiteMemberEvent({required this.siteId});
+}
+
+/*
+class AddMemberEvent extends HomeEvent{
+  dynamic siteId;
+  final List<Map<String, dynamic>> members;
+  AddMemberEvent({required this.siteId, required this.members});
+
+}*/

@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:in_setu/commonWidget/no_data_found.dart';
 import 'package:in_setu/constants/app_colors.dart';
-import 'package:in_setu/views/chat/chatdetail_screen.dart';
-import 'package:in_setu/views/material_view/material_screen.dart';
+import 'package:in_setu/networkSupport/ErrorHandler.dart';
+import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
+import 'package:in_setu/screens/chat/bloc/chats_bloc.dart';
+import 'package:in_setu/screens/chat/chatdetail_screen.dart';
+import 'package:in_setu/screens/chat/model/ChatsDetailResponse.dart';
+import 'package:in_setu/supports/utility.dart';
 import 'package:in_setu/widgets/app_drawer_widget.dart';
-import 'package:in_setu/widgets/custom_app_bar.dart';
+import 'package:intl/intl.dart';
 
 class ChatListScreen extends StatefulWidget {
   @override
@@ -12,7 +18,7 @@ class ChatListScreen extends StatefulWidget {
 
 class _ChatListScreenState extends State<ChatListScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final List<ChatItem> _allChats = [
+  /*final List<ChatItem> _allChats = [
     ChatItem(
       name: 'Khurshid',
       lastMessage: 'How is the construction progress going?',
@@ -34,26 +40,27 @@ class _ChatListScreenState extends State<ChatListScreen> {
       unreadCount: 1,
       isOnline: false,
     ),
-  ];
-
-  List<ChatItem> _filteredChats = [];
+  ];*/
+  // List<Conversation> listOfChat = [];
+  List<Conversation> _filteredChats = [];
 
   @override
   void initState() {
     super.initState();
-    _filteredChats = _allChats;
+    context.read<ChatsBloc>().add(FetchChatsDetails());
+    // _filteredChats = listOfChat;
     _searchController.addListener(_filterChats);
   }
 
   void _filterChats() {
     setState(() {
       if (_searchController.text.isEmpty) {
-        _filteredChats = _allChats;
+        _filteredChats = _filteredChats;
       } else {
         _filteredChats =
-            _allChats
+            _filteredChats
                 .where(
-                  (chat) => chat.name.toLowerCase().contains(
+                  (chat) => chat.lastMessage!.toLowerCase().contains(
                     _searchController.text.toLowerCase(),
                   ),
                 )
@@ -66,18 +73,44 @@ class _ChatListScreenState extends State<ChatListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: getDrawerItems(context),
-      // backgroundColor: Color(0xFFF8FAFC),
       backgroundColor: Color(0xFFF5F5F5),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            // _buildSearchBar(),
-            Expanded(child: _buildChatList()),
-          ],
-        ),
+      body:BlocBuilder<ChatsBloc, GlobalApiResponseState>(
+        builder: (context, state) {
+          if (state.status == GlobalApiStatus.loading && state.data == null) {
+            return Utility.getLoadingView(context);
+          }
+
+          if (state is ChatsDetailsStateSuccess) {
+            if (state.data.data?.data == null || state.data.data!.data!.isEmpty) {
+              return NoDataFound(noDataFoundTxt: "No Chat list found");
+            }
+            _filteredChats = state.data.data!.data!;
+            return getChattingView(state.data.data!.data!);
+          }
+
+          if (state.status == GlobalApiStatus.error) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              ErrorHandler.errorHandle(state.message, "Invalid", context);
+            });
+            return Center(child: Text('Failed to load projects'));
+          }
+
+
+          return Center(child: Text('Loading...'));
+        },
       ),
       floatingActionButton: _buildFloatingActionButton(),
+    );
+  }
+
+  Widget getChattingView(List<Conversation> chattingList){
+    return SafeArea(
+      child: Column(
+        children: [
+          _buildHeader(),
+          Expanded(child: _buildChatList(chattingList)),
+        ],
+      ),
     );
   }
 
@@ -118,7 +151,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
-  Widget _buildChatList() {
+  Widget _buildChatList(List<Conversation> chattingList) {
     if (_filteredChats.isEmpty) {
       return _buildEmptyState();
     }
@@ -132,7 +165,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
-  Widget _buildChatItem(ChatItem chat, int index) {
+  Widget _buildChatItem(Conversation chat, int index) {
+    // final date = DateFormat('MMM dd, yyyy').format(chat.createdAt);
+    // DateTime time = DateTime.parse(chat.createdAt!);
+
     return Container(
       margin: EdgeInsets.only(bottom: 12, right: 2),
       decoration: BoxDecoration(
@@ -153,7 +189,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => ChatDetailPage("", "")),
+              MaterialPageRoute(builder: (context) => ChatDetailPage(messageList: chat.messages!)),
             );
           },
           child: Padding(
@@ -162,39 +198,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
               children: [
                 Stack(
                   children: [
-                    Container(
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: _getGradientColors(index),
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Center(
-                        child: Icon(
-                          Icons.person,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                      ),
+                    Center(
+                      child: Image.asset("assets/icons/chat.png", width: 35,height: 35, color: Colors.blue,)
                     ),
-                    // if (chat.isOnline)
-                    //   Positioned(
-                    //     right: 2,
-                    //     bottom: 2,
-                    //     child: Container(
-                    //       width: 14,
-                    //       height: 14,
-                    //       decoration: BoxDecoration(
-                    //         color: Color(0xFF10B981),
-                    //         border: Border.all(color: Colors.white, width: 2),
-                    //         borderRadius: BorderRadius.circular(7),
-                    //       ),
-                    //     ),
-                    //   ),
                   ],
                 ),
                 SizedBox(width: 16),
@@ -206,7 +212,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            chat.name,
+                            chat.lastMessage!.isEmpty ? "" : chat.lastMessage!,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -214,7 +220,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                             ),
                           ),
                           Text(
-                            chat.time,
+                            formatDateTime(chat.createdAt!),
                             style: TextStyle(
                               fontSize: 12,
                               color: Color(0xFF6B7280),
@@ -224,43 +230,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                         ],
                       ),
                       SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              chat.lastMessage,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Color(0xFF6B7280),
-                                height: 1.3,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (chat.unreadCount > 0) ...[
-                            SizedBox(width: 8),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Color(0xFF3B82F6),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                '${chat.unreadCount}',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
+
                     ],
                   ),
                 ),
@@ -271,7 +241,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
       ),
     );
   }
-
+  String formatDateTime(String dateString) {
+    final dt = DateTime.parse(dateString);
+    final formatter = DateFormat('dd-MM-yyyy hh:mm a'); // or any other format
+    return formatter.format(dt.toLocal()); // toLocal() converts from UTC to local time
+  }
   Widget _buildEmptyState() {
     return Center(
       child: Column(
@@ -334,6 +308,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 }
 
+/*
 class ChatItem {
   final String name;
   final String lastMessage;
@@ -349,3 +324,4 @@ class ChatItem {
     required this.isOnline,
   });
 }
+*/

@@ -1,19 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-
-import 'package:mbank_app_flutter/configs/Strings.dart';
-import 'package:mbank_app_flutter/network/errorResponse/ResponseError.dart';
-import 'package:mbank_app_flutter/support/ConfigConstants/AppConstants.dart';
-import 'package:mbank_app_flutter/support/exceptions/AppException.dart';
-import 'package:mbank_app_flutter/support/utils/ToastUtils.dart';
-import 'package:mbank_app_flutter/support/utils/extensions/AppLog.dart';
-
 import 'package:dio/dio.dart';
+import 'package:in_setu/networkSupport/ApiConstants.dart';
+import 'package:in_setu/networkSupport/errorResponse/OAuthError.dart';
+import 'package:in_setu/networkSupport/errorResponse/ResponseError.dart';
+import 'package:in_setu/networkSupport/errorResponse/auth_error.dart';
+import 'package:in_setu/supports/AppException.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
-import '../errorResponse/OAuthError.dart';
+import '../../constants/strings.dart' show pleaseTryAgain;
+import '../../supports/AppLog.dart';
 import 'interceptors/authorization_interceptor.dart';
-import 'interceptors/logger_interceptor.dart';
 
 class NetworkService {
   final String tag = "NetworkService";
@@ -23,7 +20,7 @@ class NetworkService {
   NetworkService()
       : dioNetworkService = Dio(
           BaseOptions(
-            baseUrl: AppConstants.baseUrl,
+            baseUrl: ApiConstants.baseUrl,
             connectTimeout: const Duration(seconds: timeoutDuration),
             receiveTimeout: const Duration(seconds: timeoutDuration),
             responseType: ResponseType.json,
@@ -52,7 +49,8 @@ class NetworkService {
       );
       return handleResponse(response);
     } on DioException catch (error) {
-      String errorBody = "${error.response}";
+      // String errorBody = "${error.response}";
+      String errorBody = jsonEncode(error.response?.data ?? {});
       AppLog.e(tag, "error string; $errorBody");
       handleError(errorBody);
     } on Exception catch (error) {
@@ -64,7 +62,8 @@ class NetworkService {
     String endpointUrl,
     Map<String, dynamic>? params,
     Map<String, dynamic>? headers,
-    Map<String, dynamic>? bodyParams,
+    dynamic bodyParams,
+    // Map<String, dynamic>? bodyParams,
   ) async {
     if (headers != null) {
       dioNetworkService.options.headers = headers;
@@ -77,13 +76,68 @@ class NetworkService {
       );
       return handleResponse(response);
     } on DioException catch (error) {
-      String errorBody = "${error.response}";
+      // String errorBody = "${error.response}";
+      String errorBody = jsonEncode(error.response?.data ?? {});
+      print("errorResponse :$errorBody");
       handleError(errorBody);
     } on Exception catch (error) {
       AppLog.e("Network service", "Error on post method : " + error.toString());
       throw AppException(error.toString());
     }
   }
+  Future<dynamic> put(
+      String endpointUrl,
+      Map<String, dynamic>? params,
+      Map<String, dynamic>? headers,
+      dynamic bodyParams,
+      ) async {
+    if (headers != null) {
+      dioNetworkService.options.headers = headers;
+    }
+
+    try {
+      final response = await dioNetworkService.put(
+        endpointUrl,
+        queryParameters: params,
+        data: bodyParams,
+      );
+      return handleResponse(response);
+    } on DioException catch (error) {
+      String errorBody = jsonEncode(error.response?.data ?? {});
+      print("errorResponse :$errorBody");
+      handleError(errorBody);
+      throw AppException(error.message ?? 'Unknown error');
+    } on Exception catch (error) {
+      AppLog.e("Network service", "Error on put method: ${error.toString()}");
+      throw AppException(error.toString());
+    }
+  }
+  Future<dynamic> delete(
+      String endpointUrl,
+      Map<String, dynamic>? params,
+      Map<String, dynamic>? headers,
+      dynamic bodyParams,
+      ) async {
+    if (headers != null) {
+      dioNetworkService.options.headers = headers;
+    }
+    try {
+      final response = await dioNetworkService.delete(
+        endpointUrl,
+        queryParameters: params,
+        data: bodyParams,
+      );
+      return handleResponse(response);
+    } on DioException catch (error) {
+      String errorBody = jsonEncode(error.response?.data ?? {});
+      AppLog.e(tag, "Delete error: $errorBody");
+      handleError(errorBody);
+    } on Exception catch (error) {
+      AppLog.e(tag, "Delete method error: $error");
+      throw AppException(error.toString());
+    }
+  }
+
 
   Future<dynamic> postMultiPart(
     String endpointUrl,
@@ -101,7 +155,8 @@ class NetworkService {
       } else if (response.statusCode == 200) {
         //BotToast is a package for toasts available on pub.dev
 
-        Toastutils.showToast('Validation Error Occurs');
+        // Toastutils.showToast('Validation Error Occurs');
+        print("Validation error Occurs");
 
         return false;
       }
@@ -114,6 +169,7 @@ class NetworkService {
   dynamic handleResponse(Response response) {
     switch (response.statusCode) {
       case 200:
+      case 201:
         //return response.data;
 
         Map<String, dynamic> jsonMap = response.data as Map<String, dynamic>;
@@ -161,14 +217,14 @@ class NetworkService {
       if (responseError.message != null) {
         return responseError.message!;
       } else {
-        return Strings.pleaseTryAgain;
+        return pleaseTryAgain;
       }
     } else {
-      return Strings.pleaseTryAgain;
+      return pleaseTryAgain;
     }
   }
 
-  handleError(String errorBody) {
+  /*handleError(String errorBody) {
     OAuthError? oAuthError;
     try {
       oAuthError = OAuthError.fromJson(jsonDecode(errorBody));
@@ -191,10 +247,51 @@ class NetworkService {
       if (responseError.message != null) {
         errorMsg = responseError.message!;
       } else {
-        errorMsg = Strings.pleaseTryAgain;
+        errorMsg = pleaseTryAgain;
       }
     } else {
-      errorMsg = Strings.pleaseTryAgain;
+      errorMsg = pleaseTryAgain;
+    }
+
+    //msg for access token expired
+    //errorMsg = '{"error":"invalid_token","error_description":"Access token expired: 270f7b1e-072d-4703-aac5-f9c6b7879ffd"}';
+    if (errorMsg.contains("Bad credentials")) {
+      throw BadRequestException(errorMsg);
+    } else if (errorMsg.contains("unauthorized device.")) {
+      throw UnauthorisedException(errorMsg);
+    } else if (errorMsg.contains("Access token expired") || errorMsg.contains("Invalid access token") || errorMsg.contains("invalid_token")) {
+      throw AccessTokenExpiredException("Access token expired");
+    } else {
+      throw AppException(errorMsg);
+    }
+  }*/
+  handleError(String errorBody) {
+    OAuthError? oAuthError;
+    try {
+      oAuthError = OAuthError.fromJson(jsonDecode(errorBody));
+      AppLog.d("NetworkService", "parsed as oauth");
+    } catch (e) {
+      AppLog.d("NetworkService", "unable to parse OAuthError ");
+    }
+
+    AuthError? authError;
+    try {
+      authError = AuthError.fromJson(jsonDecode(errorBody));
+    } catch (e) {
+      AppLog.d("NetworkService", "unable to parse Response error");
+    }
+
+    String errorMsg = "This is error";
+    if (oAuthError != null) {
+      errorMsg = oAuthError.errorDescription;
+    } else if (authError != null) {
+      if (authError.message != null) {
+        errorMsg = authError.message!;
+      } else {
+        errorMsg = pleaseTryAgain;
+      }
+    } else {
+      errorMsg = pleaseTryAgain;
     }
 
     //msg for access token expired

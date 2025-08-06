@@ -4,7 +4,7 @@
 class UpdateSiteMemberResponse {
   UpdateSiteMemberResponse({
       bool? success, 
-      List<Data>? data,}){
+      List<UserInofoData>? data,}){
     _success = success;
     _data = data;
 }
@@ -14,19 +14,19 @@ class UpdateSiteMemberResponse {
     if (json['data'] != null) {
       _data = [];
       json['data'].forEach((v) {
-        _data?.add(Data.fromJson(v));
+        _data?.add(UserInofoData.fromJson(v));
       });
     }
   }
   bool? _success;
-  List<Data>? _data;
+  List<UserInofoData>? _data;
 UpdateSiteMemberResponse copyWith({  bool? success,
-  List<Data>? data,
+  List<UserInofoData>? data,
 }) => UpdateSiteMemberResponse(  success: success ?? _success,
   data: data ?? _data,
 );
   bool? get success => _success;
-  List<Data>? get data => _data;
+  List<UserInofoData>? get data => _data;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -45,8 +45,8 @@ UpdateSiteMemberResponse copyWith({  bool? success,
 /// con_style : "display: flex;justify-content: center;align-items: center; border-radius: 50px; color: white; font-size: 20px; font-weight: bold; background:#418816; height:75%; width:75%; "
 /// isAdmin : false
 
-class Data {
-  Data({
+class UserInofoData {
+  UserInofoData({
       String? name, 
       String? contact, 
       String? conShort, 
@@ -59,7 +59,7 @@ class Data {
     _isAdmin = isAdmin;
 }
 
-  Data.fromJson(dynamic json) {
+  UserInofoData.fromJson(dynamic json) {
     _name = json['name'];
     _contact = json['contact'];
     _conShort = json['con_short'];
@@ -71,12 +71,12 @@ class Data {
   String? _conShort;
   String? _conStyle;
   bool? _isAdmin;
-Data copyWith({  String? name,
+  UserInofoData copyWith({  String? name,
   String? contact,
   String? conShort,
   String? conStyle,
   bool? isAdmin,
-}) => Data(  name: name ?? _name,
+}) => UserInofoData(  name: name ?? _name,
   contact: contact ?? _contact,
   conShort: conShort ?? _conShort,
   conStyle: conStyle ?? _conStyle,

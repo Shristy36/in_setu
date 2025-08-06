@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:in_setu/constants/app_colors.dart';
-import 'package:in_setu/views/login_view/sign_in_screen.dart';
-import 'package:in_setu/views/walkthrough_screen/onboarding_contents.dart';
-import 'package:in_setu/views/walkthrough_screen/size_config.dart';
+import 'package:in_setu/screens/login_view/sign_in_screen.dart';
+import 'package:in_setu/screens/walkthrough_screen/onboarding_contents.dart';
+import 'package:in_setu/screens/walkthrough_screen/size_config.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({Key? key}) : super(key: key);

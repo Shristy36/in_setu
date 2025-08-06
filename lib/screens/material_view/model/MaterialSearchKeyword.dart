@@ -4,7 +4,7 @@
 class MaterialSearchKeyword {
   MaterialSearchKeyword({
       bool? success, 
-      List<Data>? data,}){
+      List<SearchData>? data,}){
     _success = success;
     _data = data;
 }
@@ -14,19 +14,19 @@ class MaterialSearchKeyword {
     if (json['data'] != null) {
       _data = [];
       json['data'].forEach((v) {
-        _data?.add(Data.fromJson(v));
+        _data?.add(SearchData.fromJson(v));
       });
     }
   }
   bool? _success;
-  List<Data>? _data;
+  List<SearchData>? _data;
 MaterialSearchKeyword copyWith({  bool? success,
-  List<Data>? data,
+  List<SearchData>? data,
 }) => MaterialSearchKeyword(  success: success ?? _success,
   data: data ?? _data,
 );
   bool? get success => _success;
-  List<Data>? get data => _data;
+  List<SearchData>? get data => _data;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -48,8 +48,8 @@ MaterialSearchKeyword copyWith({  bool? success,
 /// categoryName : "Civil Work Materials"
 /// created_at : "2025-01-18T02:03:51.000000Z"
 
-class Data {
-  Data({
+class SearchData {
+  SearchData({
       num? id, 
       String? name, 
       num? defaultUoMId, 
@@ -68,7 +68,7 @@ class Data {
     _createdAt = createdAt;
 }
 
-  Data.fromJson(dynamic json) {
+  SearchData.fromJson(dynamic json) {
     _id = json['id'];
     _name = json['name'];
     _defaultUoMId = json['defaultUoMId'];
@@ -86,7 +86,7 @@ class Data {
   num? _categoryId;
   String? _categoryName;
   String? _createdAt;
-Data copyWith({  num? id,
+  SearchData copyWith({  num? id,
   String? name,
   num? defaultUoMId,
   String? defaultUomName,
@@ -94,7 +94,7 @@ Data copyWith({  num? id,
   num? categoryId,
   String? categoryName,
   String? createdAt,
-}) => Data(  id: id ?? _id,
+}) => SearchData(  id: id ?? _id,
   name: name ?? _name,
   defaultUoMId: defaultUoMId ?? _defaultUoMId,
   defaultUomName: defaultUomName ?? _defaultUomName,

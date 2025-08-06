@@ -6,9 +6,9 @@ import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/networkSupport/ApiConstants.dart';
 import 'package:in_setu/networkSupport/ErrorHandler.dart';
 import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
-import 'package:in_setu/views/user/bloc/profile_bloc.dart';
-import 'package:in_setu/views/user/loadingscreen.dart';
-import 'package:in_setu/views/user/model/ProfileUserResponse.dart';
+import 'package:in_setu/screens/user/bloc/profile_bloc.dart';
+import 'package:in_setu/screens/user/loadingscreen.dart';
+import 'package:in_setu/screens/user/model/ProfileUserResponse.dart';
 
 import 'edit_profile_screen.dart';
 
@@ -39,7 +39,7 @@ class _ProfilePageState extends State<ProfilePage> {
           'Profile',
           style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black),
         ),
-        backgroundColor: AppColors.primary50,
+        backgroundColor: AppColors.primary,
         elevation: 0,
         centerTitle: true,
       ),
@@ -82,11 +82,10 @@ class _ProfilePageState extends State<ProfilePage> {
           // Top section with gradient background
           Container(
             width: double.infinity,
-            decoration: BoxDecoration(color: AppColors.primary50),
+            decoration: BoxDecoration(color: AppColors.primary),
             child: Column(
               children: [
                 const SizedBox(height: 20),
-                // Profile Picture with Edit Button
                 Stack(
                   alignment: Alignment.bottomRight,
                   children: [
@@ -236,7 +235,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   const SizedBox(height: 30),
                   GestureDetector(
                     onTap: (){
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => EditProfileScreen()));
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => EditProfileScreen(profileObj: profileUserResponse)));
                     },
                     child: Container(
                       height: 50,

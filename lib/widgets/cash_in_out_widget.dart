@@ -1,17 +1,29 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_switch/flutter_switch.dart';
 import 'package:in_setu/constants/app_colors.dart';
+import 'package:in_setu/networkSupport/ErrorHandler.dart';
+import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
+import 'package:in_setu/screens/cash_details_view/bloc/cashbook_bloc.dart';
+import 'package:in_setu/supports/LoadingDialog.dart';
+import 'package:in_setu/supports/utility.dart';
 import 'package:intl/intl.dart';
+
+import '../screens/cash_details_view/model/CashbookDetailResponse.dart';
 
 class CashInOutWidget extends StatefulWidget {
   final String cashTitle;
   final String type;
-  final Function(CashInOutModel) onSave;
+  final Data? cashBookObj;
+  final Function(bool) transactionAdd;
 
   const CashInOutWidget({
     super.key,
     required this.cashTitle,
     required this.type,
-    required this.onSave,
+    required this.cashBookObj,
+    required this.transactionAdd,
   });
 
   @override
@@ -25,21 +37,74 @@ class _CashInOutWidgetState extends State<CashInOutWidget> {
   final remarkTV = TextEditingController();
   String date = "";
   final cashInOutKey = GlobalKey<FormState>();
-  late CashInOutModel cashInOutModel;
+  final transactionKeyForm = GlobalKey<FormState>();
+  bool isCashIn = true;
+  String fileName = "";
 
   @override
   void initState() {
     super.initState();
     title = widget.cashTitle;
     type = widget.type;
-    date = DateFormat('dd-MM-yyyy').format(DateTime.now());
+    date = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    if(type.contains("cashin")){
+      isCashIn = true;
+    }else{
+      isCashIn = false;
+    }
+  }
+  @override
+  void didUpdateWidget(CashInOutWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+  }
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: Colors.black54,
-      child: Center(
+      child: BlocListener<CashbookBloc, GlobalApiResponseState>(
+        listener: (context, state) {
+          switch (state.status) {
+            case GlobalApiStatus.loading:
+              // LoadingDialog.show(context, key: ObjectKey("Loading......"));
+              break;
+            case GlobalApiStatus.completed:
+              LoadingDialog.hide(context);
+              if(state is AddTransactionCashBookStateSuccess){
+                Future.microtask(() {
+                  Navigator.of(context, rootNavigator: true).pop();
+                  widget.transactionAdd(true);
+                  // Utility.showToast(state.data.messase);
+                });
+              }
+              break;
+            case GlobalApiStatus.error:
+               LoadingDialog.hide(context);
+               ErrorHandler.errorHandle(state.message, "Error", context);
+              break;
+            default:
+              LoadingDialog.hide(context);
+          }
+        },
+        child: _buildMainView(),
+      ),
+    );
+  }
+
+  Widget _buildMainView() {
+    return Center(
+      child: SingleChildScrollView(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          left: 20,
+          right: 20,
+          top: 20,
+        ),
         child: Container(
           margin: const EdgeInsets.all(20),
           constraints: BoxConstraints(
@@ -48,7 +113,7 @@ class _CashInOutWidgetState extends State<CashInOutWidget> {
           ),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(5),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.2),
@@ -58,11 +123,36 @@ class _CashInOutWidgetState extends State<CashInOutWidget> {
             ],
           ),
           child: Form(
+            key: transactionKeyForm,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 _buildHeader(),
-                SizedBox(height: 20),
+                SizedBox(height: 15),
+                Align(alignment: Alignment.bottomRight,
+                child: SizedBox(
+                  width: 100,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 20),
+                    child: FlutterSwitch(
+                      value: isCashIn,
+                      onToggle: (val) {
+                        setState(() {
+                          isCashIn = val;
+                        });
+                      },
+                      activeText: "In",
+                      inactiveText: "Out",
+                      showOnOff: true,
+                      activeColor: AppColors.primary,
+                      inactiveColor: Colors.grey,
+                      width: 65.0,
+                      height: 30.0,
+                      borderRadius: 20.0,
+                    ),
+                  ),
+                ),),
+                SizedBox(height: 15),
                 Center(
                   child: GestureDetector(
                     onTap: () async {
@@ -86,7 +176,7 @@ class _CashInOutWidgetState extends State<CashInOutWidget> {
                       }
                     },
                     child: Container(
-                      width: 200,
+                      width: 150,
                       height: 45,
                       decoration: BoxDecoration(
                         color: Colors.black12,
@@ -106,103 +196,138 @@ class _CashInOutWidgetState extends State<CashInOutWidget> {
                   ),
                 ),
                 SizedBox(height: 20),
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: TextFormField(
-                    validator: (value){
-                      if(value == null || value.isEmpty){
-                        return "Please enter amount";
-                      }
-                    },
-                    controller: amountTV,
-                    decoration: InputDecoration(
-                      labelText: 'Amount',
-                      prefixIcon: Icon(
-                        Icons.currency_rupee_rounded,
-                        color: Colors.grey.shade600,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                          color: Colors.blue.shade400,
-                          width: 2,
+                SizedBox(
+                  width: 300,
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 20.0, right: 20.0),
+                        child: TextFormField(
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return "Please enter amount";
+                            }
+                            return null;
+                          },
+                          controller: amountTV,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelStyle: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
+                            labelText: 'Amount',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(color: Colors.grey.shade300),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                color: AppColors.primary,
+                                width: 2,
+                              ),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                          ),
                         ),
                       ),
-                      filled: true,
-                      fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
+                      SizedBox(height: 20),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 20.0, left: 20.0),
+                        child: TextFormField(
+                          validator: (value){
+                            if (value == null || value.isEmpty) {
+                              return "Please enter remark";
+                            }
+                            return null;
+                          },
+                          controller: remarkTV,
+                          decoration: InputDecoration(
+                            labelStyle: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
+                            labelText: 'Remark',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(color: Colors.grey.shade300),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                color: AppColors.primary,
+                                width: 2,
+                              ),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 15,),
+                Align(alignment: Alignment.bottomRight,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 20.0),
+                  child: GestureDetector(
+                    onTap: () async{
+                      FilePickerResult? result = await FilePicker.platform.pickFiles();
+                      if (result != null) {
+                        PlatformFile file = result.files.first;
+                        setState(() {
+                          fileName = file.name;
+                        });
+                        print('File name: ${file.name}');
+                        print('File path: ${file.path}');
+                        // You can now upload, display or process the file
+                      } else {
+                        Utility.showToast("No file selected");
+                      }
+                    },
+                    child: SizedBox(
+                      width: 160,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 5.0, bottom: 5.0, right: 25),
+                        child: Row(
+                          children: [
+                            Image.asset("assets/icons/file_icon.png", width: 25,height: 25,),
+                            SizedBox(width: 5,),
+                            Expanded(child: Text(fileName.isEmpty ? "File Attachment" : fileName,maxLines: 1, style: TextStyle(fontSize: 12,color: AppColors.colorGray,fontStyle: FontStyle.italic,), overflow: TextOverflow.ellipsis))
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-                SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: TextFormField(
-                    // key: cashInOutKey,
-                    validator: (value){
-                      if(value == null || value.isEmpty){
-                        return "Please enter remark";
-                      }
-                    },
-                    controller: remarkTV,
-                    decoration: InputDecoration(
-                      labelText: 'Remark',
-                      prefixIcon: Icon(
-                        Icons.edit_note,
-                        color: Colors.grey.shade600,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                          color: Colors.blue.shade400,
-                          width: 2,
-                        ),
-                      ),
-                      filled: true,
-                      fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
-                ),
+                )),
+                SizedBox(height: 15,),
                 Padding(
                   padding: const EdgeInsets.all(10),
                   child: GestureDetector(
                     onTap: () {
-                      // Validate inputs
-                      if (amountTV.text.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please enter amount')),
+                      if (transactionKeyForm.currentState!.validate()) {
+                        context.read<CashbookBloc>().add(
+                          AddTransactionCashBookEvent(
+                            bookId: widget.cashBookObj?.id ?? 0,
+                            siteId: widget.cashBookObj?.siteId ?? 0,
+                            toggleValue:  isCashIn,
+                            amount: amountTV.text,
+                            remark: remarkTV.text,
+                            currentDate: date,
+                          ),
                         );
-                        return;
                       }
-
-                      // Create the model
-                      final cashInOutModel = CashInOutModel(
-                        date: date,
-                        amount: amountTV.text.trim(),
-                        remark: remarkTV.text.trim(),
-                        type: widget.type
-                      );
-
-                      // Pass data back via callback
-                      widget.onSave(cashInOutModel);
-
-                      // Close the dialog
-                      Navigator.of(context).pop();
                     },
                     child: Container(
                       width: 120,
@@ -220,6 +345,7 @@ class _CashInOutWidgetState extends State<CashInOutWidget> {
                     ),
                   ),
                 ),
+                SizedBox(height: 15,),
               ],
             ),
           ),
@@ -229,41 +355,23 @@ class _CashInOutWidgetState extends State<CashInOutWidget> {
   }
 
   Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 20.0, left: 20),
+          child: Text(
+            isCashIn ? "Cash In" : "Cash Out",
+            style: TextStyle(
+              color: AppColors.colorBlack,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(
-              Icons.currency_rupee_rounded,
-              color: Colors.white,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              title,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          GestureDetector(
+        Padding(
+          padding: const EdgeInsets.only(top: 20.0, right: 20.0),
+          child: GestureDetector(
             onTap: () => Navigator.of(context).pop(),
             child: Container(
               padding: const EdgeInsets.all(8),
@@ -271,25 +379,11 @@ class _CashInOutWidgetState extends State<CashInOutWidget> {
                 color: Colors.white.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.close, color: Colors.white, size: 20),
+              child: const Icon(Icons.close, color: AppColors.colorBlack, size: 25),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
-}
-
-class CashInOutModel {
-  final String date;
-  final String amount;
-  final String remark;
-  final String type;
-
-  CashInOutModel({
-    required this.date,
-    required this.amount,
-    required this.remark,
-    required this.type
-  });
 }

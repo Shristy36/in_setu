@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:mbank_app_flutter/support/exceptions/AppException.dart';
+import 'package:in_setu/supports/AppException.dart';
 
 part 'ApiResult.freezed.dart';
 

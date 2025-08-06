@@ -4,11 +4,11 @@ import 'package:bloc/bloc.dart';
 import 'package:in_setu/networkSupport/base/ApiResult.dart';
 import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
 import 'package:in_setu/supports/AppException.dart';
-import 'package:in_setu/views/project_list/model/CreateSiteResponse.dart';
-import 'package:in_setu/views/project_list/model/AllSitesResponse.dart';
-import 'package:in_setu/views/project_list/model/SiteDeleteResponse.dart';
-import 'package:in_setu/views/project_list/model/SiteUpdateResponse.dart';
-import 'package:in_setu/views/project_list/repository/all_sites_repository.dart';
+import 'package:in_setu/screens/project_list/model/CreateSiteResponse.dart';
+import 'package:in_setu/screens/project_list/model/AllSitesResponse.dart';
+import 'package:in_setu/screens/project_list/model/SiteDeleteResponse.dart';
+import 'package:in_setu/screens/project_list/model/SiteUpdateResponse.dart';
+import 'package:in_setu/screens/project_list/repository/all_sites_repository.dart';
 import 'package:meta/meta.dart';
 
 part 'sites_event.dart';

@@ -1,30 +1,34 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:mbank_app_flutter/network/ApiConstants.dart';
-import 'package:mbank_app_flutter/support/utils/extensions/AppLog.dart';
-
-import '../../../support/utils/SharedPreferenceManager.dart';
-import '../../apiResponse/OAuth.dart';
+import 'package:in_setu/networkSupport/ApiConstants.dart';
+import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
+import 'package:in_setu/supports/AppLog.dart';
+import 'package:in_setu/supports/share_preference_manager.dart';
+// import 'package:in_setu/views/login_view/model/LoginAuthModel.dart';
 
 class AuthorizationInterceptor extends Interceptor {
   @override
   Future<void> onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
-    if (options.path != ApiConstants.oAuthUrl) {
-      OAuth? oAuth = await SharedPreferenceManager.getOAuth();
-      if (oAuth != null) {
-        /*  options.headers = {
-          HttpHeaders.authorizationHeader: 'bearer ${oAuth.accessToken}',
-        };*/
-        Map<String, String> authHeader = {
-          HttpHeaders.authorizationHeader: 'bearer ${oAuth.accessToken}'
-        };
-        options.headers.addAll(authHeader);
+    // Initialize headers if null
+    options.headers ??= {};
+
+    // Only add auth header for non-auth endpoints
+    if (options.path != ApiConstants.authUrl) {
+      LoginAuthModel? oAuth = await SharedPreferenceManager.getOAuth();
+      if (oAuth != null && oAuth.accessToken != null) {
+        options.headers[HttpHeaders.authorizationHeader] =
+        'Bearer ${oAuth.accessToken}';
       }
     }
-    AppLog.i("AuthorizationInterceptor", "${options.headers}");
 
+    // Ensure consistent content-type
+    if (!options.headers.containsKey(HttpHeaders.contentTypeHeader)) {
+      options.headers[HttpHeaders.contentTypeHeader] = 'application/json';
+    }
+
+    AppLog.i("AuthorizationInterceptor", "${options.headers}");
     super.onRequest(options, handler);
   }
 }

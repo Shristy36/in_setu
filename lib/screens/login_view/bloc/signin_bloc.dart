@@ -3,9 +3,8 @@ import 'package:in_setu/networkSupport/base/ApiResult.dart';
 import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
 import 'package:in_setu/supports/AppException.dart';
 import 'package:in_setu/supports/share_preference_manager.dart';
-import 'package:in_setu/views/login_view/model/LoginAuthModel.dart';
-import 'package:in_setu/views/login_view/repository/signin_repo.dart';
-import 'package:meta/meta.dart';
+import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
+import 'package:in_setu/screens/login_view/repository/signin_repo.dart';
 
 part 'signin_event.dart';
 

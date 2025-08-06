@@ -35,3 +35,17 @@ class ResponseError {
     return map;
   }
 }
+
+class AuthResponseError {
+  final String? message;
+  final bool? status;
+
+  AuthResponseError({this.message, this.status});
+
+  factory AuthResponseError.fromJson(Map<String, dynamic> json) {
+    return AuthResponseError(
+      message: json['message'] as String?,
+      status: json['status'] as bool?,
+    );
+  }
+}

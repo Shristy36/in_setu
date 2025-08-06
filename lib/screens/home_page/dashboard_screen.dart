@@ -2,14 +2,20 @@ import 'package:flutter/material.dart' hide Material;
 import 'package:in_setu/commonWidget/auto_sliding_images.dart';
 import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/constants/strings.dart';
+import 'package:in_setu/screens/home_page/widget/add_member_screen.dart';
+import 'package:in_setu/screens/home_page/model/DashBoardResponse.dart';
+import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
 import 'package:in_setu/supports/utility.dart';
-import 'package:in_setu/views/add_member_screen.dart';
-import 'package:in_setu/views/home_page/model/DashBoardResponse.dart';
+
+import '../project_list/model/AllSitesResponse.dart';
+
 
 class DashboardScreen extends StatefulWidget {
   final DashboardResponse dashboardResponse;
   final ScrollController scrollController;
-  const DashboardScreen({super.key, required this.dashboardResponse, required this.scrollController});
+  final Data siteObject;
+  final User user;
+  const DashboardScreen({super.key, required this.dashboardResponse, required this.scrollController, required this.siteObject, required this.user});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -178,7 +184,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => AddMemberScreen(),
+                        builder: (context) => AddMemberScreen(siteObj: widget.siteObject, user : widget.user),
                       ),
                     ),
                   },
