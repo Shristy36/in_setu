@@ -7,11 +7,19 @@ import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
 import 'package:in_setu/screens/chat/bloc/chats_bloc.dart';
 import 'package:in_setu/screens/chat/chatdetail_screen.dart';
 import 'package:in_setu/screens/chat/model/ChatsDetailResponse.dart';
+import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
 import 'package:in_setu/supports/utility.dart';
 import 'package:in_setu/widgets/app_drawer_widget.dart';
+import 'package:in_setu/widgets/bottomnav.dart';
 import 'package:intl/intl.dart';
 
+import '../project_list/model/AllSitesResponse.dart';
+
 class ChatListScreen extends StatefulWidget {
+  final Data siteObject;
+  final User user;
+  ChatListScreen({super.key, required this.siteObject, required this.user});
+
   @override
   _ChatListScreenState createState() => _ChatListScreenState();
 }
@@ -71,35 +79,41 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      drawer: getDrawerItems(context),
-      backgroundColor: Color(0xFFF5F5F5),
-      body:BlocBuilder<ChatsBloc, GlobalApiResponseState>(
-        builder: (context, state) {
-          if (state.status == GlobalApiStatus.loading && state.data == null) {
-            return Utility.getLoadingView(context);
-          }
-
-          if (state is ChatsDetailsStateSuccess) {
-            if (state.data.data?.data == null || state.data.data!.data!.isEmpty) {
-              return NoDataFound(noDataFoundTxt: "No Chat list found");
+    return WillPopScope(
+      onWillPop: () async{
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => BottomNavScreen(user: widget.user, siteObject: widget.siteObject,)));
+        return true;
+      },
+      child: Scaffold(
+        drawer: getDrawerItems(context),
+        backgroundColor: Color(0xFFF5F5F5),
+        body:BlocBuilder<ChatsBloc, GlobalApiResponseState>(
+          builder: (context, state) {
+            if (state.status == GlobalApiStatus.loading && state.data == null) {
+              return Utility.getLoadingView(context);
             }
-            _filteredChats = state.data.data!.data!;
-            return getChattingView(state.data.data!.data!);
-          }
 
-          if (state.status == GlobalApiStatus.error) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              ErrorHandler.errorHandle(state.message, "Invalid", context);
-            });
-            return Center(child: Text('Failed to load projects'));
-          }
+            if (state is ChatsDetailsStateSuccess) {
+              if (state.data.data?.data == null || state.data.data!.data!.isEmpty) {
+                return NoDataFound(noDataFoundTxt: "No Chat list found");
+              }
+              _filteredChats = state.data.data!.data!;
+              return getChattingView(state.data.data!.data!);
+            }
+
+            if (state.status == GlobalApiStatus.error) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                ErrorHandler.errorHandle(state.message, "Invalid", context);
+              });
+              return Center(child: Text('Failed to load projects'));
+            }
 
 
-          return Center(child: Text('Loading...'));
-        },
+            return Center(child: Text('Loading...'));
+          },
+        ),
+        floatingActionButton: _buildFloatingActionButton(),
       ),
-      floatingActionButton: _buildFloatingActionButton(),
     );
   }
 

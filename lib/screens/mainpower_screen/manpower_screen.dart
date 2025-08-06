@@ -4,19 +4,21 @@ import 'package:in_setu/commonWidget/no_data_found.dart';
 import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/networkSupport/ErrorHandler.dart';
 import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
+import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
 import 'package:in_setu/screens/mainpower_screen/bloc/man_power_bloc.dart';
 import 'package:in_setu/screens/mainpower_screen/delete_dialog/delete_dailogview.dart';
 import 'package:in_setu/screens/mainpower_screen/manpower_loading_screen.dart';
 import 'package:in_setu/screens/mainpower_screen/model/ManPowerModelResponse.dart';
 import 'package:in_setu/widgets/add_manpower_widget.dart';
 import 'package:in_setu/widgets/app_drawer_widget.dart';
+import 'package:in_setu/widgets/bottomnav.dart';
 
 import '../project_list/model/AllSitesResponse.dart';
 
 class ManpowerScreen extends StatefulWidget {
   final Data siteObject;
-
-  const ManpowerScreen({super.key, required this.siteObject});
+  final User user;
+  const ManpowerScreen({super.key, required this.siteObject, required this.user});
 
   @override
   _ManpowerScreenState createState() => _ManpowerScreenState();
@@ -92,68 +94,74 @@ class _ManpowerScreenState extends State<ManpowerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      drawer: getDrawerItems(context),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.primary,
-        onPressed: () {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => AddManpowerWidget(
-              siteObject: widget.siteObject,
-              manPowerAdded:()=> _fetchInitialData(),
-            ),
-          );
-        },
-        tooltip: 'Add Requirements',
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-      backgroundColor: const Color(0xFFF5F5F5),
-      body: SafeArea(
-        child:BlocListener<ManPowerBloc, GlobalApiResponseState>(
-          listener: (context, state) {
-            switch (state.status) {
-              case GlobalApiStatus.loading:
-                setState(() => _isLoading = true);
-                break;
-              case GlobalApiStatus.completed:
-                // setState(() => _isLoading = false);
-                if (state is ManPowerStateSuccess && !_isDateListLoaded) {
-                  setState(() {
-                    _isLoading = false;
-                  });
-                  _isDateListLoaded = true;
-                  dateList = state.data.allDates ?? [];
-                  if (dateList.isNotEmpty && selectedDate.isEmpty) {
-                    selectedDate = dateList[currentPage].date ?? '';
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      _fetchDataForCurrentPage();
-                    });
-                  }
-                } else if(state is ManPowerDateStateSuccess){
-                    manPowerDataList = state.data.data ?? [];
+    return WillPopScope(
+      onWillPop: () async{
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => BottomNavScreen(user: widget.user, siteObject: widget.siteObject,)));
+        return true;
+      },
+      child: Scaffold(
+        drawer: getDrawerItems(context),
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: AppColors.primary,
+          onPressed: () {
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => AddManpowerWidget(
+                siteObject: widget.siteObject,
+                manPowerAdded:()=> _fetchInitialData(),
+              ),
+            );
+          },
+          tooltip: 'Add Requirements',
+          child: const Icon(Icons.add, color: Colors.white),
+        ),
+        backgroundColor: const Color(0xFFF5F5F5),
+        body: SafeArea(
+          child:BlocListener<ManPowerBloc, GlobalApiResponseState>(
+            listener: (context, state) {
+              switch (state.status) {
+                case GlobalApiStatus.loading:
+                  setState(() => _isLoading = true);
+                  break;
+                case GlobalApiStatus.completed:
+                  // setState(() => _isLoading = false);
+                  if (state is ManPowerStateSuccess && !_isDateListLoaded) {
                     setState(() {
                       _isLoading = false;
                     });
-                }
-                break;
-              case GlobalApiStatus.error:
-                setState(() => _isLoading = false);
-                ErrorHandler.errorHandle(
-                  state.message,
-                  "Something wrong",
-                  context,
-                );
-                break;
-              default:
-                setState(() {
-                  _isLoading = false;
-                });
-            }
-          },
-          child: getManPowerView(),
-        )
+                    _isDateListLoaded = true;
+                    dateList = state.data.allDates ?? [];
+                    if (dateList.isNotEmpty && selectedDate.isEmpty) {
+                      selectedDate = dateList[currentPage].date ?? '';
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        _fetchDataForCurrentPage();
+                      });
+                    }
+                  } else if(state is ManPowerDateStateSuccess){
+                      manPowerDataList = state.data.data ?? [];
+                      setState(() {
+                        _isLoading = false;
+                      });
+                  }
+                  break;
+                case GlobalApiStatus.error:
+                  setState(() => _isLoading = false);
+                  ErrorHandler.errorHandle(
+                    state.message,
+                    "Something wrong",
+                    context,
+                  );
+                  break;
+                default:
+                  setState(() {
+                    _isLoading = false;
+                  });
+              }
+            },
+            child: getManPowerView(),
+          )
+        ),
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/networkSupport/ErrorHandler.dart';
 import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
+import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
 import 'package:in_setu/screens/material_view/bloc/material_stock_bloc.dart';
 import 'package:in_setu/screens/material_view/model/MaterialSearchKeyword.dart';
 import 'package:in_setu/screens/material_view/model/MaterialStockReponse.dart';
@@ -12,14 +13,15 @@ import 'package:in_setu/screens/material_view/tab_views/stock_content_screen.dar
 import 'package:in_setu/supports/LoadingDialog.dart';
 import 'package:in_setu/widgets/add_material_widget.dart';
 import 'package:in_setu/widgets/app_drawer_widget.dart';
+import 'package:in_setu/widgets/bottomnav.dart';
 import 'package:in_setu/widgets/updated_indent_material_widget.dart';
 
 import '../project_list/model/AllSitesResponse.dart';
 
 class StockManagementScreen extends StatefulWidget {
   final Data siteObject;
-
-  const StockManagementScreen({super.key, required this.siteObject});
+  final User user;
+  const StockManagementScreen({super.key, required this.siteObject, required this.user});
 
   @override
   _StockManagementScreenState createState() => _StockManagementScreenState();
@@ -49,73 +51,79 @@ class _StockManagementScreenState extends State<StockManagementScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      drawer: getDrawerItems(context),
-      floatingActionButton:
-          _tabController.index == 0
-              ? FloatingActionButton(
-                backgroundColor: AppColors.primary,
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    barrierDismissible: false,
-                    builder:
-                        (context) => MaterialRequirementsPopup(
-                          buttonTxt: "Add Material",
-                          siteObject: widget.siteObject,
-                          stockMaterialAdded: () {
-                            context.read<MaterialStockBloc>().add(
-                              MaterialStockFetchEvent(
-                                siteId: widget.siteObject.id,
-                              ),
-                            );
-                          },
-                          searchDataList: searchList,
-                          searchUnitData: searchUnitList
-                        ),
-                  );
-                },
-                tooltip: 'Add Stock',
-                child: Icon(Icons.add, color: Colors.white),
-              )
-              : FloatingActionButton(
-                backgroundColor: AppColors.primary,
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => UpdatedIndentMaterialWidget(),
-                  );
-                },
-                tooltip: 'Add Indent',
-                child: Icon(Icons.add, color: Colors.white),
-              ),
-      backgroundColor: Color(0xFFF5F5F5),
-      body: BlocListener<MaterialStockBloc, GlobalApiResponseState>(
-          listener: (context, state){
-            switch (state.status) {
-              case GlobalApiStatus.loading:
-                break;
-              case GlobalApiStatus.completed:
-                LoadingDialog.hide(context);
-                if(state is MaterialSearchKeywordStateSuccess){
-                  searchList = state.data.data;
-                }else if(state is SearchUnitStateSuccess){
-                  searchUnitList = state.data.data;
-                }
-
-                break;
-                case GlobalApiStatus.error:
-                  LoadingDialog.hide(context);
-                  FocusScope.of(context).unfocus();
-                  ErrorHandler.errorHandle(
-                      state.message, "Invalid Auth", context);
+    return WillPopScope(
+      onWillPop: () async{
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => BottomNavScreen(user: widget.user, siteObject: widget.siteObject,)));
+        return true;
+      },
+      child: Scaffold(
+        drawer: getDrawerItems(context),
+        floatingActionButton:
+            _tabController.index == 0
+                ? FloatingActionButton(
+                  backgroundColor: AppColors.primary,
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder:
+                          (context) => MaterialRequirementsPopup(
+                            buttonTxt: "Add Material",
+                            siteObject: widget.siteObject,
+                            stockMaterialAdded: () {
+                              context.read<MaterialStockBloc>().add(
+                                MaterialStockFetchEvent(
+                                  siteId: widget.siteObject.id,
+                                ),
+                              );
+                            },
+                            searchDataList: searchList,
+                            searchUnitData: searchUnitList
+                          ),
+                    );
+                  },
+                  tooltip: 'Add Stock',
+                  child: Icon(Icons.add, color: Colors.white),
+                )
+                : FloatingActionButton(
+                  backgroundColor: AppColors.primary,
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => UpdatedIndentMaterialWidget(),
+                    );
+                  },
+                  tooltip: 'Add Indent',
+                  child: Icon(Icons.add, color: Colors.white),
+                ),
+        backgroundColor: Color(0xFFF5F5F5),
+        body: BlocListener<MaterialStockBloc, GlobalApiResponseState>(
+            listener: (context, state){
+              switch (state.status) {
+                case GlobalApiStatus.loading:
                   break;
-              default:
-                LoadingDialog.hide(context);
-            }
-          },
-        child: getMaterialView(),
-          ),
+                case GlobalApiStatus.completed:
+                  LoadingDialog.hide(context);
+                  if(state is MaterialSearchKeywordStateSuccess){
+                    searchList = state.data.data;
+                  }else if(state is SearchUnitStateSuccess){
+                    searchUnitList = state.data.data;
+                  }
+
+                  break;
+                  case GlobalApiStatus.error:
+                    LoadingDialog.hide(context);
+                    FocusScope.of(context).unfocus();
+                    ErrorHandler.errorHandle(
+                        state.message, "Invalid Auth", context);
+                    break;
+                default:
+                  LoadingDialog.hide(context);
+              }
+            },
+          child: getMaterialView(),
+            ),
+      ),
     );
   }
 

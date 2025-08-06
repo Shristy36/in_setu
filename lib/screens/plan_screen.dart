@@ -2,12 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:in_setu/constants/app_colors.dart';
+import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
+import 'package:in_setu/screens/project_list/model/AllSitesResponse.dart';
 import 'package:in_setu/supports/utility.dart';
 import 'package:in_setu/screens/material_view/material_screen.dart';
 import 'package:in_setu/widgets/app_drawer_widget.dart';
+import 'package:in_setu/widgets/bottomnav.dart';
 import 'package:in_setu/widgets/custom_app_bar.dart';
 
 class ProjectPlansScreen extends StatefulWidget {
+  final Data siteObject;
+  final User user;
+  ProjectPlansScreen({super.key, required this.siteObject, required this.user});
+
   @override
   _ProjectPlansScreenState createState() => _ProjectPlansScreenState();
 }
@@ -396,25 +403,31 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
           );
         }).toList();
 
-    return Scaffold(
-      drawer: getDrawerItems(context),
-      backgroundColor: Color(0xFFF5F5F5),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // _buildHeader(),
-            _buildTitleComponenet(),
-            _buildSearchBar(),
-            Expanded(
-              child:
-                  _isGridView
-                      ? _buildGridView(filteredProjects)
-                      : _buildListView(filteredProjects),
-            ),
-          ],
+    return WillPopScope(
+      onWillPop: () async{
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => BottomNavScreen(user: widget.user, siteObject: widget.siteObject,)));
+        return true;
+      },
+      child: Scaffold(
+        drawer: getDrawerItems(context),
+        backgroundColor: Color(0xFFF5F5F5),
+        body: SafeArea(
+          child: Column(
+            children: [
+              // _buildHeader(),
+              _buildTitleComponenet(),
+              _buildSearchBar(),
+              Expanded(
+                child:
+                    _isGridView
+                        ? _buildGridView(filteredProjects)
+                        : _buildListView(filteredProjects),
+              ),
+            ],
+          ),
         ),
+        floatingActionButton: _buildFloatingActionButton(),
       ),
-      floatingActionButton: _buildFloatingActionButton(),
     );
   }
 

@@ -7,13 +7,12 @@ import 'package:in_setu/networkSupport/ErrorHandler.dart';
 import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
 import 'package:in_setu/screens/home_page/bloc/home_bloc.dart';
 import 'package:in_setu/screens/home_page/model/SiteTeamMemberResponse.dart';
-import 'package:in_setu/screens/home_page/model/UpdateSiteMemberResponse.dart';
 import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
 import 'package:in_setu/supports/utility.dart';
 import 'package:in_setu/screens/home_page/widget/add_contact_widget.dart';
 import 'package:in_setu/widgets/bottomnav.dart';
 
-import '../../project_list/model/AllSitesResponse.dart';
+import '../../project_list/model/AllSitesResponse.dart' hide UserData;
 
 class AddMemberScreen extends StatefulWidget {
   final Data siteObj;
@@ -43,89 +42,95 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        title: Text(
-          "Teams",
-          style: TextStyle(
-            fontSize: 18,
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        leading: IconButton(
-          onPressed: (){
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => BottomNavScreen(user: widget.user, siteObject: widget.siteObj,)));
-          },
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-        ),
-      ),
-      floatingActionButton: Container(
-        width: 120.0,
-        height: 40.0,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.5),
-              spreadRadius: 2,
-              blurRadius: 5,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: FloatingActionButton(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          onPressed: () => showContactBottomSheet(context),
+    return WillPopScope(
+      onWillPop: () async{
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => BottomNavScreen(user: widget.user, siteObject: widget.siteObj,)));
+        return true;
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
           backgroundColor: AppColors.primary,
-          child: const Text(
-            "Add Member",
+          title: Text(
+            "Teams",
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 18,
               color: Colors.white,
               fontWeight: FontWeight.bold,
             ),
           ),
+          leading: IconButton(
+            onPressed: (){
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => BottomNavScreen(user: widget.user, siteObject: widget.siteObj,)));
+            },
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+          ),
         ),
-      ),
-      body: BlocBuilder<HomeBloc, GlobalApiResponseState>(
-          builder: (context, state){
-            if(state.status == GlobalApiStatus.loading){
-              return Utility.getLoadingView(context);
-            }else if(state.status == GlobalApiStatus.completed){
-              if(state is SiteTeamMemberStateSuccess){
-                if(state.data.data.isNotEmpty){
-                  return getSiteMemberView(state.data.data);
-                }else{
-                  return Center(child: NoDataFound(noDataFoundTxt: "Site member are not found"),);
+        floatingActionButton: Container(
+          width: 120.0,
+          height: 40.0,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.5),
+                spreadRadius: 2,
+                blurRadius: 5,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: FloatingActionButton(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            onPressed: () => showContactBottomSheet(context),
+            backgroundColor: AppColors.primary,
+            child: const Text(
+              "Add Member",
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+        body: BlocBuilder<HomeBloc, GlobalApiResponseState>(
+            builder: (context, state){
+              if(state.status == GlobalApiStatus.loading){
+                // return Utility.getLoadingView(context);
+              }else if(state.status == GlobalApiStatus.completed){
+                if(state is SiteTeamMemberStateSuccess){
+                  if(state.data.data.isNotEmpty){
+                    return getSiteMemberView(state.data.data);
+                  }else{
+                    return Center(child: NoDataFound(noDataFoundTxt: "Site member are not found"),);
+                  }
                 }
+              }else if(state.status == GlobalApiStatus.error){
+                return ErrorHandler.builderErr(
+                  state.message,
+                  "Something wrong",
+                  context,
+                );
               }
-            }else if(state.status == GlobalApiStatus.error){
-              return ErrorHandler.builderErr(
-                state.message,
-                "Something wrong",
-                context,
-              );
+              return Center(child: NoDataFound(noDataFoundTxt: "No Data found"),);
             }
-            return Center(child: Utility.getLoadingView(context),);
-          }
-      ),
+        ),
 
+      ),
     );
   }
 
-  Widget getSiteMemberView(List<UserInofoData> siteTeamList){
-   /* List<UserInfo> memberList = siteTeamList.values.toList();*/
+  Widget getSiteMemberView(Map<String, UserData> siteTeamList){
+    List<UserData> memberList = siteTeamList.values.toList();
     return Expanded(
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: siteTeamList.length,
         itemBuilder: (context, index) {
-          final contact = siteTeamList[index];
+          final contact = memberList[index];
           final bgColor = backgroundColors[index % backgroundColors.length];
           return Padding(
             padding: const EdgeInsets.all(4.0),
@@ -200,7 +205,7 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
     );
 
   }
-  void _showContactDetails(BuildContext context, UserInofoData contact, int index) {
+  void _showContactDetails(BuildContext context, UserData contact, int index) {
     showModalBottomSheet(
       backgroundColor: AppColors.colorWhite,
       context: context,
@@ -344,8 +349,10 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
       isScrollControlled: true,
       builder: (context) {
         return AddContactWidget(siteObj: widget.siteObj,
-        onContactSelected: (){
+        onContactSelected: (value){
+          if(value){
           context.read<HomeBloc>().add(GetSiteMemberEvent(siteId: widget.siteObj.id));
+          }
         },);
       },
     );

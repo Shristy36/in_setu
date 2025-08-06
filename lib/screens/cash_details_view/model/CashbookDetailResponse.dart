@@ -93,6 +93,7 @@ FirstCashbook copyWith({  String? date,
 );
   String? get date => _date;
   List<Transactions>? get transactions => _transactions;
+  set transactions(List<Transactions>? value) => _transactions = value;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};

@@ -68,6 +68,7 @@ class _AddCashbookWidgetState extends State<AddCashbookWidget> {
                 child: BlocConsumer<CashbookBloc, GlobalApiResponseState>(
                   listener: (context, state) {
                     if (state.status == GlobalApiStatus.error) {
+                      Navigator.of(context).pop();
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         ErrorHandler.errorHandle(
                           state.message ?? "An error occurred",

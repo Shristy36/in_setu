@@ -40,11 +40,11 @@ class _BottomNavScreenState extends State<BottomNavScreen>
     _selectedIndex = widget.selectedIndex ?? 2;
 
     _screens = [
-      StockManagementScreen(siteObject: widget.siteObject),
-      ManpowerScreen(siteObject: widget.siteObject),
+      StockManagementScreen(siteObject: widget.siteObject, user: widget.user,),
+      ManpowerScreen(siteObject: widget.siteObject, user: widget.user,),
       _buildHomeScreen(),
-      ProjectPlansScreen(),
-      ChatListScreen(),
+      ProjectPlansScreen(siteObject: widget.siteObject, user: widget.user,),
+      ChatListScreen(siteObject: widget.siteObject, user: widget.user,),
     ];
   }
 

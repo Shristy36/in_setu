@@ -79,7 +79,7 @@ class _CashInOutWidgetState extends State<CashInOutWidget> {
                 Future.microtask(() {
                   Navigator.of(context, rootNavigator: true).pop();
                   widget.transactionAdd(true);
-                  // Utility.showToast(state.data.messase);
+                  Utility.showToast(state.data.messase);
                 });
               }
               break;

@@ -15,10 +15,7 @@ class GetSiteMemberEvent extends HomeEvent{
   GetSiteMemberEvent({required this.siteId});
 }
 
-/*
 class AddMemberEvent extends HomeEvent{
-  dynamic siteId;
-  final List<Map<String, dynamic>> members;
-  AddMemberEvent({required this.siteId, required this.members});
-
-}*/
+  Map<String, dynamic> map;
+  AddMemberEvent({required this.map});
+}
