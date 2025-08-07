@@ -153,6 +153,7 @@ class _CashDetailsViewState extends State<CashDetailsView> {
       }
     }
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           color: AppColors.primary,
@@ -208,7 +209,15 @@ class _CashDetailsViewState extends State<CashDetailsView> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     CustomViews.setSubTitle("Particular/Remark"),
-                    CustomViews.setSubTitle("Cr/Dr Balance"),
+                    SizedBox(
+                      child: Row(
+                        children: [
+                          CustomViews.setSubTitle("Cr/Dr"),
+                          SizedBox(width: 40,),
+                          CustomViews.setSubTitle("Balance"),
+                        ],
+                      ),
+                    )
                   ],
                 ),
               ),
@@ -230,7 +239,6 @@ class _CashDetailsViewState extends State<CashDetailsView> {
                   children: [
                     SizedBox(
                       width: double.infinity,
-                      height: 40,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
@@ -239,7 +247,7 @@ class _CashDetailsViewState extends State<CashDetailsView> {
                             child: Text(
                               date,
                               style: const TextStyle(
-                                fontSize: 18,
+                                fontSize: 16,
                                 color: AppColors.colorBlack,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -269,7 +277,7 @@ class _CashDetailsViewState extends State<CashDetailsView> {
                                   color: transaction.type == 'credit'
                                       ? Colors.green
                                       : Colors.red,
-                                  fontSize: 14,
+                                  fontSize: 16,
                                 ),
                                 textAlign: TextAlign.right,
                               ),
@@ -281,7 +289,7 @@ class _CashDetailsViewState extends State<CashDetailsView> {
                                 "${transaction.amount ?? 0}",
                                 style: const TextStyle(
                                   color: Colors.black,
-                                  fontSize: 14,
+                                  fontSize: 16,
                                 ),
                                 textAlign: TextAlign.right,
                               ),

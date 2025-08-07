@@ -31,7 +31,7 @@ class _SignInScreenState extends State<SignInScreen> {
     return WillPopScope(
       onWillPop: () => Utility.showExitDialog(context),
       child: Scaffold(
-        resizeToAvoidBottomInset: false,
+        resizeToAvoidBottomInset: true,
         backgroundColor: AppColors.colorWhite,
         body: BlocListener<SigninBloc, GlobalApiResponseState>(
           listener: (context, state) {
@@ -44,9 +44,6 @@ class _SignInScreenState extends State<SignInScreen> {
                 break;
               case GlobalApiStatus.completed:
                 LoadingDialog.hide(context);
-                /**
-                 * login oauth success success
-                 */
                 if (state is SignInSuccessState) {
                   LoadingDialog.hide(context);
                   print("login success");
@@ -80,143 +77,137 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   Widget signInView() {
-    return Column(
-      children: [
-        SizedBox(height: 20),
-        Utility.getCustomToolbar("login", AppColors.colorWhite, context),
-        Expanded(
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height,
-            width: MediaQuery.of(context).size.width,
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Form(
-                key: signFormKey,
-                child: Column(
+    return Center(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.only(left: 40.0, right: 40),
+          child: Form(
+            key: signFormKey,
+            child: Column(
+              children: [
+                Center(
+                   child: Image.asset("assets/images/building.jpg", width: 200, height: 200,),
+                ),
+                Align(
+                  alignment: Alignment.center,
+                  child: Utility.title(loginTitle, AppColors.primary),
+                ),
+                Align(
+                  alignment: Alignment.center,
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      left: 10.0,
+                      right: 10.0,
+                      top: 10,
+                    ),
+                    child: Utility.smlText(
+                      loginDescription,
+                      AppColors.colorBlack,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: 20.0,
+                    right: 20,
+                    top: 20,
+                  ),
+                  child: CustomTextField(
+                    validationValue: phoneValidation,
+                    controller: emailOrPhoneController,
+                    labelText: hintPhone,
+                    icon: Icons.email_outlined,
+                    keyboardType: TextInputType.phone,
+                  ),
+                ),
+                SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: 20.0,
+                    right: 20,
+                    top: 10,
+                  ),
+                  child: CustomTextField(
+                    validationValue: passValidation,
+                    controller: passwordTxt,
+                    labelText: hintPass,
+                    icon: Icons.lock_open_outlined,
+                    isPassword: true,
+                    isPasswordVisible: _isPasswordVisible,
+                    onTogglePasswordVisibility: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                  ),
+                ),
+                SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: 20.0,
+                    right: 20,
+                    top: 10,
+                  ),
+                  child: GestureDetector(
+                    onTap:
+                        () => {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ForgotPasswordScreen(),
+                        ),
+                      ),
+                    },
+                    child: Utility.subTitle(forgotPass, AppColors.primary),
+                  ),
+                ),
+                SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.only(left: 20.0, right: 20),
+                  child: GestureDetector(
+                    onTap: () {
+                      FocusManager.instance.primaryFocus?.unfocus();
+                      if (signFormKey.currentState!.validate()) {
+                        context.read<SigninBloc>().add(
+                          DoLogin(
+                            userName: emailOrPhoneController.text,
+                            userPassword: passwordTxt.text,
+                          ),
+                        );
+                      }
+                    },
+                    child: Utility.getButtonDesign(signIn),
+                  ),
+                ),
+                SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    SizedBox(height: 40),
-                    Align(
-                      alignment: Alignment.center,
-                      child: Utility.title(loginTitle, AppColors.primary),
-                    ),
-                    Align(
-                      alignment: Alignment.center,
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          left: 10.0,
-                          right: 10.0,
-                          top: 10,
-                        ),
-                        child: Utility.smlText(
-                          loginDescription,
-                          AppColors.colorBlack,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        left: 20.0,
-                        right: 20,
-                        top: 20,
-                      ),
-                      child: CustomTextField(
-                        validationValue: phoneValidation,
-                        controller: emailOrPhoneController,
-                        labelText: hintPhone,
-                        icon: Icons.email_outlined,
-                        keyboardType: TextInputType.phone,
-                      ),
-                    ),
-                    SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        left: 20.0,
-                        right: 20,
-                        top: 10,
-                      ),
-                      child: CustomTextField(
-                        validationValue: passValidation,
-                        controller: passwordTxt,
-                        labelText: hintPass,
-                        icon: Icons.lock_open_outlined,
-                        isPassword: true,
-                        isPasswordVisible: _isPasswordVisible,
-                        onTogglePasswordVisibility: () {
-                          setState(() {
-                            _isPasswordVisible = !_isPasswordVisible;
-                          });
-                        },
-                      ),
-                    ),
-                    SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        left: 20.0,
-                        right: 20,
-                        top: 10,
-                      ),
-                      child: GestureDetector(
-                        onTap:
-                            () => {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ForgotPasswordScreen(),
-                                ),
-                              ),
-                            },
-                        child: Utility.subTitle(forgotPass, AppColors.primary),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 20.0, right: 20),
-                      child: GestureDetector(
-                        onTap: () {
-                          FocusManager.instance.primaryFocus?.unfocus();
-                          if (signFormKey.currentState!.validate()) {
-                            context.read<SigninBloc>().add(
-                              DoLogin(
-                                userName: emailOrPhoneController.text,
-                                userPassword: passwordTxt.text,
-                              ),
-                            );
-                          }
-                        },
-                        child: Utility.getButtonDesign(signIn),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Utility.smlText(dontAccountTxt, AppColors.colorGray),
-                        SizedBox(width: 10),
-                        GestureDetector(
-                          onTap:
-                              () => {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => SignUpScreen(),
-                                  ),
-                                ),
-                              },
-                          child: Utility.smlText(
-                            registerTxt,
-                            AppColors.primary,
+                    Utility.smlText(dontAccountTxt, AppColors.colorGray),
+                    SizedBox(width: 10),
+                    GestureDetector(
+                      onTap:
+                          () => {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SignUpScreen(),
                           ),
                         ),
-                      ],
+                      },
+                      child: Utility.smlText(
+                        registerTxt,
+                        AppColors.primary,
+                      ),
                     ),
                   ],
                 ),
-              ),
+              ],
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 }

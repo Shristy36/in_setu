@@ -23,138 +23,132 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       backgroundColor: AppColors.colorWhite,
-      body: Column(
-        children: [
-          SizedBox(height: 20),
-          Utility.getCustomToolbar("", AppColors.colorWhite, context),
-          Expanded(
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height,
-              width: MediaQuery.of(context).size.width,
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Form(
-                  key: sinUpFormKey,
-                  child: Column(
-                    children: [
-                      SizedBox(height: 40),
-                      Align(
-                        alignment: Alignment.center,
-                        child: Utility.title(signUpTitle, AppColors.primary),
+      body: Center(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 40.0, right: 40),
+            child: Form(
+              key: sinUpFormKey,
+              child: Column(
+                children: [
+                  Center(
+                    child: Image.asset("assets/images/building.jpg", width: 200, height: 200,),
+                  ),
+                Align(
+                    alignment: Alignment.center,
+                    child: Utility.title(signUpTitle, AppColors.primary),
+                  ),
+                  Align(
+                    alignment: Alignment.center,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        left: 10.0,
+                        right: 10.0,
+                        top: 10,
                       ),
-                      Align(
-                        alignment: Alignment.center,
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                            left: 10.0,
-                            right: 10.0,
-                            top: 10,
-                          ),
-                          child: Utility.smlText(
-                            loginDescription,
-                            AppColors.colorBlack,
-                          ),
-                        ),
+                      child: Utility.smlText(
+                        loginDescription,
+                        AppColors.colorBlack,
                       ),
-                      SizedBox(height: 10),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          left: 20.0,
-                          right: 20,
-                          top: 20,
-                        ),
-                        child: CustomTextField(
-                          validationValue: phoneValidation,
-                          controller: emailOrPhoneController,
-                          labelText: hintPhone,
-                          icon: Icons.email_outlined,
-                          keyboardType: TextInputType.phone,
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          left: 20.0,
-                          right: 20,
-                          top: 10,
-                        ),
-                        child: CustomTextField(
-                          validationValue: passValidation,
-                          controller: passwordTxt,
-                          labelText: hintPass,
-                          icon: Icons.lock_open_outlined,
-                          isPassword: true,
-                          isPasswordVisible: _isPasswordVisible,
-                          onTogglePasswordVisibility: () {
-                            setState(() {
-                              _isPasswordVisible = !_isPasswordVisible;
-                            });
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: 20.0,
+                      right: 20,
+                      top: 20,
+                    ),
+                    child: CustomTextField(
+                      validationValue: phoneValidation,
+                      controller: emailOrPhoneController,
+                      labelText: hintPhone,
+                      icon: Icons.email_outlined,
+                      keyboardType: TextInputType.phone,
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: 20.0,
+                      right: 20,
+                      top: 10,
+                    ),
+                    child: CustomTextField(
+                      validationValue: passValidation,
+                      controller: passwordTxt,
+                      labelText: hintPass,
+                      icon: Icons.lock_open_outlined,
+                      isPassword: true,
+                      isPasswordVisible: _isPasswordVisible,
+                      onTogglePasswordVisibility: () {
+                        setState(() {
+                          _isPasswordVisible = !_isPasswordVisible;
+                        });
+                      },
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      left: 20.0,
+                      right: 20,
+                      top: 10,
+                    ),
+                    child: GestureDetector(
+                      onTap:
+                          () => {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => ForgotPasswordScreen(),
+                              ),
+                            ),
                           },
-                        ),
+                      child: Utility.subTitle(
+                        forgotPass,
+                        AppColors.primary,
                       ),
-                      SizedBox(height: 10),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          left: 20.0,
-                          right: 20,
-                          top: 10,
-                        ),
-                        child: GestureDetector(
-                          onTap:
-                              () => {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder:
-                                        (context) => ForgotPasswordScreen(),
-                                  ),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20.0, right: 20),
+                    child: Utility.getButtonDesign(signUp),
+                  ),
+                  SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Utility.smlText(
+                        alreadyAccountTxt,
+                        AppColors.colorGray,
+                      ),
+                      SizedBox(width: 10),
+                      GestureDetector(
+                        onTap:
+                            () => {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => SignInScreen(),
                                 ),
-                              },
-                          child: Utility.subTitle(
-                            forgotPass,
-                            AppColors.primary,
-                          ),
-                        ),
+                              ),
+                            },
+                        child: Utility.smlText(signIn, AppColors.primary),
                       ),
-                      SizedBox(height: 20),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 20.0, right: 20),
-                        child: Utility.getButtonDesign(signUp),
-                      ),
-                      SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Utility.smlText(
-                            alreadyAccountTxt,
-                            AppColors.colorGray,
-                          ),
-                          SizedBox(width: 10),
-                          GestureDetector(
-                            onTap:
-                                () => {
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => SignInScreen(),
-                                    ),
-                                  ),
-                                },
-                            child: Utility.smlText(signIn, AppColors.primary),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 20),
-                      Utility.getRichText(context)
                     ],
                   ),
-                ),
+                  SizedBox(height: 20),
+                  Utility.getRichText(context)
+                ],
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }

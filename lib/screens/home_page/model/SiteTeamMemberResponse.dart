@@ -1,36 +1,37 @@
 class SiteTeamMemberResponse {
-  bool? success;
-  Map<String, UserData>? data;
+  final bool? success;
+  final List<SiteMember>? data;
 
-  SiteTeamMemberResponse({this.success, this.data});
+  SiteTeamMemberResponse({
+    this.success,
+    this.data,
+  });
 
   factory SiteTeamMemberResponse.fromJson(Map<String, dynamic> json) {
     return SiteTeamMemberResponse(
       success: json['success'] as bool?,
-      data: json['data'] != null
-          ? (json['data'] as Map<String, dynamic>).map(
-            (k, v) => MapEntry(k, UserData.fromJson(v as Map<String, dynamic>)),
-      )
-          : null,
+      data: (json['data'] as List<dynamic>?)
+          ?.map((e) => SiteMember.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'success': success,
-      'data': data?.map((k, v) => MapEntry(k, v.toJson())),
+      'data': data?.map((e) => e.toJson()).toList(),
     };
   }
 }
 
-class UserData {
-  String? name;
-  String? contact;
-  String? conShort;
-  String? conStyle;
-  bool? isAdmin;
+class SiteMember {
+  final String? name;
+  final String? contact;
+  final String? conShort;
+  final String? conStyle;
+  final bool? isAdmin;
 
-  UserData({
+  SiteMember({
     this.name,
     this.contact,
     this.conShort,
@@ -38,8 +39,8 @@ class UserData {
     this.isAdmin,
   });
 
-  factory UserData.fromJson(Map<String, dynamic> json) {
-    return UserData(
+  factory SiteMember.fromJson(Map<String, dynamic> json) {
+    return SiteMember(
       name: json['name'] as String?,
       contact: json['contact'] as String?,
       conShort: json['con_short'] as String?,
@@ -58,3 +59,4 @@ class UserData {
     };
   }
 }
+

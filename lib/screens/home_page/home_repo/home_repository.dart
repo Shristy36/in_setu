@@ -37,4 +37,28 @@ class HomeRepository{
       return ApiResult.failure(error: e);
     }
   }
+  Future<ApiResult<AddedSiteMemberResponse>> makeAdminSiteMember(dynamic bodyParams) async{
+    try{
+      final makeAdminMemberResponse = await networkService.post(ApiConstants.makeAdminSiteMemberEndPoint, null, null, bodyParams);
+      return ApiResult.success(data: AddedSiteMemberResponse.fromJson(makeAdminMemberResponse));
+    }on AppException catch(e){
+      return ApiResult.failure(error: e);
+    }
+  }
+  Future<ApiResult<AddedSiteMemberResponse>> removeSiteMember(dynamic bodyParams) async{
+    try{
+      final removeMemberResponse = await networkService.post(ApiConstants.makeAdminSiteMemberEndPoint, null, null, bodyParams);
+      return ApiResult.success(data: AddedSiteMemberResponse.fromJson(removeMemberResponse));
+    }on AppException catch(e){
+      return ApiResult.failure(error: e);
+    }
+  }
+  Future<ApiResult<AddedSiteMemberResponse>> reInvite(dynamic bodyParams) async{
+    try{
+      final reInviteResponse = await networkService.post(ApiConstants.makeAdminSiteMemberEndPoint, null, null, bodyParams);
+      return ApiResult.success(data: AddedSiteMemberResponse.fromJson(reInviteResponse));
+    }on AppException catch(e){
+      return ApiResult.failure(error: e);
+    }
+  }
 }

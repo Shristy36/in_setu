@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/networkSupport/ErrorHandler.dart';
 import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
@@ -411,21 +410,21 @@ class _AddManpowerWidgetState extends State<AddManpowerWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        /*Text(
           "Staff",
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: Colors.black,
           ),
-        ),
+        ),*/
         ...items.asMap().entries.map((entry) {
           int index = entry.key;
           AddRequirementMemberItems item = entry.value;
 
           return Column(
             children: [
-              Row(
+              /*Row(
                 children: [
                   if (items.length > 1)
                     GestureDetector(
@@ -445,7 +444,7 @@ class _AddManpowerWidgetState extends State<AddManpowerWidget> {
                               : const SizedBox.shrink(),
                     ),
                 ],
-              ),
+              ),*/
               const SizedBox(height: 5),
               Row(
                 children: [
@@ -542,6 +541,61 @@ class _AddManpowerWidgetState extends State<AddManpowerWidget> {
                       },
                     ),
                   ),
+                  const SizedBox(width: 5),
+                  Row(
+                    children: [
+                      if (items.length > 1)
+                        GestureDetector(
+                          onTap: () => _removeRequirement(isAdditional, index, "staff"),
+                          child: Visibility(
+                            visible: index == items.length - 1,
+                            maintainSize: true,
+                            maintainAnimation: true,
+                            maintainState: true,
+                            child: Container(
+                              height: 35,
+                              width: 35,
+                              decoration: BoxDecoration(
+                                color: Colors.red.shade50,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Icon(
+                                Icons.remove,
+                                color: Colors.red.shade600,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+
+                  /*Row(
+                    children: [
+                      if (items.length > 1)
+                        GestureDetector(
+                          onTap:
+                              () =>
+                              _removeRequirement(isAdditional, index, "staff"),
+                          child:
+                          index == items.length - 1 && items.length > 1
+                              ? Container(
+                            height: 35,
+                            width: 35,
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade50,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Icon(
+                              Icons.remove,
+                              color: Colors.red.shade600,
+                              size: 20,
+                            ),
+                          )
+                              : const SizedBox.shrink(),
+                        ),
+                    ],
+                  ),*/
                 ],
               ),
               const SizedBox(height: 5),
@@ -582,21 +636,21 @@ class _AddManpowerWidgetState extends State<AddManpowerWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+      /*  Text(
           "Man Power",
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: Colors.black,
           ),
-        ),
+        ),*/
         ...items.asMap().entries.map((entry) {
           int index = entry.key;
           AddRequirementMemberItems item = entry.value;
 
           return Column(
             children: [
-              Row(
+              /*Row(
                 children: [
                   if (items.length > 1)
                     GestureDetector(
@@ -618,7 +672,7 @@ class _AddManpowerWidgetState extends State<AddManpowerWidget> {
                           : const SizedBox.shrink(),
                     ),
                 ],
-              ),
+              ),*/
               const SizedBox(height: 5),
               Row(
                 children: [
@@ -715,6 +769,69 @@ class _AddManpowerWidgetState extends State<AddManpowerWidget> {
                       },
                     ),
                   ),
+                  const SizedBox(width: 5),
+                  Row(
+                    children: [
+                      if (items.length > 1)
+                        GestureDetector(
+                          onTap: index == items.length - 1
+                              ? () => _removeRequirement(
+                            isAdditional,
+                            index,
+                            "manpower",
+                          )
+                              : null, // disable tap if not last
+                          child: Visibility(
+                            visible: index == items.length - 1,
+                            maintainSize: true,
+                            maintainAnimation: true,
+                            maintainState: true,
+                            child: Container(
+                              height: 35,
+                              width: 35,
+                              decoration: BoxDecoration(
+                                color: Colors.red.shade50,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Icon(
+                                Icons.remove,
+                                color: Colors.red.shade600,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+
+                  /* Row(
+                    children: [
+                      if (items.length > 1)
+                        GestureDetector(
+                          onTap:
+                              () => _removeRequirement(
+                            isAdditional,
+                            index,
+                            "manpower",
+                          ),
+                          child: index == items.length - 1 && items.length > 1
+                              ? Container(
+                            height: 35,
+                            width: 35,
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade50,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Icon(
+                              Icons.remove,
+                              color: Colors.red.shade600,
+                              size: 20,
+                            ),
+                          )
+                              : const SizedBox.shrink(),
+                        ),
+                    ],
+                  ),*/
                 ],
               ),
               const SizedBox(height: 5),
@@ -755,21 +872,23 @@ class _AddManpowerWidgetState extends State<AddManpowerWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        /*Text(
           "Task",
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: Colors.black,
           ),
-        ),
+        ),*/
         ...items.asMap().entries.map((entry) {
           int index = entry.key;
           AddRequirementMemberItems item = entry.value;
 
           return Column(
             children: [
-              Row(
+              /*Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   if (items.length > 1)
                     GestureDetector(
@@ -788,7 +907,7 @@ class _AddManpowerWidgetState extends State<AddManpowerWidget> {
                           : const SizedBox.shrink(),
                     ),
                 ],
-              ),
+              ),*/
               const SizedBox(height: 5),
               Row(
                 children: [
@@ -838,6 +957,66 @@ class _AddManpowerWidgetState extends State<AddManpowerWidget> {
                       },
                     ),
                   ),
+                  SizedBox(width: 5,),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      if (items.length > 1)
+                        GestureDetector(
+                          onTap: index == items.length - 1
+                              ? () => _removeRequirement(isAdditional, index, "task")
+                              : null, // Disable tap if not last item
+                          child: Visibility(
+                            visible: index == items.length - 1,
+                            maintainSize: true,
+                            maintainAnimation: true,
+                            maintainState: true,
+                            child: Container(
+                              height: 35,
+                              width: 35,
+                              decoration: BoxDecoration(
+                                color: Colors.red.shade50,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Icon(
+                                Icons.remove,
+                                color: Colors.red.shade600,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+
+                  // Row(
+                  //   mainAxisAlignment: MainAxisAlignment.end,
+                  //   crossAxisAlignment: CrossAxisAlignment.end,
+                  //   children: [
+                  //     if (items.length > 1)
+                  //       GestureDetector(
+                  //         onTap:
+                  //             () =>
+                  //             _removeRequirement(isAdditional, index, "task"),
+                  //         child: index == items.length - 1 && items.length > 1
+                  //             ? Container(
+                  //               height: 35,
+                  //               width: 35,
+                  //               decoration: BoxDecoration(
+                  //                 color: Colors.red.shade50,
+                  //                 borderRadius: BorderRadius.circular(20),
+                  //               ),
+                  //               child: Icon(
+                  //                 Icons.remove,
+                  //                 color: Colors.red.shade600,
+                  //                 size: 20,
+                  //               ),
+                  //             )
+                  //             : const SizedBox.shrink(),
+                  //       ),
+                  //   ],
+                  // ),
                 ],
               ),
               const SizedBox(height: 5),

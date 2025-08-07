@@ -23,8 +23,9 @@ class MaterialRequirementsPopup extends StatefulWidget {
   final StocksData? initialStockData;
   final List<SearchData> searchDataList;
   final List<SearchUnitData> searchUnitData;
+
   const MaterialRequirementsPopup(
-      {Key? key, required this.buttonTxt, required this.siteObject,required this.searchDataList, required this.searchUnitData,required this.stockMaterialAdded, this.initialStockData,})
+      {Key? key, required this.buttonTxt, required this.siteObject, required this.searchDataList, required this.searchUnitData, required this.stockMaterialAdded, this.initialStockData,})
       : super(key: key);
 
   @override
@@ -73,17 +74,29 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
   }
 
   @override
+  void didUpdateWidget(covariant MaterialRequirementsPopup oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.searchDataList != widget.searchDataList ||
+        oldWidget.searchUnitData != widget.searchUnitData) {
+      setState(() {
+        searchDataList = widget.searchDataList;
+        searchUnitList = widget.searchUnitData;
+      });
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
     searchDataList = widget.searchDataList;
     searchUnitList = widget.searchUnitData;
     if (widget.initialStockData != null) {
       materialController.text = widget.initialStockData?.requirement1 ?? '';
-      additionalMaterialController.text = widget.initialStockData?.requirement2 ?? '';
+      additionalMaterialController.text =
+          widget.initialStockData?.requirement2 ?? '';
       quantityController.text = widget.initialStockData?.qty?.toString() ?? '';
       unitController.text = widget.initialStockData?.unit ?? '';
     }
-
   }
 
   @override
@@ -290,6 +303,87 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
             TextFormField(
               validator: validator,
               controller: additionalMaterialController,
+              style: TextStyle(fontSize: 14, color: AppColors.colorGray),
+              decoration: InputDecoration(
+                labelText: 'Name of Material',
+                labelStyle: TextStyle(fontSize: 14, color: AppColors.colorGray),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.vertical(
+                    top: const Radius.circular(10),
+                    bottom: Radius.circular(
+                        filteredSuggestions.isNotEmpty ? 0 : 10),
+                  ),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.vertical(
+                    top: const Radius.circular(10),
+                    bottom: Radius.circular(
+                        filteredSuggestions.isNotEmpty ? 0 : 10),
+                  ),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.vertical(
+                    top: const Radius.circular(10),
+                    bottom: Radius.circular(
+                        filteredSuggestions.isNotEmpty ? 0 : 10),
+                  ),
+                  borderSide: BorderSide(color: AppColors.primary, width: 2),
+                ),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 12),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  filteredSuggestions = searchDataList
+                      .where((item) =>
+                      item.name!.toLowerCase().contains(value.toLowerCase()))
+                      .toList();
+                });
+              },
+            ),
+            if (filteredSuggestions.isNotEmpty)
+              Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(10),
+                    bottomRight: Radius.circular(10),
+                  ),
+                  color: Colors.white,
+                ),
+                child: ListView.builder(
+                  itemCount: filteredSuggestions.length,
+                  itemBuilder: (context, index) {
+                    final item = filteredSuggestions[index];
+                    return Padding(padding: const EdgeInsets.all(10.0), child: GestureDetector(onTap: (){
+                      setState(() {
+                        additionalMaterialController.text = item.name!;
+                        filteredSuggestions.clear();
+                      });
+                    },child: Text(item.name!, style: TextStyle(fontSize: 14))),);
+
+                    /*ListTile(
+                      title: Text(item.name!, style: TextStyle(fontSize: 14)),
+                      onTap: () {
+                        setState(() {
+                          additionalMaterialController.text = item.name!;
+                          filteredSuggestions.clear();
+                        });
+                      },
+                    );*/
+                  },
+                ),
+              ),
+
+
+            /*TextFormField(
+              validator: validator,
+              controller: additionalMaterialController,
               style: TextStyle(
                   fontSize: 14,
                   color: AppColors.colorGray
@@ -327,37 +421,141 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
               },
             ),
             if (filteredSuggestions.isNotEmpty)
-              SizedBox(
-                height: 250,
-                child: ListView.builder(
-                    itemCount: filteredSuggestions.length,
-                    itemBuilder: (context, index){
-                      final searchItem = filteredSuggestions[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              additionalMaterialController.text = searchItem.name!;
-                              filteredSuggestions.clear();
-                            });
-                          },
-                          child: Container(
-                            height: 40,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.all(Radius.circular(10)),
-                              border: Border.all(color: AppColors.colorGray, width: 1)
-                            ),
-                            child:Center(
-                              child: Text("${searchItem.name}", style: TextStyle(fontSize: 12, color: AppColors.colorBlack),),
+              Card(
+                color: AppColors.colorWhite,
+                child: SizedBox(
+                  height: 250,
+                  child: ListView.builder(
+                      itemCount: filteredSuggestions.length,
+                      itemBuilder: (context, index){
+                        final searchItem = filteredSuggestions[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                additionalMaterialController.text = searchItem.name!;
+                                filteredSuggestions.clear();
+                              });
+                            },
+                            child: SizedBox(
+                              height: 30,
+                              */ /*decoration: BoxDecoration(
+                                borderRadius: BorderRadius.all(Radius.circular(10)),
+                                border: Border.all(color: AppColors.colorGray, width: 1)
+                              ),*/ /*
+                              child:Text("${searchItem.name}", style: TextStyle(fontSize: 12, color: AppColors.colorBlack,),textAlign: TextAlign.start,),
                             ),
                           ),
-                        ),
-                      );
-                    }),
-              ),
+                        );
+                      }),
+                ),
+              ),*/
             const SizedBox(height: 15),
-            Row(
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: TextFormField(
+                      validator: validator,
+                      controller: quantityController,
+                      style: TextStyle(fontSize: 14, color: AppColors.colorGray),
+                      decoration: InputDecoration(
+                        labelStyle: TextStyle(fontSize: 14, color: AppColors.colorGray),
+                        labelText: 'Quantity',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: AppColors.primary, width: 2),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 3,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextFormField(
+                          validator: validator,
+                          controller: unitController,
+                          style: TextStyle(fontSize: 14, color: AppColors.colorGray),
+                          decoration: InputDecoration(
+                            labelStyle: TextStyle(fontSize: 14, color: AppColors.colorGray),
+                            labelText: 'Unit',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(color: Colors.grey.shade300),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(color: AppColors.primary, width: 2),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              filteredUnitSuggestions = searchUnitList
+                                  .where((item) => item.name!.toLowerCase().contains(value.toLowerCase()))
+                                  .toList();
+                            });
+                          },
+                        ),
+                        if (filteredUnitSuggestions.isNotEmpty)
+                          Container(
+                            height: 150,
+                            margin: const EdgeInsets.only(top: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(color: AppColors.colorGray),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: filteredUnitSuggestions.length,
+                              itemBuilder: (context, index) {
+                                final unitData = filteredUnitSuggestions[index];
+                                return InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      unitController.text = unitData.name!;
+                                      filteredUnitSuggestions.clear();
+                                    });
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        unitData.name!,
+                                        style: TextStyle(fontSize: 14, color: AppColors.colorBlack),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            /*Row(
               children: [
                 Expanded(
                   flex: 3,
@@ -432,7 +630,9 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
                     onChanged: (value) {
                       setState(() {
                         filteredUnitSuggestions = searchUnitList
-                            .where((item) => item.name!.toLowerCase().contains(value.toLowerCase()))
+                            .where((item) =>
+                            item.name!.toLowerCase().contains(
+                                value.toLowerCase()))
                             .toList();
                       });
                     },
@@ -444,13 +644,13 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
               SizedBox(
                 height: 200,
                 child: ListView.builder(
-                  itemCount: filteredUnitSuggestions.length,
-                    itemBuilder: (context, index){
-                    final unitData = filteredUnitSuggestions[index];
+                    itemCount: filteredUnitSuggestions.length,
+                    itemBuilder: (context, index) {
+                      final unitData = filteredUnitSuggestions[index];
                       return Padding(
                         padding: const EdgeInsets.all(4.0),
                         child: GestureDetector(
-                          onTap: (){
+                          onTap: () {
                             setState(() {
                               unitController.text = unitData.name!;
                               filteredUnitSuggestions.clear();
@@ -459,17 +659,20 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
                           child: Container(
                             height: 40,
                             decoration: BoxDecoration(
-                                borderRadius: BorderRadius.all(Radius.circular(10)),
-                                border: Border.all(color: AppColors.colorGray, width: 1)
+                                borderRadius: BorderRadius.all(
+                                    Radius.circular(10)),
+                                border: Border.all(
+                                    color: AppColors.colorGray, width: 1)
                             ),
                             child: Center(
-                              child: Text("${unitData.name}", style: TextStyle(fontSize: 12, color: AppColors.colorBlack),),
+                              child: Text("${unitData.name}", style: TextStyle(
+                                  fontSize: 12, color: AppColors.colorBlack),),
                             ),
                           ),
                         ),
                       );
                     }),
-              ),
+              ),*/
             const SizedBox(height: 15,),
             TextFormField(
               validator: validator,

@@ -7,6 +7,7 @@ class ApiConstants {
   static String dashBoardApi = "api/members/home/site_dashboard/";
   static String siteTeamMemberEndPoint = "api/members/sites/get_all_site_members";
   static String addSiteTeamMemberEndPoint = "api/members/sites/add_site_members";
+  static String makeAdminSiteMemberEndPoint = "/api/members/sites/manage_team";
 
   static String createSiteEndPoint = "api/members/sites/create";
   static String siteDeleteEndPoint = "api/members/sites/";

@@ -42,6 +42,25 @@ class _AddContactWidgetState extends State<AddContactWidget> {
     Color(0xFF9013fe),
   ];
 
+  List<Map<String, dynamic>> _prepareSelectedContactsForApi() {
+    return selectedContacts.map((contact) {
+      final name = contact.displayName ?? '';
+      final contactNo = contact.phones?.first.value?.replaceAll(' ', '') ?? '';
+      final conShort = getConShort(name);
+      final bgColor = backgroundColors[selectedContacts.indexOf(contact) % backgroundColors.length];
+      final hexColor = '#${bgColor.value.toRadixString(16).substring(2)}';
+
+      return {
+        "name": name,
+        "contact": contactNo,
+        "con_short": conShort,
+        "con_style":
+        "display: flex;justify-content: center;align-items: center; border-radius: 50px; color: white; font-size: 20px; font-weight: bold; background:$hexColor; height:75%; width:75%; ",
+        "isAdmin": false,
+      };
+    }).toList();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -297,21 +316,12 @@ class _AddContactWidgetState extends State<AddContactWidget> {
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
-                        /*List<SiteMember> siteMember = [
-                          SiteMember(
-                            siteId: widget.siteObj.id,
-                            name: selectedContacts.first.displayName ?? '',
-                            contactNo: selectedContacts.first.phones?.isNotEmpty == true
-                                ? selectedContacts.first.phones!.first.value ?? ''
-                                : '',
-                            isAdmin: false,
-                            conShort: conShort,
-                            isAdmin: isAdmin,
-                          ),
-                        ];
-                        context.read<HomeBloc>().add(AddMemberEvent());
-*/
-                        Navigator.pop(context);
+                        final siteMembers = _prepareSelectedContactsForApi();
+                        if (siteMembers.isNotEmpty) {
+                          context.read<HomeBloc>().add(AddMemberEvent(siteId: widget.siteObj.id, siteMembers: siteMembers));
+                        } else {
+                          Utility.showToast("Please select at least one contact");
+                        }
                       },
                       child: Container(
                         decoration: BoxDecoration(
@@ -344,18 +354,3 @@ class _AddContactWidgetState extends State<AddContactWidget> {
   }
 }
 
-class SiteMember {
-  final dynamic siteId;
-  final String name;
-  final String contact;
-  final String conShort;
-  final bool isAdmin;
-
-  SiteMember({
-    required this.siteId,
-    required this.name,
-    required this.contact,
-    required this.conShort,
-    required this.isAdmin,
-  });
-}

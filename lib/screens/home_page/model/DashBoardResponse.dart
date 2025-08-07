@@ -5,7 +5,8 @@ class DashboardResponse {
   UserData userData;
   List<Feed> feeds;
   List<MaterialItem> materials;
-  Map<String, TeamMember> teams;
+  // Map<String, TeamMember> teams;
+  List<TeamMember> teams;
   List<dynamic> sitePlans;
   List<Manpower> manpower;
 
@@ -30,14 +31,9 @@ class DashboardResponse {
       List<Feed>.from(json['feeds'].map((x) => Feed.fromJson(x))),
       materials: List<MaterialItem>.from(
           json['materials'].map((x) => MaterialItem.fromJson(x))),
-      teams: (json['teams'] is Map)
-          ? (json['teams'] as Map<String, dynamic>).map(
-            (key, value) => MapEntry(
-          key,
-          TeamMember.fromJson(value),
-        ),
-      )
-          : {}, // handle empty list or unexpected value
+      teams: List<TeamMember>.from(
+          json['teams'].map((x) => TeamMember.fromJson(x))),
+
       sitePlans: List<dynamic>.from(json['sitePlans']),
       manpower: List<Manpower>.from(
           json['manpower'].map((x) => Manpower.fromJson(x))),

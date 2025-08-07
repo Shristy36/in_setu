@@ -4,7 +4,6 @@ import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
 import 'package:in_setu/screens/home_page/home_repo/home_repository.dart';
 import 'package:in_setu/screens/home_page/model/AddedSiteMemberResponse.dart';
 import 'package:in_setu/screens/home_page/model/DashBoardResponse.dart';
-import 'package:in_setu/screens/home_page/model/SiteMemberAddReponse.dart';
 import 'package:in_setu/screens/home_page/model/SiteTeamMemberResponse.dart' hide UserData;
 import 'package:in_setu/supports/AppException.dart';
 
@@ -18,7 +17,9 @@ class HomeBloc extends Bloc<HomeEvent, GlobalApiResponseState> {
   HomeBloc({required this.homeRepository}) : super(const InitialState()) {
     on<GetDashBoardApi>(getDashBoardApi);
     on<GetSiteMemberEvent>(getSiteMembers);
-    // on<AddMemberEvent>(addMembers);
+    on<AddMemberEvent>(addMembers);
+    on<MakeAdminEvent>(makeAdmin);
+    on<RemoveSiteMemberEvent>(removeSiteMember);
   }
 
   getDashBoardApi(
@@ -68,22 +69,13 @@ class HomeBloc extends Bloc<HomeEvent, GlobalApiResponseState> {
     }
   }
 
-  /*addMembers(HomeEvent event, Emitter<GlobalApiResponseState> emitter) async {
+  addMembers(HomeEvent event, Emitter<GlobalApiResponseState> emitter) async {
     if (event is AddMemberEvent) {
       emitter(const ApiLoadingState());
 
       Map<String, dynamic> bodyParams = {
         "site_id": event.siteId,
-        "site_members": [
-          {
-            "name": event.name,
-            "contact": event.contactNo,
-            "con_short": getConShort(event.name),
-            "con_style":
-                "display: flex;justify-content: center;align-items: center; border-radius: 50px; color: white; font-size: 20px; font-weight: bold; background:#418816; height:75%; width:75%; ",
-            "isAdmin": event.isAdmin,
-          },
-        ],
+        "site_members": event.siteMembers,
       };
       try {
         ApiResult<AddedSiteMemberResponse> addMemberResp = await homeRepository.addSiteMember(bodyParams);
@@ -98,7 +90,73 @@ class HomeBloc extends Bloc<HomeEvent, GlobalApiResponseState> {
         emitter(ApiErrorState(exception: e));
       }
     }
-  }*/
+  }
+  makeAdmin(HomeEvent event, Emitter<GlobalApiResponseState> emitter) async {
+    if (event is MakeAdminEvent) {
+      emitter(const ApiLoadingState());
+      final bodyParams = {
+        "req_params": event.reqParams,
+        "req_type": event.reqType,
+        "site_id": event.siteId,
+      };
+      try {
+        ApiResult<AddedSiteMemberResponse> makeAdminResp = await homeRepository.makeAdminSiteMember(bodyParams);
+
+        makeAdminResp.when(
+          success: (AddedSiteMemberResponse makeAdmin) => emitter(MakeAdminStateSuccess(data: makeAdmin)),
+          failure: (AppException ex) async {
+            emitter(ApiErrorState(exception: ex));
+          },
+        );
+      } on AppException catch (e) {
+        emitter(ApiErrorState(exception: e));
+      }
+    }
+  }
+  removeSiteMember(HomeEvent event, Emitter<GlobalApiResponseState> emitter) async {
+    if (event is RemoveSiteMemberEvent) {
+      emitter(const ApiLoadingState());
+      final bodyParams = {
+        "req_params": event.reqParams,
+        "req_type": event.reqType,
+        "site_id": event.siteId,
+      };
+      try {
+        ApiResult<AddedSiteMemberResponse> makeAdminResp = await homeRepository.makeAdminSiteMember(bodyParams);
+
+        makeAdminResp.when(
+          success: (AddedSiteMemberResponse makeAdmin) => emitter(RemoveSiteMemberStateSuccess(data: makeAdmin)),
+          failure: (AppException ex) async {
+            emitter(ApiErrorState(exception: ex));
+          },
+        );
+      } on AppException catch (e) {
+        emitter(ApiErrorState(exception: e));
+      }
+    }
+  }
+  reInvite(HomeEvent event, Emitter<GlobalApiResponseState> emitter) async {
+    if (event is ReInviteEvent) {
+      emitter(const ApiLoadingState());
+      final bodyParams = {
+        "req_params": event.reqParams,
+        "req_type": event.reqType,
+        "site_id": event.siteId,
+      };
+      try {
+        ApiResult<AddedSiteMemberResponse> reInviteResp = await homeRepository.makeAdminSiteMember(bodyParams);
+
+        reInviteResp.when(
+          success: (AddedSiteMemberResponse reInvite) => emitter(ReInviteStateSuccess(data: makeAdmin)),
+          failure: (AppException ex) async {
+            emitter(ApiErrorState(exception: ex));
+          },
+        );
+      } on AppException catch (e) {
+        emitter(ApiErrorState(exception: e));
+      }
+    }
+  }
 }
 
 String getConShort(String name) {

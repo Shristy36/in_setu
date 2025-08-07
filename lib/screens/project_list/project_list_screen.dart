@@ -39,13 +39,14 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (context) => AddSiteModal(
-        onClose: () => Navigator.of(context).pop(),
-        onSiteAdded: () {
-          context.read<SitesBloc>().add(GetAllSites());
-        },
-        siteObject: siteObject,
-      ),
+      builder:
+          (context) => AddSiteModal(
+            onClose: () => Navigator.of(context).pop(),
+            onSiteAdded: () {
+              context.read<SitesBloc>().add(GetAllSites());
+            },
+            siteObject: siteObject,
+          ),
     );
   }
 
@@ -53,12 +54,13 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (context) => AddSiteModal(
-        onClose: () => Navigator.of(context).pop(),
-        onSiteAdded: () {
-          context.read<SitesBloc>().add(GetAllSites());
-        },
-      ),
+      builder:
+          (context) => AddSiteModal(
+            onClose: () => Navigator.of(context).pop(),
+            onSiteAdded: () {
+              context.read<SitesBloc>().add(GetAllSites());
+            },
+          ),
     );
   }
 
@@ -151,13 +153,20 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
   }
 
   Widget listProject(List<Data> listOfProject) {
-    final filteredProjects = _searchQuery.isEmpty
-        ? listOfProject
-        : listOfProject.where((project) {
-      return project.siteName!.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          project.siteLocation!.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          project.companyName!.toLowerCase().contains(_searchQuery.toLowerCase());
-    }).toList();
+    final filteredProjects =
+        _searchQuery.isEmpty
+            ? listOfProject
+            : listOfProject.where((project) {
+              return project.siteName!.toLowerCase().contains(
+                    _searchQuery.toLowerCase(),
+                  ) ||
+                  project.siteLocation!.toLowerCase().contains(
+                    _searchQuery.toLowerCase(),
+                  ) ||
+                  project.companyName!.toLowerCase().contains(
+                    _searchQuery.toLowerCase(),
+                  );
+            }).toList();
 
     if (filteredProjects.isEmpty) {
       return NoDataFound(noDataFoundTxt: "No matching projects found");
@@ -168,7 +177,12 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
       itemBuilder: (context, index) {
         final site = filteredProjects[index];
         return Padding(
-          padding: const EdgeInsets.only(left: 18.0, bottom: 5, top: 25, right: 18),
+          padding: const EdgeInsets.only(
+            left: 18.0,
+            bottom: 5,
+            top: 25,
+            right: 18,
+          ),
           child: _buildProjectCard(
             title: site.siteName!,
             location: site.siteLocation!,
@@ -213,10 +227,11 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => BottomNavScreen(
-                  user: widget.user,
-                  siteObject: siteObject,
-                ),
+                builder:
+                    (context) => BottomNavScreen(
+                      user: widget.user,
+                      siteObject: siteObject,
+                    ),
               ),
             );
           },
@@ -224,7 +239,10 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
             clipBehavior: Clip.none,
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 25.0, horizontal: 10),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 25.0,
+                  horizontal: 10,
+                ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -233,15 +251,31 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                       height: 120,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.colorGray, width: 1),
+                        border: Border.all(
+                          color: AppColors.colorGray,
+                          width: 1,
+                        ),
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(2.0),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(16),
-                          child: img != null
-                              ? Image.network(ApiConstants.baseUrl + img, fit: BoxFit.cover)
-                              : Image.asset("assets/icons/profile_img.jpg", fit: BoxFit.cover),
+                          child:
+                              img != null
+                                  ? Image.network(
+                                    ApiConstants.baseUrl + img,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace){
+                                      return Image.asset(
+                                        "assets/images/building_icon.jpeg",
+                                        fit: BoxFit.cover,
+                                      );
+                                    },
+                                  )
+                                  : Image.asset(
+                                    "assets/images/building_icon.jpeg",
+                                    fit: BoxFit.cover,
+                                  ),
                         ),
                       ),
                     ),
@@ -252,7 +286,10 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                         children: [
                           Padding(
                             padding: const EdgeInsets.only(right: 5.0),
-                            child: Utility.subTitle(title, AppColors.colorBlack),
+                            child: Utility.subTitle(
+                              title,
+                              AppColors.colorBlack,
+                            ),
                           ),
                           SizedBox(height: 8),
                           Utility.smlText(location, AppColors.colorGray),
@@ -270,20 +307,27 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                       color: Color(0xFFF1F5F9),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
-                                    child: Icon(Icons.edit_outlined, color: Color(0xFF64748B), size: 18),
+                                    child: Icon(
+                                      Icons.edit_outlined,
+                                      color: Color(0xFF64748B),
+                                      size: 18,
+                                    ),
                                   ),
                                 ),
                                 SizedBox(width: 8),
                                 GestureDetector(
                                   onTap: () async {
-                                    final delete = await DialogManager.showDeleteSiteDialog(
-                                      context,
-                                      siteDeleteMsg,
-                                      siteDeleteTitle,
-                                      siteObject.id,
-                                    );
+                                    final delete =
+                                        await DialogManager.showDeleteSiteDialog(
+                                          context,
+                                          siteDeleteMsg,
+                                          siteDeleteTitle,
+                                          siteObject.id,
+                                        );
                                     if (delete) {
-                                      context.read<SitesBloc>().add(GetAllSites());
+                                      context.read<SitesBloc>().add(
+                                        GetAllSites(),
+                                      );
                                     }
                                   },
                                   child: Container(
@@ -292,7 +336,11 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                       color: Color(0xFFFEE2E2),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
-                                    child: Icon(Icons.delete_outline, color: Color(0xFFEF4444), size: 18),
+                                    child: Icon(
+                                      Icons.delete_outline,
+                                      color: Color(0xFFEF4444),
+                                      size: 18,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -319,7 +367,10 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                     shape: BoxShape.circle,
                   ),
                   child: Center(
-                    child: Utility.smlText(count.toString(), AppColors.colorWhite),
+                    child: Utility.smlText(
+                      count.toString(),
+                      AppColors.colorWhite,
+                    ),
                   ),
                 ),
               ),

@@ -170,7 +170,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildSiteTeamSection() {
-    List<TeamMember> teamMembers = dashboardResponse!.teams.values.toList();
+    // List<TeamMember> teamMembers = dashboardResponse!.teams.values.toList();
+    List<TeamMember> teamMembers = dashboardResponse!.teams;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
