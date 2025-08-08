@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:in_setu/commonWidget/no_data_found.dart';
 import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/constants/strings.dart';
 import 'package:in_setu/networkSupport/ApiConstants.dart';
 import 'package:in_setu/networkSupport/ErrorHandler.dart';
 import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
+import 'package:in_setu/screens/login_view/model/register_model/RegisterResponse.dart' hide User;
 import 'package:in_setu/supports/DialogManager.dart';
 import 'package:in_setu/supports/utility.dart';
 import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
@@ -18,7 +20,6 @@ import 'package:in_setu/widgets/custom_app_bar.dart';
 
 class ProjectListScreen extends StatefulWidget {
   final User user;
-
   const ProjectListScreen({super.key, required this.user});
 
   @override
@@ -296,7 +297,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                           Utility.smlText(subLocation, AppColors.colorGray),
                           SizedBox(height: 15),
                           SizedBox(
-                            width: 80,
+                            width: 90,
                             child: Row(
                               children: [
                                 GestureDetector(
@@ -307,11 +308,12 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                       color: Color(0xFFF1F5F9),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
-                                    child: Icon(
+                                    child: SvgPicture.asset("assets/svg/edit_btn.svg", width: 25, height: 25, color: AppColors.primary,),
+                                      /*Icon(
                                       Icons.edit_outlined,
                                       color: Color(0xFF64748B),
                                       size: 18,
-                                    ),
+                                    ),*/
                                   ),
                                 ),
                                 SizedBox(width: 8),

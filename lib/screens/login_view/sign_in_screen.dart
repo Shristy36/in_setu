@@ -47,7 +47,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 if (state is SignInSuccessState) {
                   LoadingDialog.hide(context);
                   print("login success");
-                  final User user = state.data.user!;
+                  final User user = state.data.user;
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => ProjectListScreen(user: user),

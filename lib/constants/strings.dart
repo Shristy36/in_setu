@@ -1,8 +1,9 @@
 
 const String loginTitle = "Builder App";
-const String signUpTitle = "Create an account";
+const String signUpTitle = "Create An Account";
 const String forgotPassTItle = "Forgot Password";
-const String loginDescription = "Lets Us help you create";
+const String loginDescription = "Lets Us Help You Create";
+const String registerOtp = "Register";
 const String phoneValidation = "Email or phone is not empty";
 const String hintPhone = "Email or phone";
 const String hintPass = "Password";

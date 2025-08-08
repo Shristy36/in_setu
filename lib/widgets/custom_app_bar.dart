@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/screens/cash_details_view/cash_details_view.dart';
 import 'package:in_setu/screens/link_device_screen.dart';
@@ -124,7 +125,14 @@ class APPBarWidget extends StatelessWidget {
   final User user;
   final String siteName;
   final num siteId;
-  APPBarWidget({super.key, required this.isSiteNameVisible, required this.user, required this.siteName, required this.siteId});
+
+  APPBarWidget({
+    super.key,
+    required this.isSiteNameVisible,
+    required this.user,
+    required this.siteName,
+    required this.siteId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -160,50 +168,82 @@ class APPBarWidget extends StatelessWidget {
                   "${user.lastName}",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
-                if(isSiteNameVisible)Text(
-                  siteName,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                ),
+                if (isSiteNameVisible)
+                  Text(
+                    siteName,
+                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                  ),
               ],
             ),
           ),
           // Action buttons
           GestureDetector(
-            onTap: ()=>{
-              Navigator.push(context, MaterialPageRoute(builder: (context) => CashDetailsView(siteId: siteId)))
-            },
-              child: Icon(Icons.description_outlined, color: Colors.grey[600])),
+            onTap:
+                () => {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CashDetailsView(siteId: siteId),
+                    ),
+                  ),
+                },
+            child: SvgPicture.asset(
+              "assets/svg/cash_book_icon.svg",
+              width: 25,
+              height: 25,
+              color: AppColors.colorBlack,
+            ),
+          ),
+          /*Icon(Icons.description_outlined, color: Colors.grey[600]))*/
           SizedBox(width: 20),
           GestureDetector(
-              onTap: ()=> Navigator.push(context, MaterialPageRoute(builder: (context) => NotificationScreen())),child: Icon(Icons.notifications_outlined, color: Colors.grey[600])),
+            onTap:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => NotificationScreen()),
+                ),
+            child: SvgPicture.asset(
+              "assets/svg/ic_notifications.svg",
+              width: 25,
+              height: 25,
+              color: AppColors.colorBlack,
+            ),
+          ),
           SizedBox(width: 5),
           // Icon(Icons.more_vert, color: Colors.grey[600])
           PopupMenuButton<String>(
-            icon: Icon(Icons.more_vert, color: Colors.grey[600]),
+            icon: SvgPicture.asset(
+              "assets/svg/menu_dot.svg",
+              width: 25,
+              height: 25,
+              color: AppColors.colorBlack,
+            ),
             onSelected: (value) {
               if (value == 'link_device') {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => LinkDeviceScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => LinkDeviceScreen()),
+                );
               }
             },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'link_device',
-                child: Row(
-                  children: [
-                    Icon(Icons.devices_rounded),
-                    SizedBox(width: 5,),
-                    Text("Link Device"),
-                  ],
-                ),
-              ),
-            ],
-          )
+            itemBuilder:
+                (context) => [
+                  PopupMenuItem(
+                    value: 'link_device',
+                    child: Row(
+                      children: [
+                        Icon(Icons.devices_rounded),
+                        SizedBox(width: 5),
+                        Text("Link Device"),
+                      ],
+                    ),
+                  ),
+                ],
+          ),
         ],
       ),
     );
   }
 }
 
-enum MenuAction {
-  linkDevice,
-}
+enum MenuAction { linkDevice }

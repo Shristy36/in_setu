@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:in_setu/constants/strings.dart';
 import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
+import 'package:in_setu/screens/login_view/model/register_model/RegisterResponse.dart';
 import 'package:in_setu/screens/mainpower_screen/model/ManPowerModelResponse.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -9,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class SharedPreferenceManager {
 
   static const String oauth = "oauth";
+  static const String registerAuth = "registerAuth";
   static const String walkthrough = "walkthrough";
   static const String saveDateList = "saveDateList";
 
@@ -69,6 +71,7 @@ class SharedPreferenceManager {
       return null;
     }
   }
+
 
   static setFirstCallOnboarding(bool oneTime) async{
     (await prefs).setBool(walkthrough, oneTime);

@@ -13,6 +13,7 @@ import 'package:in_setu/widgets/cash_in_out_widget.dart';
 
 class CashDetailsView extends StatefulWidget {
   final num siteId;
+
   const CashDetailsView({super.key, required this.siteId});
 
   @override
@@ -51,7 +52,11 @@ class _CashDetailsViewState extends State<CashDetailsView> {
 
           if (state.status == GlobalApiStatus.error) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              ErrorHandler.errorHandle(state.message ?? "An error occurred", "Error", context);
+              ErrorHandler.errorHandle(
+                state.message ?? "An error occurred",
+                "Error",
+                context,
+              );
             });
             return _buildEmptyView();
           }
@@ -62,14 +67,13 @@ class _CashDetailsViewState extends State<CashDetailsView> {
       bottomNavigationBar: BlocBuilder<CashbookBloc, GlobalApiResponseState>(
         builder: (context, state) {
           if (state is CashbookStateSuccess && state.data != null) {
-            final isDefault = state.data!.data?.any((item) => item.isDefault == 1) ?? false;
+            final isDefault =
+                state.data!.data?.any((item) => item.isDefault == 1) ?? false;
             final dataList = state.data!.data ?? [];
             final hasDefault = dataList.any((item) => item.isDefault == 1);
             Data? cashBookObj;
             if (hasDefault) {
-              cashBookObj = dataList.firstWhere(
-                    (item) => item.isDefault == 1,
-              );
+              cashBookObj = dataList.firstWhere((item) => item.isDefault == 1);
             }
 
             if (isDefault) {
@@ -81,12 +85,19 @@ class _CashDetailsViewState extends State<CashDetailsView> {
                     _buildBottomNavButton(
                       title: "Cash In",
                       color: AppColors.primary,
-                      onTap: () => _showCashDialog("Cash In", "cashin", cashBookObj),
+                      onTap:
+                          () =>
+                              _showCashDialog("Cash In", "cashin", cashBookObj),
                     ),
                     _buildBottomNavButton(
                       title: "Cash Out",
                       color: Colors.red,
-                      onTap: () => _showCashDialog("Cash Out", "cashout", cashBookObj),
+                      onTap:
+                          () => _showCashDialog(
+                            "Cash Out",
+                            "cashout",
+                            cashBookObj,
+                          ),
                     ),
                     _buildBottomNavButton(
                       title: "Options",
@@ -109,7 +120,6 @@ class _CashDetailsViewState extends State<CashDetailsView> {
     required Color color,
     required VoidCallback onTap,
   }) {
-
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -146,12 +156,15 @@ class _CashDetailsViewState extends State<CashDetailsView> {
       final hasDefault = response.data!.any((item) => item.isDefault == 1);
 
       if (hasDefault) {
-        final defaultItem = response.data!.firstWhere((item) => item.isDefault == 1);
+        final defaultItem = response.data!.firstWhere(
+          (item) => item.isDefault == 1,
+        );
         return CustomViews.setSubTitle(defaultItem.cashbookName ?? "Default");
       } else {
         return CustomViews.setSubTitle("Select");
       }
     }
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -160,6 +173,7 @@ class _CashDetailsViewState extends State<CashDetailsView> {
           width: double.infinity,
           height: 100,
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Padding(
                 padding: const EdgeInsets.only(left: 10, top: 30),
@@ -181,15 +195,23 @@ class _CashDetailsViewState extends State<CashDetailsView> {
                           children: [
                             getCashbookWidget(),
                             InkWell(
-                              onTap: () => showDialog(
-                                context: context,
-                                builder: (context)  => AddCashbookWidget(siteId: widget.siteId, isUpdateValue: (value) {
-                                  if (value) {
-                                    context.read<CashbookBloc>().add(
-                                        CashbookFetchEvent(widget.siteId));
-                                  }
-                                })
-                              ),
+                              onTap:
+                                  () => showDialog(
+                                    context: context,
+                                    builder:
+                                        (context) => AddCashbookWidget(
+                                          siteId: widget.siteId,
+                                          isUpdateValue: (value) {
+                                            if (value) {
+                                              context.read<CashbookBloc>().add(
+                                                CashbookFetchEvent(
+                                                  widget.siteId,
+                                                ),
+                                              );
+                                            }
+                                          },
+                                        ),
+                                  ),
                               child: const Icon(
                                 Icons.arrow_drop_down,
                                 color: AppColors.colorWhite,
@@ -213,11 +235,11 @@ class _CashDetailsViewState extends State<CashDetailsView> {
                       child: Row(
                         children: [
                           CustomViews.setSubTitle("Cr/Dr"),
-                          SizedBox(width: 40,),
+                          SizedBox(width: 40),
                           CustomViews.setSubTitle("Balance"),
                         ],
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -226,82 +248,112 @@ class _CashDetailsViewState extends State<CashDetailsView> {
         ),
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-            child: !hasData ? const Center(child: NoDataFound(noDataFoundTxt: "No Cashbook Found"))
-                : ListView.builder(
-              itemCount: firstCashbook.length,
-              itemBuilder: (context, index) {
-                final item = firstCashbook[index];
-                final date = item.date ?? "No Date";
-                final transactions = item.transactions ?? [];
-
-                return Column(
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          const Expanded(child: Text("--------------------------",overflow: TextOverflow.ellipsis,)),
-                          Expanded(
-                            child: Text(
-                              date,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: AppColors.colorBlack,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          const Expanded(child: Text("----------------------------", overflow: TextOverflow.ellipsis,)),
-                        ],
-                      ),
-                    ),
-                    ...transactions.map((transaction) => Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          transaction.particular ?? "No Particular",
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: AppColors.colorBlack,
-                          ),
-                        ),
-                        Row(
+            padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 0),
+            child:
+                !hasData
+                    ? const Center(
+                      child: NoDataFound(noDataFoundTxt: "No Cashbook Found"),
+                    )
+                    : ListView.builder(
+                      itemCount: firstCashbook.length,
+                      itemBuilder: (context, index) {
+                        final item = firstCashbook[index];
+                        final date = item.date ?? "No Date";
+                        final transactions = item.transactions ?? [];
+                        return Column(
                           children: [
                             SizedBox(
-                              width: 80,
-                              child: Text(
-                                "${transaction.amount ?? 0}",
-                                style: TextStyle(
-                                  color: transaction.type == 'credit'
-                                      ? Colors.green
-                                      : Colors.red,
-                                  fontSize: 16,
-                                ),
-                                textAlign: TextAlign.right,
+                              width: double.infinity,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: [
+                                  const Expanded(
+                                    child: Text(
+                                      "--------------------------",
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Text(
+                                      date,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.colorBlack,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  const Expanded(
+                                    child: Text(
+                                      "----------------------------",
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(width: 20),
-                            SizedBox(
-                              width: 80,
-                              child: Text(
-                                "${transaction.amount ?? 0}",
-                                style: const TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 16,
+                            ...transactions.map(
+                              (transaction) => Padding(
+                                padding: const EdgeInsets.only(top: 5.0),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    color: AppColors.colorLightGray
+                                                        ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          transaction.particular ?? "No Particular",
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            color: AppColors.colorBlack,
+                                          ),
+                                        ),
+                                        Row(
+                                          children: [
+                                            SizedBox(
+                                              width: 80,
+                                              child: Text(
+                                                "${transaction.amount ?? 0}",
+                                                style: TextStyle(
+                                                  color:
+                                                      transaction.type == 'credit'
+                                                          ? Colors.green
+                                                          : Colors.red,
+                                                  fontSize: 16,
+                                                ),
+                                                textAlign: TextAlign.right,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 20),
+                                            SizedBox(
+                                              width: 80,
+                                              child: Text(
+                                                "${transaction.amount ?? 0}",
+                                                style: const TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 16,
+                                                ),
+                                                textAlign: TextAlign.right,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                                textAlign: TextAlign.right,
                               ),
                             ),
                           ],
-                        ),
-                      ],
-                    )),
-                  ],
-                );
-              },
-            ),
+                        );
+                      },
+                    ),
           ),
         ),
       ],
@@ -311,16 +363,19 @@ class _CashDetailsViewState extends State<CashDetailsView> {
   void _showCashDialog(String title, String type, Data? cashBookObj) {
     showDialog(
       context: context,
-      builder: (context) => CashInOutWidget(
-        cashTitle: title,
-        type: type,
-        cashBookObj: cashBookObj,
-        transactionAdd: (value){
-          if (value) {
-            context.read<CashbookBloc>().add(CashbookFetchEvent(widget.siteId));
-          }
-        },
-      ),
+      builder:
+          (context) => CashInOutWidget(
+            cashTitle: title,
+            type: type,
+            cashBookObj: cashBookObj,
+            transactionAdd: (value) {
+              if (value) {
+                context.read<CashbookBloc>().add(
+                  CashbookFetchEvent(widget.siteId),
+                );
+              }
+            },
+          ),
     );
   }
 
@@ -495,9 +550,7 @@ class _CashDetailsViewState extends State<CashDetailsView> {
           ),
         ),
         Expanded(
-          child: Center(
-            child: NoDataFound(noDataFoundTxt: "No Data Found"),
-          ),
+          child: Center(child: NoDataFound(noDataFoundTxt: "No Data Found")),
         ),
       ],
     );

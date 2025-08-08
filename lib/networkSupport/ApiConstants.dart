@@ -3,6 +3,10 @@ class ApiConstants {
   static String baseUrl = "https://builder.webinovator.com/";
 
   static String authUrl = "api/auth/login";
+  static String registerEndPoint = "/api/auth/register";
+  static String signUpEndPoint = "/api/auth/authenticate";
+  static String requestResetEndPoint = "/api/auth/request-reset";
+
   static String getAllSites = "api/members/sites/get_all";
   static String dashBoardApi = "api/members/home/site_dashboard/";
   static String siteTeamMemberEndPoint = "api/members/sites/get_all_site_members";

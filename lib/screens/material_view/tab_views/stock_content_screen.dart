@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:in_setu/commonWidget/no_data_found.dart';
+import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/constants/strings.dart';
 import 'package:in_setu/networkSupport/ErrorHandler.dart';
 import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
@@ -195,7 +197,13 @@ class _StockContentScreenState extends State<StockContentScreen> {
                               context.read<MaterialStockBloc>().add(MaterialStockFetchEvent(siteId: widget.siteObject.id));
                             },initialStockData: stockData, searchDataList: widget.searchDataList, searchUnitData: widget.searchUnitData,))
                           },
-                          child: Icon(Icons.edit_outlined, color: Colors.purple, size: 20)),
+                          child: SvgPicture.asset(
+                            "assets/svg/edit_btn.svg",
+                            width: 20,
+                            height: 20,
+                            color: AppColors.colorBlack,
+                          ),
+                      ),
                       SizedBox(width: 12),
                       GestureDetector(
                           onTap: ()async {
