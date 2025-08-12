@@ -169,7 +169,7 @@ class _StockManagementScreenState extends State<StockManagementScreen>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  StockContentScreen(siteObject: widget.siteObject, searchDataList: searchList, searchUnitData: searchUnitList,),
+                  StockContentScreen(siteObject: widget.siteObject, searchDataList: searchList, searchUnitData: searchUnitList,searchQuery: _searchQuery,),
                   IntendContentScreen(siteObject: widget.siteObject),
                 ],
               ),

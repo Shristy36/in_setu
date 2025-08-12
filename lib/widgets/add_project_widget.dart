@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/networkSupport/ErrorHandler.dart';
 import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
+import 'package:in_setu/screens/plans_view/storageManager/create_folder.dart';
 import 'package:in_setu/supports/LoadingDialog.dart';
 import 'package:in_setu/supports/utility.dart';
 import 'package:in_setu/screens/project_list/bloc/sites_bloc.dart';
@@ -34,6 +35,7 @@ class _AddSiteModalState extends State<AddSiteModal> {
   final _locationController = TextEditingController();
   final _companyController = TextEditingController();
   File? _siteImg;
+  bool isButtonClick = true;
 
   @override
   void initState() {
@@ -80,11 +82,17 @@ class _AddSiteModalState extends State<AddSiteModal> {
                 widget.onSiteAdded();
                 Utility.showToast(state.data!.message);
                 Navigator.of(context).pop(true);
+                setState(() {
+                  isButtonClick = true;
+                });
               }
               else if (state is SiteUpdateStateSuccess) {
                 widget.onSiteAdded();
                 Utility.showToast(state.data!.message);
                 Navigator.of(context).pop(true);
+                setState(() {
+                  isButtonClick = true;
+                });
               }
               break;
 
@@ -92,72 +100,114 @@ class _AddSiteModalState extends State<AddSiteModal> {
               LoadingDialog.hide(context);
               widget.onSiteAdded();
               ErrorHandler.errorHandle(state.message, "Invalid Auth", context);
+              setState(() {
+                isButtonClick = true;
+              });
               break;
 
             default:
+              setState(() {
+                isButtonClick = true;
+              });
               LoadingDialog.hide(context);
           }
         },
-        child: Container(
-          width: double.infinity,
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.85,
-          ),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(5),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.15),
-                blurRadius: 30,
-                offset: Offset(0, 15),
+        child: Stack(
+          children: [
+            Container(
+              width: double.infinity,
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.85,
               ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildModalHeader(),
-              Flexible(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.fromLTRB(24, 0, 24, 24),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(height: 5),
-                        _buildImageUploadSection(),
-                        SizedBox(height: 24),
-                        _buildInputField(
-                          label: 'Site Name',
-                          controller: _siteNameController,
-                          icon: Icons.location_city_rounded,
-                          validator: (value) => value?.isEmpty ?? true ? 'Please enter site name' : null,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(5),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.15),
+                    blurRadius: 30,
+                    offset: Offset(0, 15),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildModalHeader(),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.fromLTRB(24, 0, 24, 24),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(height: 5),
+                            _buildImageUploadSection(),
+                            SizedBox(height: 24),
+                            _buildInputField(
+                              label: 'Site Name',
+                              controller: _siteNameController,
+                              icon: Icons.location_city_rounded,
+                              validator: (value) => value?.isEmpty ?? true ? 'Please enter site name' : null,
+                            ),
+                            SizedBox(height: 20),
+                            _buildInputField(
+                              label: 'Site Location',
+                              controller: _locationController,
+                              icon: Icons.location_on_rounded,
+                              validator: (value) => value?.isEmpty ?? true ? 'Please enter site location' : null,
+                            ),
+                            SizedBox(height: 20),
+                            _buildInputField(
+                              label: 'Company Name',
+                              controller: _companyController,
+                              icon: Icons.business_rounded,
+                              validator: (value) => value?.isEmpty ?? true ? 'Please enter company name' : null,
+                            ),
+                            SizedBox(height: 32),
+                            _buildActionButtons(),
+                          ],
                         ),
-                        SizedBox(height: 20),
-                        _buildInputField(
-                          label: 'Site Location',
-                          controller: _locationController,
-                          icon: Icons.location_on_rounded,
-                          validator: (value) => value?.isEmpty ?? true ? 'Please enter site location' : null,
-                        ),
-                        SizedBox(height: 20),
-                        _buildInputField(
-                          label: 'Company Name',
-                          controller: _companyController,
-                          icon: Icons.business_rounded,
-                          validator: (value) => value?.isEmpty ?? true ? 'Please enter company name' : null,
-                        ),
-                        SizedBox(height: 32),
-                        _buildActionButtons(),
-                      ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (!isButtonClick)
+            if (!isButtonClick)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withOpacity(0.3),
+                  child: Center(
+                    child: Container(
+                      padding: EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            "Processing...",
+                            style: TextStyle(
+                              color: AppColors.colorBlack,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ],
-          ),
+            ]
         ),
       ),
     );
@@ -294,21 +344,27 @@ class _AddSiteModalState extends State<AddSiteModal> {
                 borderRadius: BorderRadius.circular(12),
                 onTap: () {
                   if (_formKey.currentState?.validate() ?? false) {
-                    if (widget.siteObject == null) {
-                      context.read<SitesBloc>().add(CreateSiteProject(
-                        siteName: _siteNameController.text,
-                        siteLocation: _locationController.text,
-                        companyName: _companyController.text,
-                        image: _siteImg,
-                      ));
-                    } else {
-                      context.read<SitesBloc>().add(SiteProjectUpdate(
-                        widget.siteObject!.id,
-                        _siteNameController.text,
-                        _locationController.text,
-                        _companyController.text,
-                        _siteImg,
-                      ));
+                    if(isButtonClick){
+                      setState(() {
+                        isButtonClick = false;
+                      });
+                      if (widget.siteObject == null) {
+                        createFolderAndFilesExternal(_siteNameController.text, "","", []);
+                        context.read<SitesBloc>().add(CreateSiteProject(
+                          siteName: _siteNameController.text,
+                          siteLocation: _locationController.text,
+                          companyName: _companyController.text,
+                          image: _siteImg,
+                        ));
+                      } else {
+                        context.read<SitesBloc>().add(SiteProjectUpdate(
+                          widget.siteObject!.id,
+                          _siteNameController.text,
+                          _locationController.text,
+                          _companyController.text,
+                          _siteImg,
+                        ));
+                      }
                     }
                   }
                 },

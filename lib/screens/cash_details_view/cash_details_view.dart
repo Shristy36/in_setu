@@ -41,8 +41,8 @@ class _CashDetailsViewState extends State<CashDetailsView> {
 
           if (state.status == GlobalApiStatus.completed) {
             if (state is CashbookStateSuccess) {
-              cashbookDetailResponse = state.data;
               if (state.data != null) {
+                cashbookDetailResponse = state.data;
                 return getCashbookDetailView(state.data!);
               }
               return _buildEmptyView();
@@ -164,8 +164,199 @@ class _CashDetailsViewState extends State<CashDetailsView> {
         return CustomViews.setSubTitle("Select");
       }
     }
-
     return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          color: AppColors.primary,
+          width: double.infinity,
+          height: 110,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 10, top: 30),
+                child: Row(
+                  children: [
+                    InkWell(
+                      onTap: () => Navigator.pop(context),
+                      child: const SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: Icon(Icons.arrow_back, color: Colors.white),
+                      ),
+                    ),
+                    Expanded(
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            getCashbookWidget(),
+                            InkWell(
+                              onTap: () => showDialog(
+                                context: context,
+                                builder: (context) => AddCashbookWidget(
+                                  siteId: widget.siteId,
+                                  isUpdateValue: (value) {
+                                    if (value) {
+                                      context.read<CashbookBloc>().add(
+                                        CashbookFetchEvent(
+                                          widget.siteId,
+                                        ),
+                                      );
+                                    }
+                                  },
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.arrow_drop_down,
+                                color: AppColors.colorWhite,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 40, height: 40),
+                  ],
+                ),
+              ),
+              SizedBox(height: 5,),
+              Padding(
+                padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CustomViews.setSubTitle("Particular/Remark"),
+                    SizedBox(
+                      child: Row(
+                        children: [
+                          CustomViews.setSubTitle("Cr/Dr"),
+                          const SizedBox(width: 45),
+                          CustomViews.setSubTitle("Balance"),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: !hasData
+              ? const Center(
+            child: NoDataFound(noDataFoundTxt: "No Cashbook Found"),
+          )
+              : Padding(
+                padding: const EdgeInsets.only(left: 15.0, right: 15),
+                child: ListView.builder(
+                            padding: EdgeInsets.zero, // Remove any padding inside ListView
+                            itemCount: firstCashbook.length,
+                            itemBuilder: (context, index) {
+                final item = firstCashbook[index];
+                final date = item.date ?? "No Date";
+                final transactions = item.transactions ?? [];
+                return Column(
+                  children: [
+                    SizedBox(height: 5,),
+                    SizedBox(
+                      width: double.infinity,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Expanded(
+                            child: Text(
+                              "--------------------------",
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              date,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: AppColors.colorBlack,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          const Expanded(
+                            child: Text(
+                              "----------------------------",
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ...transactions.map(
+                          (transaction) => Padding(
+                        padding: const EdgeInsets.only(top: 5.0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: AppColors.colorLightGray,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  transaction.particular ?? "No Particular",
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: AppColors.colorBlack,
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 80,
+                                      child: Text(
+                                        "${transaction.amount ?? 0}",
+                                        style: TextStyle(
+                                          color: transaction.type == 'credit'
+                                              ? Colors.green
+                                              : Colors.red,
+                                          fontSize: 16,
+                                        ),
+                                        textAlign: TextAlign.right,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 20),
+                                    SizedBox(
+                                      width: 80,
+                                      child: Text(
+                                        "${transaction.balance ?? 0}",
+                                        style: const TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 16,
+                                        ),
+                                        textAlign: TextAlign.right,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+                            },
+                          ),
+              ),
+        ),
+      ],
+    );
+    /*return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
@@ -235,7 +426,7 @@ class _CashDetailsViewState extends State<CashDetailsView> {
                       child: Row(
                         children: [
                           CustomViews.setSubTitle("Cr/Dr"),
-                          SizedBox(width: 40),
+                          SizedBox(width: 45),
                           CustomViews.setSubTitle("Balance"),
                         ],
                       ),
@@ -248,7 +439,7 @@ class _CashDetailsViewState extends State<CashDetailsView> {
         ),
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 0),
+            padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 0),
             child:
                 !hasData
                     ? const Center(
@@ -265,29 +456,31 @@ class _CashDetailsViewState extends State<CashDetailsView> {
                             SizedBox(
                               width: double.infinity,
                               child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
+                                mainAxisAlignment: MainAxisAlignment.center, // Change this to center
                                 children: [
                                   const Expanded(
                                     child: Text(
                                       "--------------------------",
                                       overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.center, // Center the text within the Expanded
                                     ),
                                   ),
                                   Expanded(
                                     child: Text(
                                       date,
                                       style: const TextStyle(
-                                        fontSize: 12,
+                                        fontSize: 14,
                                         color: AppColors.colorBlack,
                                         fontWeight: FontWeight.bold,
                                       ),
+                                      textAlign: TextAlign.center, // Center the date text
                                     ),
                                   ),
                                   const Expanded(
                                     child: Text(
                                       "----------------------------",
                                       overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.center, // Center the text within the Expanded
                                     ),
                                   ),
                                 ],
@@ -334,7 +527,7 @@ class _CashDetailsViewState extends State<CashDetailsView> {
                                             SizedBox(
                                               width: 80,
                                               child: Text(
-                                                "${transaction.amount ?? 0}",
+                                                "${transaction.balance ?? 0}",
                                                 style: const TextStyle(
                                                   color: Colors.black,
                                                   fontSize: 16,
@@ -357,7 +550,7 @@ class _CashDetailsViewState extends State<CashDetailsView> {
           ),
         ),
       ],
-    );
+    );*/
   }
 
   void _showCashDialog(String title, String type, Data? cashBookObj) {

@@ -3,6 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
+import 'package:in_setu/screens/plans_view/plan_details_screen.dart';
+import 'package:in_setu/screens/plans_view/storageManager/create_folder.dart';
+import 'package:in_setu/screens/plans_view/storageManager/model/folder_model.dart';
 import 'package:in_setu/screens/project_list/model/AllSitesResponse.dart';
 import 'package:in_setu/supports/utility.dart';
 import 'package:in_setu/screens/material_view/material_screen.dart';
@@ -57,10 +60,15 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
   late AnimationController _searchAnimationController;
   bool _isSearchVisible = false;
   TextEditingController _searchController = TextEditingController();
+  final FolderModel _folderModel = FolderModel();
+  TextEditingController nameController = TextEditingController();
+
 
   @override
   void initState() {
     super.initState();
+    /*createDefaultFolders();*/
+
     _fabAnimationController = AnimationController(
       duration: Duration(milliseconds: 300),
       vsync: this,
@@ -230,6 +238,7 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
         for (PlatformFile file in result.files) {
           String fileName = file.name;
           String fileExtension = fileName.split('.').last.toLowerCase();
+          await createFolderAndFilesExternal(widget.siteObject.siteName!, "", "", result.files);
 
           setState(() {
             projects.add(
@@ -335,7 +344,6 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
   }
 
   void _showNameDialog(String title, String hint, Function(String) onConfirm) {
-    TextEditingController nameController = TextEditingController();
     showDialog(
       context: context,
       builder:
@@ -366,6 +374,7 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
               ElevatedButton(
                 onPressed: () {
                   if (nameController.text.trim().isNotEmpty) {
+                    addFolderAndFiles();
                     Navigator.pop(context);
                     onConfirm(nameController.text.trim());
                   }
@@ -436,26 +445,6 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
       padding: EdgeInsets.fromLTRB(20, 0, 20, 8),
       child: Row(
         children: [
-          // Container(
-          //   padding: EdgeInsets.all(12),
-          //   decoration: BoxDecoration(
-          //     gradient: LinearGradient(
-          //       colors: [Colors.blue[400]!, Colors.blue[600]!],
-          //       begin: Alignment.topLeft,
-          //       end: Alignment.bottomRight,
-          //     ),
-          //     borderRadius: BorderRadius.circular(16),
-          //     boxShadow: [
-          //       BoxShadow(
-          //         color: Colors.blue.withOpacity(0.3),
-          //         blurRadius: 8,
-          //         offset: Offset(0, 4),
-          //       ),
-          //     ],
-          //   ),
-          //   child: Icon(Icons.work_outline, color: Colors.white, size: 28),
-          // ),
-          // SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -478,19 +467,6 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
           ),
           Row(
             children: [
-          /*    IconButton(
-                onPressed: _toggleSearch,
-                icon: Icon(
-                  _isSearchVisible ? Icons.close : Icons.search,
-                  color: Colors.grey[700],
-                ),
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  shape: CircleBorder(),
-                  padding: EdgeInsets.all(12),
-                ),
-              ),
-           */
               SizedBox(width: 8),
               IconButton(
                 onPressed: () {
@@ -591,7 +567,10 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: () => _onProjectTap(project),
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => PlanDetailsScreen(folderName: "Architectural", siteObject: widget.siteObject,)));
+              /*_onProjectTap(project)*/
+            },
             borderRadius: BorderRadius.circular(15),
             child: Stack(
               clipBehavior: Clip.none, // Allows overflow
@@ -632,13 +611,7 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        /*boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],*/
+
       ),
       child: ListTile(
         onTap: () => _onProjectTap(project),
@@ -692,6 +665,13 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
         margin: EdgeInsets.all(16),
       ),
     );
+  }
+
+  void addFolderAndFiles() {
+    final folderName = nameController.text.trim();
+    if (folderName.isNotEmpty) {
+      createFolderAndFilesExternal(widget.siteObject.siteName!, folderName,"", []);
+    }
   }
 }
 

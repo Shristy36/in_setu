@@ -35,9 +35,7 @@ class SitesBloc extends Bloc<AllSitesEvent, GlobalApiResponseState> {
         ApiResult<AllSitesResponse> sitesResponse =
             await sitesRepository.getAllSites();
         sitesResponse.when(
-          success:
-              (AllSitesResponse allSitesResponse) =>
-                  emitter(AllSiteStateSuccess(data: allSitesResponse)),
+          success: (AllSitesResponse allSitesResponse) => emitter(AllSiteStateSuccess(data: allSitesResponse)),
           failure: (AppException ex) => emitter(ApiErrorState(exception: ex)),
         );
       } on AppException catch (e) {

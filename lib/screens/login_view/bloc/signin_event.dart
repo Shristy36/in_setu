@@ -29,3 +29,8 @@ class DoRequestReset extends SignInEvent{
   DoRequestReset({required this.contactNo});
 
 }
+class DeleteAccountEvent extends SignInEvent{
+  final String userToken;
+  DeleteAccountEvent({required this.userToken});
+
+}

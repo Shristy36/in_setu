@@ -1,4 +1,3 @@
-import 'package:contacts_service_plus/contacts_service_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:in_setu/commonWidget/no_data_found.dart';
@@ -6,7 +5,6 @@ import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/networkSupport/ErrorHandler.dart';
 import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
 import 'package:in_setu/screens/home_page/bloc/home_bloc.dart';
-import 'package:in_setu/screens/home_page/model/DashBoardResponse.dart';
 import 'package:in_setu/screens/home_page/model/SiteTeamMemberResponse.dart';
 import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
 import 'package:in_setu/supports/LoadingDialog.dart';
@@ -36,6 +34,8 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
     Color(0xFF9013fe),
   ];
 
+  bool fistLoadingOnly = true;
+  List<SiteMember> siteTeamListData = [];
   @override
   void initState() {
     super.initState();
@@ -125,6 +125,7 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
             } else if (state.status == GlobalApiStatus.completed) {
               if (state is SiteTeamMemberStateSuccess) {
                 if (state.data.data.isNotEmpty) {
+                  siteTeamListData = state.data.data;
                   return getSiteMemberView(state.data.data);
                 } else {
                   return Center(
@@ -141,7 +142,7 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
                 context,
               );
             }
-            return Center(child: Utility.getLoadingView(context));
+            return getSiteMemberView(siteTeamListData);
           },
         ),
       ),
@@ -379,20 +380,20 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
                     width: double.infinity,
                     child: GestureDetector(
                       onTap: (){
-                        context.read<HomeBloc>().add(
-                          MakeAdminEvent(
-                            reqParams: {
-                              "name": contactObj.name,
-                              "contact": contactObj.contact,
-                              "con_short": contactObj.conShort,
-                              "con_style": contactObj.conStyle,
-                              "isAdmin": false,
-                              "clicked": true,
-                            },
-                            reqType: "makeadmin",
-                            siteId: widget.siteObj.id,
-                          ),
-                        );
+                          context.read<HomeBloc>().add(
+                            MakeAdminEvent(
+                              reqParams: {
+                                "name": contactObj.name,
+                                "contact": contactObj.contact,
+                                "con_short": contactObj.conShort,
+                                "con_style": contactObj.conStyle,
+                                "isAdmin": false,
+                                "clicked": true,
+                              },
+                              reqType: "makeadmin",
+                              siteId: widget.siteObj.id,
+                            ),
+                          );
                       },
                       child: Text(
                         "Re -invite",
@@ -414,20 +415,20 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
                   ),
                   child: GestureDetector(
                     onTap: () {
-                      context.read<HomeBloc>().add(
-                        MakeAdminEvent(
-                          reqParams: {
-                            "name": contactObj.name,
-                            "contact": contactObj.contact,
-                            "con_short": contactObj.conShort,
-                            "con_style": contactObj.conStyle,
-                            "isAdmin": false,
-                            "clicked": true,
-                          },
-                          reqType: "makeadmin",
-                          siteId: widget.siteObj.id,
-                        ),
-                      );
+                       context.read<HomeBloc>().add(
+                         MakeAdminEvent(
+                           reqParams: {
+                             "name": contactObj.name,
+                             "contact": contactObj.contact,
+                             "con_short": contactObj.conShort,
+                             "con_style": contactObj.conStyle,
+                             "isAdmin": false,
+                             "clicked": true,
+                           },
+                           reqType: "makeadmin",
+                           siteId: widget.siteObj.id,
+                         ),
+                       );
                     },
                     child: SizedBox(
                       width: double.infinity,
@@ -453,20 +454,20 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
                     alignment: Alignment.bottomLeft,
                     child: GestureDetector(
                       onTap: (){
-                        context.read<HomeBloc>().add(
-                          RemoveSiteMemberEvent(
-                            reqParams: {
-                              "name": contactObj.name,
-                              "contact": contactObj.contact,
-                              "con_short": contactObj.conShort,
-                              "con_style": contactObj.conStyle,
-                              "isAdmin": false,
-                              "clicked": true,
-                            },
-                            reqType: "removefromteam",
-                            siteId: widget.siteObj.id,
-                          ),
-                        );
+                          context.read<HomeBloc>().add(
+                            RemoveSiteMemberEvent(
+                              reqParams: {
+                                "name": contactObj.name,
+                                "contact": contactObj.contact,
+                                "con_short": contactObj.conShort,
+                                "con_style": contactObj.conStyle,
+                                "isAdmin": false,
+                                "clicked": true,
+                              },
+                              reqType: "removefromteam",
+                              siteId: widget.siteObj.id,
+                            ),
+                          );
                       },
                       child: Text(
                         "Remove from team",
@@ -481,7 +482,7 @@ class _AddMemberScreenState extends State<AddMemberScreen> {
                 ),
                 const SizedBox(height: 15),
               ],
-            ),
+            )
           ),
         );
       },

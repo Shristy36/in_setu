@@ -49,7 +49,7 @@ class _AddManpowerWidgetState extends State<AddManpowerWidget> {
 
   final formKey = GlobalKey<FormState>();
   final agencyNameController = TextEditingController();
-
+  bool isButtonClick = true;
   void _addRequirement(bool isAdditional, String type) {
     setState(() {
       if (type == 'staff') {
@@ -193,6 +193,9 @@ class _AddManpowerWidgetState extends State<AddManpowerWidget> {
               Utility.showToast(state.data.message);
               widget.manPowerAdded();
               Navigator.of(context).pop();
+              setState(() {
+                isButtonClick = true;
+              });
             }
             break;
 
@@ -200,9 +203,15 @@ class _AddManpowerWidgetState extends State<AddManpowerWidget> {
             LoadingDialog.hide(context);
             FocusScope.of(context).unfocus();
             ErrorHandler.errorHandle(state.message, "Invalid Auth", context);
+            setState(() {
+              isButtonClick = true;
+            });
             break;
 
           default:
+            setState(() {
+              isButtonClick = true;
+            });
             LoadingDialog.hide(context);
         }
       },
@@ -214,39 +223,74 @@ class _AddManpowerWidgetState extends State<AddManpowerWidget> {
     return Material(
       color: Colors.black54,
       child: Center(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-            top: 20,
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+              top: 20,
+            ),
+            child: Container(
+              margin: const EdgeInsets.all(20),
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.85,
+                maxWidth: MediaQuery.of(context).size.width * 0.95,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(5),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildHeader(),
+                  Flexible(
+                    child: SingleChildScrollView(
+                        child: _addManpowerItems()),
+                  ),
+                ],
+              ),
+            ),
           ),
-          child: Container(
-            margin: const EdgeInsets.all(20),
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.85,
-              maxWidth: MediaQuery.of(context).size.width * 0.95,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(5),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
+            if (!isButtonClick)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withOpacity(0.3),
+                  child: Center(
+                    child: Container(
+                      padding: EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            "Processing...",
+                            style: TextStyle(
+                              color: AppColors.colorBlack,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildHeader(),
-                Flexible(
-                  child: SingleChildScrollView(
-                      child: _addManpowerItems()),
-                ),
-              ],
-            ),
-          ),
+              ),
+          ],
         ),
       ),
     );
@@ -303,46 +347,49 @@ class _AddManpowerWidgetState extends State<AddManpowerWidget> {
               ),
               child: Column(
                 children: [
-                  TextFormField(
-                    validator: (value){
-                      if(value == null || value.isEmpty){
-                        return "Please enter agency name";
-                      }else if(value.length < 4 || value.length > 100) {
-                        return "Agency Name is Required must be between 4 and 100 characters";
-                      }
-                      return null;
-                    },
-                    controller: agencyNameController,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.colorGray,
-                    ),
-                    decoration: InputDecoration(
-                      labelText: 'Name of agency',
-                      labelStyle: TextStyle(
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8.0, right: 8),
+                    child: TextFormField(
+                      validator: (value){
+                        if(value == null || value.isEmpty){
+                          return "Please enter agency name";
+                        }else if(value.length < 4 || value.length > 100) {
+                          return "Agency Name is Required must be between 4 and 100 characters";
+                        }
+                        return null;
+                      },
+                      controller: agencyNameController,
+                      style: TextStyle(
                         fontSize: 14,
                         color: AppColors.colorGray,
                       ),
-                      prefixIcon: Icon(
-                        Icons.people_sharp,
-                        color: Colors.grey.shade600,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                          color: AppColors.primary,
-                          width: 2,
+                      decoration: InputDecoration(
+                        labelText: 'Name of agency',
+                        labelStyle: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.colorGray,
                         ),
-                      ),
-                      filled: true,
-                      fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
+                        prefixIcon: Icon(
+                          Icons.people_sharp,
+                          color: Colors.grey.shade600,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(
+                            color: AppColors.primary,
+                            width: 2,
+                          ),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                       ),
                     ),
                   ),
@@ -372,7 +419,12 @@ class _AddManpowerWidgetState extends State<AddManpowerWidget> {
                   GestureDetector(
                     onTap: () {
                       if (formKey.currentState!.validate()) {
-                        _submitData();
+                        if(isButtonClick) {
+                          setState(() {
+                            isButtonClick = false;
+                          });
+                          _submitData();
+                        }
                       }
                     },
                     child: Container(

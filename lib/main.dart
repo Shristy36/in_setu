@@ -5,6 +5,7 @@ import 'package:in_setu/screens/chat/bloc/chats_bloc.dart';
 import 'package:in_setu/screens/chat/chats_repo/chats_repo.dart';
 import 'package:in_setu/screens/home_page/home_repo/home_repository.dart';
 import 'package:in_setu/screens/login_view/bloc/signin_bloc.dart';
+import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
 import 'package:in_setu/screens/login_view/repository/signin_repo.dart';
 import 'package:in_setu/screens/login_view/sign_in_screen.dart';
 import 'package:in_setu/screens/material_view/material_repo/material_repository.dart';
@@ -23,10 +24,9 @@ import 'supports/share_preference_manager.dart';
 import 'screens/cash_details_view/bloc/cashbook_bloc.dart';
 import 'screens/home_page/bloc/home_bloc.dart';
 
-void main() {
+void main() async{
   runApp(const MyApp());
 }
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -89,6 +89,37 @@ class _SplashScreenState extends State<SplashScreen> {
     });
 
     if (!hasSeenOnboarding) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => OnboardingScreen()),
+      );
+    } else {
+      final LoginAuthModel? savedAuth = await SharedPreferenceManager.getOAuth();
+
+      if (savedAuth != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProjectListScreen(user: savedAuth.user!),
+          ),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => SignInScreen()),
+        );
+      }
+
+    }
+  }
+
+  /*Future<void> _checkOnboardingStatus() async {
+    bool hasSeenOnboarding = await SharedPreferenceManager.getFirstCallOnboarding();
+    setState(() {
+      _hasSeenOnboarding = hasSeenOnboarding;
+    });
+
+    if (!hasSeenOnboarding) {
       // Redirect to onboarding if not seen
       Navigator.pushReplacement(
         context,
@@ -100,7 +131,7 @@ class _SplashScreenState extends State<SplashScreen> {
         MaterialPageRoute(builder: (context) => SignInScreen()),
       );
     }
-  }
+  }*/
   @override
   Widget build(BuildContext context) {
     return Scaffold(

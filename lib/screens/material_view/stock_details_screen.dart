@@ -133,14 +133,14 @@ class _StockDetailsScreenState extends State<StockDetailsScreen> {
           ],
         ),
         const SizedBox(height: 10),
-        OutlinedButton(
+       /* OutlinedButton(
           onPressed: () {},
           style: OutlinedButton.styleFrom(
             side: BorderSide(color: Color(0xFFFBBF24), width: 2),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
           ),
           child: Text('STOCK SUMMARY', textAlign: TextAlign.center, style: TextStyle(color: Color(0xFFFBBF24), fontWeight: FontWeight.bold, fontSize: 12)),
-        ),
+        ),*/
       ],
     );
   }

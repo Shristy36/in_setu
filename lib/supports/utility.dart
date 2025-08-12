@@ -31,7 +31,7 @@ class Utility {
                 actions: <Widget>[
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(false),
-                    child: Text('Cancel'),
+                    child: Text('Stay'),
                   ),
                   ElevatedButton(
                     onPressed: () {

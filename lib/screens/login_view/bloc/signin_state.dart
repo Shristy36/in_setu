@@ -23,3 +23,10 @@ class RequestResetStateSuccess<T> extends GlobalApiResponseState<T>{
     String message = '',
   }):super(status: GlobalApiStatus.completed, message: message, data: data);
 }
+
+class DeleteAccountStateSuccess<T> extends GlobalApiResponseState<T>{
+  DeleteAccountStateSuccess({
+    T? data,
+    String message = '',
+  }):super(status: GlobalApiStatus.completed, message: message, data: data);
+}

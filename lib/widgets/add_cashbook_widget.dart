@@ -435,7 +435,7 @@ class CreateCashBook extends StatefulWidget {
 class _CreateCashBookState extends State<CreateCashBook> {
   final TextEditingController _nameController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-
+  bool isClickButton = true;
   @override
   void dispose() {
     _nameController.dispose();
@@ -458,6 +458,9 @@ class _CreateCashBookState extends State<CreateCashBook> {
                 Utility.showToast(state.data.message);
                 widget.cashBookUpdate();
                 Navigator.of(context).pop();
+                setState(() {
+                  isClickButton = true;
+                });
               }
               break;
             case GlobalApiStatus.error:
@@ -467,8 +470,14 @@ class _CreateCashBookState extends State<CreateCashBook> {
                 "Error",
                 context,
               );
+              setState(() {
+                isClickButton = true;
+              });
               break;
             default:
+              setState(() {
+                isClickButton = true;
+              });
               LoadingDialog.hide(context);
           }
         },
@@ -625,9 +634,14 @@ class _CreateCashBookState extends State<CreateCashBook> {
 
   void _handleCreateCashbook() {
     if (_formKey.currentState!.validate()) {
-      context.read<CashbookBloc>().add(
-        CashBookCreateEvent(widget.siteId, _nameController.text),
-      );
+      if (isClickButton) {
+        setState(() {
+          isClickButton = false;
+        });
+        context.read<CashbookBloc>().add(
+          CashBookCreateEvent(widget.siteId, _nameController.text),
+        );
+      }
     }
   }
 }

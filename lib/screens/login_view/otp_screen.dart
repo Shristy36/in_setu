@@ -120,6 +120,7 @@ class _OtpScreenState extends State<OtpScreen> {
     if (otp.isNotEmpty) {
       for (int i = 0; i < otp.length && i < otpLength; i++) {
         _controllers[i].text = otp[i];
+
       }
     }
   }

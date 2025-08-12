@@ -59,6 +59,7 @@ dependencies:
   path: ^1.9.1
   path_provider: ^2.1.5
   flutter_switch: ^0.3.2
+  folder_file_saver: ^3.0.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

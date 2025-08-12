@@ -13,6 +13,7 @@ class SharedPreferenceManager {
   static const String registerAuth = "registerAuth";
   static const String walkthrough = "walkthrough";
   static const String saveDateList = "saveDateList";
+  static const String siteNumber = "siteNumber";
 
   static Future<SharedPreferences> get prefs => SharedPreferences.getInstance();
 
@@ -71,6 +72,9 @@ class SharedPreferenceManager {
       return null;
     }
   }
+  static Future<void> clearOAuth() async {
+    (await prefs).remove(oauth);
+  }
 
 
   static setFirstCallOnboarding(bool oneTime) async{
@@ -78,5 +82,17 @@ class SharedPreferenceManager {
   }
   static getFirstCallOnboarding() async {
     return (await prefs).getBool(walkthrough) ?? false;
+  }
+  static Future<void> saveNumValue(num value) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (value is int) {
+      await prefs.setInt(siteNumber, value);
+    } else if (value is double) {
+      await prefs.setDouble(siteNumber, value);
+    }
+  }
+  static Future<num> getNumValue() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(siteNumber) ?? prefs.getDouble(siteNumber) ?? 0;
   }
 }

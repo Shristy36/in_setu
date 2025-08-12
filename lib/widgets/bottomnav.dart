@@ -6,7 +6,7 @@ import 'package:in_setu/screens/home_page/homescreen.dart';
 import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
 import 'package:in_setu/screens/mainpower_screen/manpower_screen.dart';
 import 'package:in_setu/screens/material_view/material_screen.dart';
-import 'package:in_setu/screens/plan_screen.dart';
+import 'package:in_setu/screens/plans_view/plan_screen.dart';
 import 'package:in_setu/screens/project_list/model/AllSitesResponse.dart';
 import 'package:in_setu/widgets/app_drawer_widget.dart';
 import 'package:in_setu/widgets/custom_app_bar.dart';

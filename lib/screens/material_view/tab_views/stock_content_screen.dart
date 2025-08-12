@@ -14,6 +14,7 @@ import 'package:in_setu/screens/material_view/delete_intent_item_dialog/delete_s
 import 'package:in_setu/screens/material_view/loading_screen.dart';
 import 'package:in_setu/screens/material_view/material_stock_summary_screen.dart';
 import 'package:in_setu/screens/material_view/model/MaterialStockReponse.dart';
+import 'package:in_setu/screens/material_view/widget/update_stock_consumption.dart';
 import 'package:in_setu/screens/project_list/model/AllSitesResponse.dart';
 import 'package:in_setu/widgets/add_material_widget.dart';
 import 'package:in_setu/widgets/intent_management.dart';
@@ -24,7 +25,15 @@ class StockContentScreen extends StatefulWidget {
   final Data siteObject;
   final List<SearchData> searchDataList;
   final List<SearchUnitData> searchUnitData;
-  const StockContentScreen({super.key, required this.siteObject, required this.searchDataList, required this.searchUnitData});
+  final String searchQuery;
+
+  const StockContentScreen({
+    super.key,
+    required this.siteObject,
+    required this.searchDataList,
+    required this.searchUnitData,
+    required this.searchQuery,
+  });
 
   @override
   State<StockContentScreen> createState() => _StockContentScreenState();
@@ -32,7 +41,7 @@ class StockContentScreen extends StatefulWidget {
 
 class _StockContentScreenState extends State<StockContentScreen> {
   bool _isLoading = true;
-  List<StockItem> stockItems = [
+  /*List<StockItem> stockItems = [
     StockItem(
       id: 1,
       createdBy: 'Abubakar',
@@ -81,10 +90,9 @@ class _StockContentScreenState extends State<StockContentScreen> {
       transferred: 15,
       totalReceived: 40000,
     ),
-  ];
+  ];*/
 
-
-  void _handleStockIn(int itemId) {
+  /*void _handleStockIn(int itemId) {
     setState(() {
       final item = stockItems.firstWhere((item) => item.id == itemId);
       item.stockIn += 1000;
@@ -101,16 +109,40 @@ class _StockContentScreenState extends State<StockContentScreen> {
             (item.remainingStock - 10).clamp(0, double.infinity).toInt();
       }
     });
-  }
-
+  }*/
 
   List<StocksData> stockItemsList = [];
+  List<StocksData> filteredStockItemsList = [];
 
   @override
   void initState() {
     super.initState();
-    context.read<MaterialStockBloc>().add(MaterialStockFetchEvent(siteId: widget.siteObject.id));
+    context.read<MaterialStockBloc>().add(
+      MaterialStockFetchEvent(siteId: widget.siteObject.id),
+    );
   }
+
+  @override
+  void didUpdateWidget(StockContentScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Re-filter when searchQuery changes
+    if (oldWidget.searchQuery != widget.searchQuery) {
+      _filterStocks();
+    }
+  }
+  void _filterStocks() {
+    if (widget.searchQuery.isEmpty) {
+      filteredStockItemsList = List.from(stockItemsList);
+    } else {
+      filteredStockItemsList = stockItemsList.where((stock) {
+        return stock.requirement1!
+            .toLowerCase()
+            .contains(widget.searchQuery.toLowerCase());
+      }).toList();
+    }
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<MaterialStockBloc, GlobalApiResponseState>(
@@ -124,16 +156,13 @@ class _StockContentScreenState extends State<StockContentScreen> {
               setState(() {
                 _isLoading = false;
                 stockItemsList = state.data.stocksData!;
+                _filterStocks();
               });
             }
             break;
           case GlobalApiStatus.error:
             setState(() => _isLoading = false);
-            ErrorHandler.errorHandle(
-              state.message,
-              "Something wrong",
-              context,
-            );
+            ErrorHandler.errorHandle(state.message, "Something wrong", context);
             break;
           default:
             setState(() => _isLoading = false);
@@ -142,25 +171,41 @@ class _StockContentScreenState extends State<StockContentScreen> {
       child: _isLoading ? LoadingScreen() : getStockDetails(stockItemsList),
     );
   }
-  Widget getStockDetails(List<StocksData> stockList){
-    return stockList.isEmpty ? NoDataFound(noDataFoundTxt: "No Stock Data Found") : Column(
-      children: [
-        Expanded(
-          child: ListView.builder(
-            padding: EdgeInsets.all(16),
-            itemCount: stockItemsList.length,
-            itemBuilder: (context, index) {
-              return _buildStockItemCard(stockItems[index], stockItemsList[index]);
-            },
-          ),
-        ),
-      ],
-    );
+
+  Widget getStockDetails(List<StocksData> stockList) {
+    return filteredStockItemsList.isEmpty
+        ? NoDataFound(noDataFoundTxt: "No Stock Data Found")
+        : Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                padding: EdgeInsets.all(16),
+                itemCount: filteredStockItemsList.length,
+                itemBuilder: (context, index) {
+                  return _buildStockItemCard(
+                    // stockItems[index],
+                    filteredStockItemsList[index],
+                  );
+                },
+              ),
+            ),
+          ],
+        );
   }
-  Widget _buildStockItemCard(StockItem item, StocksData stockData) {
+
+  Widget _buildStockItemCard(/*StockItem item, */StocksData stockData) {
     return GestureDetector(
-      onTap: (){
-        Navigator.push(context, MaterialPageRoute(builder: (context) => StockDetailsScreen(stockData: stockData, siteObject: widget.siteObject)));
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) => StockDetailsScreen(
+                  stockData: stockData,
+                  siteObject: widget.siteObject,
+                ),
+          ),
+        );
       },
       child: Container(
         margin: EdgeInsets.only(bottom: 12),
@@ -187,37 +232,67 @@ class _StockContentScreenState extends State<StockContentScreen> {
                   // Action buttons row
                   Row(
                     children: [
-                      Icon(Icons.copy_outlined, color: Colors.blue, size: 20),
+                      Container(width: 35, height: 35,child: Icon(Icons.copy_outlined, color: Colors.blue, size: 20)),
                       SizedBox(width: 12),
                       GestureDetector(
-                          onTap: ()=> {
-                            showDialog(context: context, builder: (context) =>
-                                MaterialRequirementsPopup(
-                                  buttonTxt: "Update Material", siteObject: widget.siteObject, stockMaterialAdded: (){
-                              context.read<MaterialStockBloc>().add(MaterialStockFetchEvent(siteId: widget.siteObject.id));
-                            },initialStockData: stockData, searchDataList: widget.searchDataList, searchUnitData: widget.searchUnitData,))
-                          },
-                          child: SvgPicture.asset(
-                            "assets/svg/edit_btn.svg",
-                            width: 20,
-                            height: 20,
-                            color: AppColors.colorBlack,
+                        onTap:
+                            () => {
+                              showDialog(
+                                context: context,
+                                builder:
+                                    (context) => MaterialRequirementsPopup(
+                                      buttonTxt: "Update Material",
+                                      siteObject: widget.siteObject,
+                                      stockMaterialAdded: () {
+                                        context.read<MaterialStockBloc>().add(
+                                          MaterialStockFetchEvent(
+                                            siteId: widget.siteObject.id,
+                                          ),
+                                        );
+                                      },
+                                      initialStockData: stockData,
+                                      searchDataList: widget.searchDataList,
+                                      searchUnitData: widget.searchUnitData,
+                                    ),
+                              ),
+                            },
+                        child: Container(
+                          width: 35, height: 35,
+                          child: Padding(
+                            padding: const EdgeInsets.all(5.0),
+                            child: SvgPicture.asset(
+                              "assets/svg/edit_btn.svg",
+                              color: AppColors.primary,
+                            ),
                           ),
+                        ),
                       ),
                       SizedBox(width: 12),
                       GestureDetector(
-                          onTap: ()async {
-                            final delete = await DeleteStockItem.showDeleteManPowerDialog(
+                        onTap: () async {
+                          final delete =
+                              await DeleteStockItem.showDeleteManPowerDialog(
                                 context,
                                 siteDeleteMsg,
                                 siteDeleteTitle,
                                 stockData.id,
+                              );
+                          if (delete) {
+                            context.read<MaterialStockBloc>().add(
+                              MaterialStockFetchEvent(
+                                siteId: widget.siteObject.id,
+                              ),
                             );
-                            if(delete){
-                              context.read<MaterialStockBloc>().add(MaterialStockFetchEvent(siteId: widget.siteObject.id));
-                            }
-                          },
-                          child: Icon(Icons.delete_outline, color: Colors.red, size: 20)),
+                          }
+                        },
+                        child: Container(
+                          width: 35, height: 35,
+                          child: Icon(
+                            Icons.delete_outline,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ),
                       Spacer(),
                     ],
                   ),
@@ -241,7 +316,7 @@ class _StockContentScreenState extends State<StockContentScreen> {
                                 style: TextStyle(color: Colors.grey[600]),
                                 children: [
                                   TextSpan(
-                                    text: '${item.stockIn}',
+                                    text: '99999',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: Colors.black,
@@ -263,7 +338,7 @@ class _StockContentScreenState extends State<StockContentScreen> {
                                 style: TextStyle(color: Colors.grey[600]),
                                 children: [
                                   TextSpan(
-                                    text: '${item.stockOut}',
+                                    text: '99999',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: Colors.black,
@@ -282,7 +357,12 @@ class _StockContentScreenState extends State<StockContentScreen> {
                   Row(
                     children: [
                       OutlinedButton(
-                        onPressed: () => _handleStockIn(item.id),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => UpdateStockConsumption(),
+                          );
+                        } /*_handleStockIn(item.id)*/,
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(color: Colors.red, width: 2),
                           shape: RoundedRectangleBorder(
@@ -299,7 +379,12 @@ class _StockContentScreenState extends State<StockContentScreen> {
                       ),
                       SizedBox(width: 8),
                       OutlinedButton(
-                        onPressed: () => _handleStockOut(item.id),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => UpdateStockConsumption(),
+                          ); /*=> _handleStockOut(item.id)*/
+                        },
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(color: Colors.green, width: 2),
                           shape: RoundedRectangleBorder(
@@ -326,7 +411,7 @@ class _StockContentScreenState extends State<StockContentScreen> {
                             ),
                           ),
                           Text(
-                            '${item.remainingStock} ${item.unit}',
+                            '10 ${stockData.unit}',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -340,7 +425,7 @@ class _StockContentScreenState extends State<StockContentScreen> {
               ),
             ),
             // Expanded details
-            if (item.isExpanded) _buildExpandedDetails(item),
+            // if (item.isExpanded) _buildExpandedDetails(item),
           ],
         ),
       ),
@@ -485,9 +570,12 @@ class _StockContentScreenState extends State<StockContentScreen> {
               Expanded(
                 child: OutlinedButton(
                   onPressed: () {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text('Indent Material'), behavior: SnackBarBehavior.floating,));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Indent Material'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
                   },
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: Colors.green, width: 2),
@@ -511,7 +599,10 @@ class _StockContentScreenState extends State<StockContentScreen> {
                 child: OutlinedButton(
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Update Consumption'), behavior: SnackBarBehavior.floating,),
+                      SnackBar(
+                        content: Text('Update Consumption'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
                     );
                   },
                   style: OutlinedButton.styleFrom(
@@ -536,7 +627,12 @@ class _StockContentScreenState extends State<StockContentScreen> {
           const SizedBox(height: 10),
           OutlinedButton(
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => MaterialStockSummaryScreen()));
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MaterialStockSummaryScreen(),
+                ),
+              );
               /*ScaffoldMessenger.of(
                 context,
               ).showSnackBar(SnackBar(content: Text('Stock Summary')));*/

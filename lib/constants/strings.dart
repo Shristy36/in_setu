@@ -36,3 +36,7 @@ const String lastNameIsNotEmpty ="Last Name is not empty";
 const String contactIsNotEmpty ="Contact is not empty";
 const String designerIsNotEmpty ="Designation is not empty";
 const String emailIsNotEmpty ="Email is not empty";
+const String accountDeleteMsg ="Are you sure to proceed?";
+const String logoutMsg ="Are you sure?";
+const String logoutTitle ="Logout !!!";
+const String deleteTitle ="Delete Account !!!";

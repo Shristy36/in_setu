@@ -4,6 +4,7 @@ import 'package:in_setu/networkSupport/base/NetworkService.dart';
 import 'package:in_setu/screens/login_view/model/register_model/RegisterResponse.dart';
 import 'package:in_setu/screens/login_view/model/register_model/ResetRequestResponse.dart';
 import 'package:in_setu/screens/login_view/model/register_model/SignUpResponse.dart';
+import 'package:in_setu/screens/mainpower_screen/model/CreateManPowerResponse.dart';
 import 'package:in_setu/supports/AppException.dart';
 import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
 
@@ -43,6 +44,14 @@ class SignInRepository{
     try{
       final response = await networkService.post(ApiConstants.requestResetEndPoint, null, null, bodyParams);
       return ApiResult.success(data: ResetRequestResponse.fromJson(response));
+    }on AppException catch(e){
+      return ApiResult.failure(error: e);
+    }
+  }
+  Future<ApiResult<CreateManPowerResponse>> deleteAccount(dynamic bodyParams) async{
+    try{
+      final response = await networkService.post(ApiConstants.deleteAccountEndPoint, null, null, bodyParams);
+      return ApiResult.success(data: CreateManPowerResponse.fromJson(response));
     }on AppException catch(e){
       return ApiResult.failure(error: e);
     }

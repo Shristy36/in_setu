@@ -46,29 +46,35 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
   List<SearchData> filteredSuggestions = [];
   List<SearchUnitData> searchUnitList = [];
   List<SearchUnitData> filteredUnitSuggestions = [];
+  bool _isButtonEnabled = true;
 
 
   void _saveRequirements() {
     if (stockCreateFormKey.currentState!.validate()) {
-      if (widget.initialStockData == null) {
-        context.read<MaterialStockBloc>().add(CreateStockEvent(
-          siteId: widget.siteObject.id,
-          requirement: materialController.text,
-          additionalRequirement: additionalMaterialController.text,
-          createDate: deliveryDate.text,
-          unit: unitController.text,
-          quantity: quantityController.text,
-        ));
-      } else {
-        context.read<MaterialStockBloc>().add(UpdateStockEvent(
-          id: widget.initialStockData!.id,
-          siteId: widget.siteObject.id,
-          requirement: materialController.text,
-          additionalRequirement: additionalMaterialController.text,
-          createDate: deliveryDate.text,
-          unit: unitController.text,
-          quantity: quantityController.text,
-        ));
+      if(_isButtonEnabled) {
+        setState(() {
+          _isButtonEnabled = false;
+        });
+        if (widget.initialStockData == null) {
+          context.read<MaterialStockBloc>().add(CreateStockEvent(
+            siteId: widget.siteObject.id,
+            requirement: materialController.text,
+            additionalRequirement: additionalMaterialController.text,
+            createDate: deliveryDate.text,
+            unit: unitController.text,
+            quantity: quantityController.text,
+          ));
+        } else {
+          context.read<MaterialStockBloc>().add(UpdateStockEvent(
+            id: widget.initialStockData!.id,
+            siteId: widget.siteObject.id,
+            requirement: materialController.text,
+            additionalRequirement: additionalMaterialController.text,
+            createDate: deliveryDate.text,
+            unit: unitController.text,
+            quantity: quantityController.text,
+          ));
+        }
       }
     }
   }
@@ -123,6 +129,9 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
                     Utility.showToast(state.data.message);
                     widget.stockMaterialAdded();
                     Navigator.of(context).pop();
+                    setState(() {
+                      _isButtonEnabled = true;
+                    });
                   }
                   break;
 
@@ -131,9 +140,15 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
                   FocusScope.of(context).unfocus();
                   ErrorHandler.errorHandle(
                       state.message, "Invalid Auth", context);
+                  setState(() {
+                    _isButtonEnabled = true;
+                  });
                   break;
 
                 default:
+                  setState(() {
+                    _isButtonEnabled = true;
+                  });
                   LoadingDialog.hide(context);
               }
             },
@@ -144,56 +159,91 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
   }
 
   Widget _buildBody() {
-    return Container(
-      margin: const EdgeInsets.all(20),
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery
-            .of(context)
-            .size
-            .height * 0.85,
-        maxWidth: MediaQuery
-            .of(context)
-            .size
-            .width * 0.95,
+    return Stack(
+      children: [
+        Container(
+        margin: const EdgeInsets.all(20),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery
+              .of(context)
+              .size
+              .height * 0.85,
+          maxWidth: MediaQuery
+              .of(context)
+              .size
+              .width * 0.95,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildHeader(),
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildSection(
+                      title: 'Requirements',
+                      subTitle: 'Additional Requirements',
+                      icon: Icons.inventory_2_outlined,
+                      isAdditional: false,
+                      validator: (value) =>
+                      value?.isEmpty ?? true
+                          ? 'Please enter requirement'
+                          : null,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            _buildFooter(),
+          ],
+        ),
       ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildHeader(),
-          Flexible(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSection(
-                    title: 'Requirements',
-                    subTitle: 'Additional Requirements',
-                    icon: Icons.inventory_2_outlined,
-                    isAdditional: false,
-                    validator: (value) =>
-                    value?.isEmpty ?? true
-                        ? 'Please enter requirement'
-                        : null,
+        if (!_isButtonEnabled)
+          Positioned.fill(
+            child: Container(
+              color: Colors.black.withOpacity(0.3),
+              child: Center(
+                child: Container(
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                ],
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        "Processing...",
+                        style: TextStyle(
+                          color: AppColors.colorBlack,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
-          _buildFooter(),
-        ],
-      ),
+      ],
     );
   }
 
@@ -313,7 +363,7 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
                     bottom: Radius.circular(
                         filteredSuggestions.isNotEmpty ? 0 : 10),
                   ),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderSide: BorderSide(color: Colors.black),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.vertical(
@@ -321,7 +371,7 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
                     bottom: Radius.circular(
                         filteredSuggestions.isNotEmpty ? 0 : 10),
                   ),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderSide: BorderSide(color: Colors.black),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.vertical(
@@ -367,15 +417,6 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
                       });
                     },child: Text(item.name!, style: TextStyle(fontSize: 14))),);
 
-                    /*ListTile(
-                      title: Text(item.name!, style: TextStyle(fontSize: 14)),
-                      onTap: () {
-                        setState(() {
-                          additionalMaterialController.text = item.name!;
-                          filteredSuggestions.clear();
-                        });
-                      },
-                    );*/
                   },
                 ),
               ),

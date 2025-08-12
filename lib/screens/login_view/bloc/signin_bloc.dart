@@ -4,6 +4,7 @@ import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
 import 'package:in_setu/screens/login_view/model/register_model/RegisterResponse.dart';
 import 'package:in_setu/screens/login_view/model/register_model/ResetRequestResponse.dart';
 import 'package:in_setu/screens/login_view/model/register_model/SignUpResponse.dart';
+import 'package:in_setu/screens/mainpower_screen/model/CreateManPowerResponse.dart';
 import 'package:in_setu/supports/AppException.dart';
 import 'package:in_setu/supports/share_preference_manager.dart';
 import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
@@ -21,6 +22,7 @@ class SigninBloc extends Bloc<SignInEvent, GlobalApiResponseState> {
     on<DoUserRegister>(doUserRegister);
     on<DoSignUpEvent>(doUserSignUp);
     on<DoRequestReset>(doRequestReset);
+    on<DeleteAccountEvent>(doDeleteAccount);
   }
 
   signAuth(SignInEvent event, Emitter<GlobalApiResponseState> emitter) async {
@@ -113,6 +115,27 @@ class SigninBloc extends Bloc<SignInEvent, GlobalApiResponseState> {
         apiResult.when(
             success: (ResetRequestResponse requestResponse) async {
               emitter(RequestResetStateSuccess(data: requestResponse));
+            },
+            failure: (AppException ex) async{
+              emitter(ApiErrorState(exception: ex));
+            });
+
+      }on AppException catch(e){
+        emitter(ApiErrorState(exception: e));
+      }
+    }
+  }
+  doDeleteAccount(SignInEvent event, Emitter<GlobalApiResponseState> emitter) async {
+    if(event is DeleteAccountEvent){
+      emitter(const ApiLoadingState());
+      final bodyParams = {
+        'user_token': event.userToken,
+      };
+      try{
+        ApiResult<CreateManPowerResponse> apiResult = await signInRepository.deleteAccount(bodyParams);
+        apiResult.when(
+            success: (CreateManPowerResponse deleteResponse) async {
+              emitter(DeleteAccountStateSuccess(data: deleteResponse));
             },
             failure: (AppException ex) async{
               emitter(ApiErrorState(exception: ex));

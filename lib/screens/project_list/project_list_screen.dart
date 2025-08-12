@@ -9,6 +9,7 @@ import 'package:in_setu/networkSupport/ErrorHandler.dart';
 import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
 import 'package:in_setu/screens/login_view/model/register_model/RegisterResponse.dart' hide User;
 import 'package:in_setu/supports/DialogManager.dart';
+import 'package:in_setu/supports/share_preference_manager.dart';
 import 'package:in_setu/supports/utility.dart';
 import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
 import 'package:in_setu/screens/project_list/bloc/sites_bloc.dart';
@@ -29,11 +30,18 @@ class ProjectListScreen extends StatefulWidget {
 class _ProjectListScreenState extends State<ProjectListScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-
+  num siteId = 0;
   @override
   void initState() {
     super.initState();
+    loadSiteId();
     context.read<SitesBloc>().add(GetAllSites());
+  }
+  Future<void> loadSiteId() async {
+    final prefs = await SharedPreferenceManager.getNumValue();
+    setState(() {
+      siteId = prefs;
+    });
   }
 
   void _editSiteModel(Data siteObject) {
@@ -67,54 +75,57 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      drawer: getDrawerItems(context),
-      backgroundColor: Color(0xFFF8FAFC),
-      body: SafeArea(
-        child: Column(
-          children: [
-            APPBarWidget(
-              isSiteNameVisible: false,
-              user: widget.user,
-              siteName: "",
-              siteId: 0,
-            ),
-            SizedBox(height: 15),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 18),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.colorGray, width: 1),
-                ),
-                child: TextField(
-                  autofocus: false,
-                  controller: _searchController,
-                  onChanged: (value) => setState(() => _searchQuery = value),
-                  decoration: InputDecoration(
-                    hintText: 'Search',
-                    prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
-                    border: InputBorder.none,
-                    isDense: true,
-                    contentPadding: EdgeInsets.symmetric(vertical: 12),
+    return WillPopScope(
+      onWillPop: () => Utility.showExitDialog(context),
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        drawer: getDrawerItems(context),
+        backgroundColor: Color(0xFFF8FAFC),
+        body: SafeArea(
+          child: Column(
+            children: [
+              APPBarWidget(
+                isSiteNameVisible: false,
+                user: widget.user,
+                siteName: "",
+                siteId: siteId,
+              ),
+              SizedBox(height: 15),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 18),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.colorGray, width: 1),
+                  ),
+                  child: TextField(
+                    autofocus: false,
+                    controller: _searchController,
+                    onChanged: (value) => setState(() => _searchQuery = value),
+                    decoration: InputDecoration(
+                      hintText: 'Search',
+                      prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(vertical: 12),
+                    ),
                   ),
                 ),
               ),
-            ),
-            SizedBox(height: 15),
-            Padding(
-              padding: const EdgeInsets.only(left: 18.0),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Utility.title(allSite, AppColors.colorBlack),
+              SizedBox(height: 15),
+              Padding(
+                padding: const EdgeInsets.only(left: 18.0),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Utility.title(allSite, AppColors.colorBlack),
+                ),
               ),
-            ),
-            Expanded(child: _buildProjectList()),
-            SizedBox(height: 20),
-            _buildAddButton(),
-          ],
+              Expanded(child: _buildProjectList()),
+              SizedBox(height: 20),
+              _buildAddButton(),
+            ],
+          ),
         ),
       ),
     );
@@ -224,7 +235,8 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
-          onTap: () {
+          onTap: () async{
+            await SharedPreferenceManager.saveNumValue(siteObject.id!); // int
             Navigator.push(
               context,
               MaterialPageRoute(

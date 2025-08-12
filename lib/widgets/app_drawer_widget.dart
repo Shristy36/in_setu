@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:in_setu/constants/app_colors.dart';
-import 'package:in_setu/screens/login_view/sign_in_screen.dart';
+import 'package:in_setu/screens/login_view/account_delete_dialog/account_delete_dialog.dart';
+import 'package:in_setu/screens/login_view/account_delete_dialog/logout_dialog.dart';
+import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
 import 'package:in_setu/screens/user/profile_screen.dart';
-import 'package:in_setu/widgets/bottomnav.dart';
+import 'package:in_setu/supports/share_preference_manager.dart';
 
 Widget getDrawerItems(BuildContext context) {
   return Drawer(
@@ -79,7 +81,7 @@ Widget getDrawerItems(BuildContext context) {
           title: Text('Home', style: TextStyle(color: AppColors.primary)),
           onTap:
               () =>
-                  {} /*Navigator.push(context, MaterialPageRoute(builder: (context) => BottomNavScreen()))*/,
+                  {Navigator.of(context).pop()} /*Navigator.push(context, MaterialPageRoute(builder: (context) => BottomNavScreen()))*/,
         ),
         ListTile(
           leading: Icon(Icons.person),
@@ -94,11 +96,8 @@ Widget getDrawerItems(BuildContext context) {
         ListTile(
           leading: Icon(Icons.exit_to_app),
           title: Text('Logout'),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => SignInScreen()),
-            );
+          onTap: (){
+              LogoutDialog.showLogoutDialog(context);
           },
         ),
         ListTile(
@@ -107,7 +106,12 @@ Widget getDrawerItems(BuildContext context) {
             'Delete Account',
             style: TextStyle(color: Colors.redAccent, fontSize: 16),
           ),
-          onTap: () => Navigator.pop(context),
+          onTap: () async{
+            LoginAuthModel? oAuth = await SharedPreferenceManager.getOAuth();
+            if (oAuth != null && oAuth.user != null) {
+              AccountDeleteDialog.showAccountDeleteDialog(context, oAuth.user!.userToken!);
+            }
+           },
         ),
         SizedBox(height: 20),
         Padding(

@@ -6,6 +6,7 @@ class ApiConstants {
   static String registerEndPoint = "/api/auth/register";
   static String signUpEndPoint = "/api/auth/authenticate";
   static String requestResetEndPoint = "/api/auth/request-reset";
+  static String deleteAccountEndPoint = "/api/auth/delete_account";
 
   static String getAllSites = "api/members/sites/get_all";
   static String dashBoardApi = "api/members/home/site_dashboard/";
