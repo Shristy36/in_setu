@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:in_setu/screens/cash_details_view/cash_repo/cash_book_repository.dart';
 import 'package:in_setu/screens/chat/bloc/chats_bloc.dart';
@@ -9,6 +10,8 @@ import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
 import 'package:in_setu/screens/login_view/repository/signin_repo.dart';
 import 'package:in_setu/screens/login_view/sign_in_screen.dart';
 import 'package:in_setu/screens/material_view/material_repo/material_repository.dart';
+import 'package:in_setu/screens/plans_view/bloc/plans_bloc.dart';
+import 'package:in_setu/screens/plans_view/plan_repo/plans_repo.dart';
 import 'package:in_setu/screens/project_list/bloc/sites_bloc.dart';
 import 'package:in_setu/screens/project_list/project_list_screen.dart';
 import 'package:in_setu/screens/project_list/repository/all_sites_repository.dart';
@@ -17,6 +20,7 @@ import 'package:in_setu/screens/user/profile_repo/profile_repository.dart';
 import 'package:in_setu/screens/walkthrough_screen/onboarding_screen.dart';
 import 'package:in_setu/screens/walkthrough_screen/walkthrough_screen.dart';
 
+import 'constants/app_colors.dart';
 import 'screens/mainpower_screen/bloc/man_power_bloc.dart';
 import 'screens/mainpower_screen/mainpower_repo/main_power_repository.dart';
 import 'screens/material_view/bloc/material_stock_bloc.dart';
@@ -25,6 +29,12 @@ import 'screens/cash_details_view/bloc/cashbook_bloc.dart';
 import 'screens/home_page/bloc/home_bloc.dart';
 
 void main() async{
+  /*SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: AppColors.primary50, // Different from AppBar
+      statusBarIconBrightness: Brightness.light, // Light icons (for dark bg)
+    ),
+  );*/
   runApp(const MyApp());
 }
 class MyApp extends StatelessWidget {
@@ -42,6 +52,7 @@ class MyApp extends StatelessWidget {
           RepositoryProvider<ChatsRepository>(create: (context) => ChatsRepository()),
           RepositoryProvider<ManPowerRepository>(create: (context) => ManPowerRepository()),
           RepositoryProvider<MaterialRepository>(create: (context) => MaterialRepository()),
+          RepositoryProvider<PlansRepository>(create: (context) => PlansRepository()),
         ],
         child: MultiBlocProvider(
             providers: [
@@ -53,6 +64,7 @@ class MyApp extends StatelessWidget {
               BlocProvider<ChatsBloc>(create: (context) => ChatsBloc(chatsRepository: ChatsRepository())),
               BlocProvider<ManPowerBloc>(create: (context) => ManPowerBloc(manPowerRepository: ManPowerRepository())),
               BlocProvider<MaterialStockBloc>(create: (context) => MaterialStockBloc(materialRepository: MaterialRepository())),
+              BlocProvider<PlansBloc>(create: (context) => PlansBloc(plansRepository: PlansRepository())),
             ],
             child: MaterialApp(
               debugShowCheckedModeBanner: false,
@@ -113,34 +125,16 @@ class _SplashScreenState extends State<SplashScreen> {
     }
   }
 
-  /*Future<void> _checkOnboardingStatus() async {
-    bool hasSeenOnboarding = await SharedPreferenceManager.getFirstCallOnboarding();
-    setState(() {
-      _hasSeenOnboarding = hasSeenOnboarding;
-    });
-
-    if (!hasSeenOnboarding) {
-      // Redirect to onboarding if not seen
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => OnboardingScreen()),
-      );
-    }else{
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => SignInScreen()),
-      );
-    }
-  }*/
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.colorWhite,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Replace with your logo or animation
-            Icon(Icons.flutter_dash, size: 100, color: Colors.deepPurple),
+            Image.asset("assets/images/splash_logo.jpg", width: 100, height: 100,),
             const SizedBox(height: 20),
             const Text('Welcome to InSetu App', style: TextStyle(fontSize: 24)),
             const SizedBox(height: 10),
@@ -172,6 +166,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: AppColors.primary, // Status bar color
+      statusBarIconBrightness: Brightness.light, // Icons color
+      statusBarBrightness: Brightness.dark, // For iOS
+      systemNavigationBarColor: AppColors.primary, // Optional: bottom nav color
+      systemNavigationBarIconBrightness: Brightness.light,
+    ));
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,

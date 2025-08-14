@@ -90,7 +90,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 ),
                 Align(
                   alignment: Alignment.center,
-                  child: Utility.title(loginTitle, AppColors.primary),
+                  child: Utility.subTitle(loginTitle, AppColors.primary),
                 ),
                 Align(
                   alignment: Alignment.center,

@@ -39,5 +39,15 @@ class ApiConstants {
   static String setDefaultValueBookEndPoint = "/api/members/cashbook/setDefault/";
   static String addTransactionEndPoint = "/api/members/cashbook/add_transactions";
 
+
+
+  static String getPlansEndPoint = "api/members/documents/get_all";
+  static String createFileLevelOneEndPoint = "api/members/documents/createSubdirectoryOrFile";
+  static String getSecondLevelFileEndPoint = "/api/members/plans/get_all";
+  static String createSecondLevelFileEndPoint = "api/members/plans/createSubdirectoryOrFile";
+  static String createThirdLevelFileEndPoint = "api/members/subplans/createSubdirectoryOrFile";
+
+
+
 }
 

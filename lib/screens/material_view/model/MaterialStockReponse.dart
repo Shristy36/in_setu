@@ -200,7 +200,7 @@ class StocksData {
       String? requirement1, 
       String? requirement2, 
       String? unit, 
-      num? qty,}){
+      String? qty,}){
     _id = id;
     _userId = userId;
     _siteId = siteId;
@@ -225,14 +225,14 @@ class StocksData {
   String? _requirement1;
   String? _requirement2;
   String? _unit;
-  num? _qty;
+  String? _qty;
 StocksData copyWith({  num? id,
   num? userId,
   num? siteId,
   String? requirement1,
   String? requirement2,
   String? unit,
-  num? qty,
+  String? qty,
 }) => StocksData(  id: id ?? _id,
   userId: userId ?? _userId,
   siteId: siteId ?? _siteId,
@@ -247,7 +247,7 @@ StocksData copyWith({  num? id,
   String? get requirement1 => _requirement1;
   String? get requirement2 => _requirement2;
   String? get unit => _unit;
-  num? get qty => _qty;
+  String? get qty => _qty;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};

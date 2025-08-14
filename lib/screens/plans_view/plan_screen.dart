@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:in_setu/commonWidget/no_data_found.dart';
 import 'package:in_setu/constants/app_colors.dart';
+import 'package:in_setu/networkSupport/ApiConstants.dart';
+import 'package:in_setu/networkSupport/ErrorHandler.dart';
+import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
 import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
+import 'package:in_setu/screens/plans_view/bloc/plans_bloc.dart';
+import 'package:in_setu/screens/plans_view/loading_screens/level_one_loading_screen.dart';
+import 'package:in_setu/screens/plans_view/model/DocumentLevelOneResponse.dart';
 import 'package:in_setu/screens/plans_view/plan_details_screen.dart';
 import 'package:in_setu/screens/plans_view/storageManager/create_folder.dart';
 import 'package:in_setu/screens/plans_view/storageManager/model/folder_model.dart';
@@ -16,6 +24,7 @@ import 'package:in_setu/widgets/custom_app_bar.dart';
 class ProjectPlansScreen extends StatefulWidget {
   final Data siteObject;
   final User user;
+
   ProjectPlansScreen({super.key, required this.siteObject, required this.user});
 
   @override
@@ -24,79 +33,25 @@ class ProjectPlansScreen extends StatefulWidget {
 
 class _ProjectPlansScreenState extends State<ProjectPlansScreen>
     with TickerProviderStateMixin {
-  List<ProjectItem> projects = [
-    ProjectItem(
-      name: 'Architectural',
-      type: ProjectType.folder,
-      icon: "assets/icons/folder.png"/*Icons.architecture*/,
-      color: Colors.blue,
-      fileCount: 24,
-    ),
-    ProjectItem(
-      name: 'Structural',
-      type: ProjectType.folder,
-      icon: "assets/icons/folder.png"/*Icons.construction*/,
-      color: Colors.orange,
-      fileCount: 18,
-    ),
-    ProjectItem(
-      name: 'MEP',
-      type: ProjectType.folder,
-      icon: "assets/icons/folder.png"/*Icons.electrical_services*/,
-      color: Colors.green,
-      fileCount: 12,
-    ),
-    ProjectItem(
-      name: 'Screenshot_2025',
-      type: ProjectType.folder,
-      icon: "assets/icons/gallery.png"/*Icons.construction*/,
-      color: Colors.orange,
-      fileCount: 1,
-    ),
-  ];
-
   bool _isGridView = true;
-  late AnimationController _fabAnimationController;
-  late AnimationController _searchAnimationController;
-  bool _isSearchVisible = false;
-  TextEditingController _searchController = TextEditingController();
-  final FolderModel _folderModel = FolderModel();
   TextEditingController nameController = TextEditingController();
-
+  List<Document> listOfDocument = [];
 
   @override
   void initState() {
     super.initState();
-    /*createDefaultFolders();*/
-
-    _fabAnimationController = AnimationController(
-      duration: Duration(milliseconds: 300),
-      vsync: this,
-    );
-    _searchAnimationController = AnimationController(
-      duration: Duration(milliseconds: 400),
-      vsync: this,
+    context.read<PlansBloc>().add(
+      DocumentLevelOneFetch(
+        siteId: widget.siteObject.id,
+        folderName: "document",
+        levelNo: 1,
+      ),
     );
   }
 
   @override
   void dispose() {
-    _fabAnimationController.dispose();
-    _searchAnimationController.dispose();
-    _searchController.dispose();
     super.dispose();
-  }
-
-  void _toggleSearch() {
-    setState(() {
-      _isSearchVisible = !_isSearchVisible;
-    });
-    if (_isSearchVisible) {
-      _searchAnimationController.forward();
-    } else {
-      _searchAnimationController.reverse();
-      _searchController.clear();
-    }
   }
 
   void _showAddDialog() {
@@ -210,232 +165,216 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
 
   void _addFolder() {
     _showNameDialog('Create Folder', 'Enter folder name', (name) {
-      setState(() {
-        projects.add(
-          ProjectItem(
-            name: name,
-            type: ProjectType.folder,
-            icon: "assets/icons/folder.png",
-            color: Colors.primaries[projects.length % Colors.primaries.length],
-            fileCount: 0,
-          ),
-        );
-      });
       HapticFeedback.lightImpact();
-      _showSnackBar('Folder "$name" created successfully', Colors.green);
     });
   }
 
   void _addFile() async {
+    final List<String> allowedExtensions = ['jpg', 'jpeg', 'png', 'dwg', 'pdf'];
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.any,
+        type: FileType.custom,
+        allowedExtensions: allowedExtensions,
         allowMultiple: true,
-        allowedExtensions: null,
       );
 
       if (result != null) {
         for (PlatformFile file in result.files) {
           String fileName = file.name;
           String fileExtension = fileName.split('.').last.toLowerCase();
-          await createFolderAndFilesExternal(widget.siteObject.siteName!, "", "", result.files);
 
-          setState(() {
-            projects.add(
-              ProjectItem(
-                name: fileName,
-                type: ProjectType.file,
-                icon: _getFileIcon(fileExtension),
-                color: _getFileColor(fileExtension),
-                fileCount: 0,
-                filePath: file.path,
-                fileSize: file.size,
-              ),
-            );
-          });
+          if (!allowedExtensions.contains(fileExtension)) {
+            Utility.showToast("This file type is not allowed: ${file.name}");
+            continue; // skip this file
+          }
+          await createFolderAndFilesExternal(
+            widget.siteObject.siteName!,
+            "",
+            "",
+            result.files,
+          );
+          context.read<PlansBloc>().add(
+            CreateLevelOneFileFetch(
+              levelId: 1,
+              isWhatCreating: "file",
+              folderName: fileName,
+              siteId: widget.siteObject.id,
+              filePath: file.path,
+            ),
+          );
+          print("filepath :${file.path}");
         }
-
-        HapticFeedback.lightImpact();
-        String message =
-            result.files.length == 1
-                ? 'File "${result.files.first.name}" uploaded successfully'
-                : '${result.files.length} files uploaded successfully';
-        _showSnackBar(message, Colors.green);
       }
     } catch (e) {
-      _showSnackBar('Error uploading file: ${e.toString()}', Colors.red);
+      Utility.showToast('Error uploading file: ${e.toString()}');
     }
   }
 
-  /*IconData*/ String _getFileIcon(String extension) {
-    switch (extension) {
-      case 'pdf':
-        return "assets/icons/pdf.png"/*Icons.picture_as_pdf*/;
-      case 'doc':
-      case 'docx':
-        return "assets/icons/docs.png"/*Icons.description*/;
-      case 'xls':
-      case 'xlsx':
-        return "assets/icons/folder.png"/*Icons.table_chart*/;
-      case 'ppt':
-      case 'pptx':
-        return "assets/icons/folder.png"/*Icons.slideshow*/;
-      case 'jpg':
-      case 'jpeg':
-      case 'png':
-      case 'gif':
-        return "assets/icons/gallery.png"/*Icons.image*/;
-      case 'mp4':
-      case 'avi':
-      case 'mov':
-        return "assets/icons/folder.png"/*Icons.video_file*/;
-      case 'mp3':
-      case 'wav':
-      case 'aac':
-        return "assets/icons/folder.png"/*Icons.audio_file*/;
-      case 'zip':
-      case 'rar':
-      case '7z':
-        return "assets/icons/folder.png"/*Icons.archive*/;
-      case 'dwg':
-      case 'dxf':
-        return "assets/icons/folder.png"/*Icons.architecture*/;
-      default:
-        return "assets/icons/folder.png"/*Icons.insert_drive_file*/;
-    }
-  }
-
-  Color _getFileColor(String extension) {
-    switch (extension) {
-      case 'pdf':
-        return Colors.red;
-      case 'doc':
-      case 'docx':
-        return Colors.blue;
-      case 'xls':
-      case 'xlsx':
-        return Colors.green;
-      case 'ppt':
-      case 'pptx':
-        return Colors.orange;
-      case 'jpg':
-      case 'jpeg':
-      case 'png':
-      case 'gif':
-        return Colors.purple;
-      case 'mp4':
-      case 'avi':
-      case 'mov':
-        return Colors.indigo;
-      case 'mp3':
-      case 'wav':
-      case 'aac':
-        return Colors.pink;
-      case 'zip':
-      case 'rar':
-      case '7z':
-        return Colors.brown;
-      case 'dwg':
-      case 'dxf':
-        return Colors.teal;
-      default:
-        return Colors.grey;
-    }
-  }
+  /* $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf', 'application/dwg'];*/
 
   void _showNameDialog(String title, String hint, Function(String) onConfirm) {
     showDialog(
       context: context,
       builder:
-          (context) => AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            title: Text(title),
-            content: TextField(
-              controller: nameController,
-              decoration: InputDecoration(
-                hintText: hint,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Theme.of(context).primaryColor),
-                ),
-              ),
-              autofocus: true,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  if (nameController.text.trim().isNotEmpty) {
-                    addFolderAndFiles();
-                    Navigator.pop(context);
-                    onConfirm(nameController.text.trim());
+          (context) => BlocListener<PlansBloc, GlobalApiResponseState>(
+            listener: (context, state) {
+              switch (state.status) {
+                case GlobalApiStatus.completed:
+                  if (state is LevelOneCreateFileStateSuccess) {
+                    Utility.showToast(state.data.message);
+                    Navigator.of(context).pop();
+                    context.read<PlansBloc>().add(
+                      DocumentLevelOneFetch(
+                        siteId: widget.siteObject.id,
+                        folderName: "document",
+                        levelNo: 1,
+                      ),
+                    );
+                    onConfirm("confirmed");
                   }
-                },
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                  break;
+                case GlobalApiStatus.error:
+                  ErrorHandler.errorHandle(
+                    state.message,
+                    "Something wrong",
+                    context,
+                  );
+                  break;
+                default:
+                // Handle other states if needed
+              }
+            },
+            child: AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Text(title),
+              content: TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  hintText: hint,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).primaryColor,
+                    ),
                   ),
                 ),
-                child: Text('Create'),
+                autofocus: true,
               ),
-            ],
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (nameController.text.trim().isNotEmpty) {
+                      addFolder();
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text('Create'),
+                ),
+              ],
+            ),
           ),
-    );
-  }
-
-  void _showSnackBar(String message, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: color,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        margin: EdgeInsets.all(16),
-      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    List<ProjectItem> filteredProjects =
-        projects.where((project) {
-          return project.name.toLowerCase().contains(
-            _searchController.text.toLowerCase(),
-          );
-        }).toList();
-
-    return WillPopScope(
-      onWillPop: () async{
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => BottomNavScreen(user: widget.user, siteObject: widget.siteObject,)));
-        return true;
-      },
-      child: Scaffold(
-        drawer: getDrawerItems(context),
-        backgroundColor: Color(0xFFF5F5F5),
-        body: SafeArea(
-          child: Column(
-            children: [
-              // _buildHeader(),
-              _buildTitleComponenet(),
-              _buildSearchBar(),
-              Expanded(
-                child:
-                    _isGridView
-                        ? _buildGridView(filteredProjects)
-                        : _buildListView(filteredProjects),
+    return BlocListener<PlansBloc, GlobalApiResponseState>(
+      listener: (context, state) {
+        if (state.status == GlobalApiStatus.completed &&
+            state is LevelOneCreateFileStateSuccess) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            context.read<PlansBloc>().add(
+              DocumentLevelOneFetch(
+                siteId: widget.siteObject.id,
+                folderName: "document",
+                levelNo: 1,
               ),
-            ],
+            );
+          });
+        } else if (state.status == GlobalApiStatus.error) {
+          ErrorHandler.errorHandle(state.message, "Something wrong", context);
+        }
+      },
+      child: WillPopScope(
+        onWillPop: () async {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (context) => BottomNavScreen(
+                    user: widget.user,
+                    siteObject: widget.siteObject,
+                  ),
+            ),
+          );
+          return true;
+        },
+        child: Scaffold(
+          drawer: getDrawerItems(context),
+          backgroundColor: const Color(0xFFF5F5F5),
+          body: SafeArea(
+            child: BlocBuilder<PlansBloc, GlobalApiResponseState>(
+              builder: (context, state) {
+                if (state.status == GlobalApiStatus.loading) {
+                  return LevelOneLoadingScreen();
+                } else if (state.status == GlobalApiStatus.completed) {
+                  if (state is LevelOneDocumentStateSuccess) {
+                    if (state.data.document.isNotEmpty) {
+                      listOfDocument = state.data.document;
+                      return getPlansView(listOfDocument);
+                    } else {
+                      return Center(
+                        child: NoDataFound(
+                          noDataFoundTxt: "Documents are not available",
+                        ),
+                      );
+                    }
+                  }
+                } else if (state.status == GlobalApiStatus.error) {
+                  return ErrorHandler.builderErr(
+                    state.message,
+                    "Something wrong",
+                    context,
+                  );
+                }
+                return getPlansView(listOfDocument);
+              },
+            ),
           ),
+          floatingActionButton: _buildFloatingActionButton(),
         ),
-        floatingActionButton: _buildFloatingActionButton(),
+      ),
+    );
+  }
+
+  Widget getPlansView(List<Document> listItems) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8.0, right: 8),
+      child: Column(
+        children: [
+          // _buildHeader(),
+          SizedBox(height: 10),
+          _buildTitleComponenet(),
+          Expanded(
+            child:
+                _isGridView
+                    ? _buildGridView(listItems)
+                    : _buildListView(listItems),
+          ),
+        ],
       ),
     );
   }
@@ -452,15 +391,11 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
                 Text(
                   'Project Plans',
                   style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    fontWeight: FontWeight.normal,
                     color: Colors.grey[800],
                     letterSpacing: -0.5,
                   ),
-                ),
-                Text(
-                  '${projects.length} items',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
               ],
             ),
@@ -477,7 +412,7 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
                 },
                 icon: Icon(
                   _isGridView ? Icons.view_list : Icons.grid_view,
-                  color: Colors.grey[700],
+                  color: AppColors.colorGray,
                 ),
                 style: IconButton.styleFrom(
                   backgroundColor: Colors.white,
@@ -492,47 +427,15 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
     );
   }
 
-  Widget _buildSearchBar() {
-    return AnimatedBuilder(
-      animation: _searchAnimationController,
-      builder: (context, child) {
-        return Container(
-          height: _isSearchVisible ? 60 : 0,
-          margin: EdgeInsets.symmetric(horizontal: 20),
-          child: Opacity(
-            opacity: _searchAnimationController.value,
-            child: TextField(
-              controller: _searchController,
-              onChanged: (value) => setState(() {}),
-              decoration: InputDecoration(
-                hintText: 'Search projects...',
-                prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildGridView(List<ProjectItem> projects) {
+  Widget _buildGridView(List<Document> projects) {
     return Padding(
-      padding: EdgeInsets.only(left: 10, right: 10, top: 15, bottom: 20),
+      padding: EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 20),
       child: GridView.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          crossAxisSpacing: 8,
+          crossAxisSpacing: 10,
           mainAxisSpacing: 8,
+          childAspectRatio: 0.80,
           // childAspectRatio: 0.85,
         ),
         itemCount: projects.length,
@@ -546,7 +449,7 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
     );
   }
 
-  Widget _buildListView(List<ProjectItem> projects) {
+  Widget _buildListView(List<Document> projects) {
     return ListView.builder(
       padding: EdgeInsets.all(20),
       itemCount: projects.length,
@@ -556,89 +459,158 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
     );
   }
 
-  Widget _buildProjectCard(ProjectItem project) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 40.0),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: AppColors.tabBarColor, width: 0.5),
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => PlanDetailsScreen(folderName: "Architectural", siteObject: widget.siteObject,)));
-              /*_onProjectTap(project)*/
-            },
-            borderRadius: BorderRadius.circular(15),
-            child: Stack(
-              clipBehavior: Clip.none, // Allows overflow
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(height: 55), // Half of image height (90/2)
-                    SizedBox(
-                      height: 20,
-                      child: Align(alignment: Alignment.center,child: Utility.subTitle(project.name, AppColors.colorBlack)),
-                    ),
-                  ],
+  Widget _buildProjectCard(Document project) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(5),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.colorGray.withOpacity(0.2),
+            blurRadius: 5,
+            spreadRadius: 2,
+            offset: const Offset(0, 0),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            if (project.isFile == 0) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder:
+                      (context) => PlanDetailsScreen(
+                        folderName: project.documentName!,
+                        siteObject: widget.siteObject,
+                        documentObj: project,
+                      ),
                 ),
-                // Image positioned to overlap 50% outside
-                Positioned(
-                  top: -45, // Negative value to move it up (half of image height)
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: Container(
-                      padding: EdgeInsets.all(5),
-                      child: Image.asset(project.icon, width: 90, height: 90),
+              );
+            }
+          },
+          borderRadius: BorderRadius.circular(15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    width: 140,
+                    height: 150,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.all(Radius.circular(5)),
+                      border: Border.all(
+                        color: AppColors.colorGray,
+                        width: 0.5,
+                      ),
+                    ),
+                    padding: EdgeInsets.all(5),
+                    child: Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: buildFileImage(project.path),
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+              SizedBox(height: 5), // Half of image height (90/2)
+              Align(
+                alignment: Alignment.center,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 8.0, right: 8),
+                  child: Text(
+                    "${project.documentName}",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: AppColors.colorBlack,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildProjectListItem(ProjectItem project) {
+  Widget buildFileImage(String? path) {
+    if (path == null || path.isEmpty) {
+      return Image.asset("assets/icons/folder.png", width: 90, height: 90);
+    } else if (path.endsWith(".jpg") ||
+        path.endsWith(".jpeg") ||
+        path.endsWith(".png")) {
+      return Image.network(
+        "${ApiConstants.baseUrl}$path",
+        width: 90,
+        height: 90,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Image.asset("assets/icons/folder.png", width: 90, height: 90);
+        },
+      );
+    } else if (path.endsWith(".pdf")) {
+      return Image.asset("assets/icons/pdf.png", width: 90, height: 90);
+    } else if (path.endsWith(".dwg")) {
+      return Image.network(
+        "${ApiConstants.baseUrl}${path}",
+        width: 90,
+        height: 90,
+      );
+    } else {
+      return Image.asset("assets/icons/folder.png", width: 90, height: 90);
+    }
+  }
+
+  Widget buildForListItems(String? path) {
+    if (path == null || path.isEmpty) {
+      return Image.asset("assets/icons/folder.png", width: 35, height: 35);
+    } else if (path.endsWith(".jpg") ||
+        path.endsWith(".jpeg") ||
+        path.endsWith(".png")) {
+      return Image.network(
+        "${ApiConstants.baseUrl}$path",
+        width: 35,
+        height: 35,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Image.asset("assets/icons/folder.png", width: 35, height: 35);
+        },
+      );
+    } else if (path.endsWith(".pdf")) {
+      return Image.asset("assets/icons/pdf.png", width: 35, height: 35);
+    } else if (path.endsWith(".dwg")) {
+      return Image.network(
+        "${ApiConstants.baseUrl}${path}",
+        width: 35,
+        height: 35,
+      );
+    } else {
+      return Image.asset("assets/icons/folder.png", width: 40, height: 40);
+    }
+  }
+
+  Widget _buildProjectListItem(Document project) {
     return Container(
-      margin: EdgeInsets.only(bottom: 12),
+      margin: EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-
+        borderRadius: BorderRadius.circular(5),
+        border: Border.all(color: AppColors.colorGray, width: 0.5),
       ),
       child: ListTile(
-        onTap: () => _onProjectTap(project),
-        leading: Image.asset(project.icon, width: 40, height: 40,),
+        onTap: () => {} /*_onProjectTap(project)*/,
+        leading: buildFileImage(project.path),
         title: Text(
-          project.name,
-          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              project.type == ProjectType.folder
-                  ? '${project.fileCount} files'
-                  : 'File',
-              style: TextStyle(color: Colors.grey[600], fontSize: 14),
-            ),
-            if (project.type == ProjectType.file &&
-                project.formattedFileSize.isNotEmpty)
-              Text(
-                project.formattedFileSize,
-                style: TextStyle(color: Colors.grey[500], fontSize: 12),
-              ),
-          ],
+          "${project.documentName}",
+          style: TextStyle(fontSize: 16, color: AppColors.colorBlack),
         ),
         trailing: Icon(Icons.chevron_right, color: Colors.grey[400]),
-        contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
@@ -654,60 +626,24 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
     );
   }
 
-  void _onProjectTap(ProjectItem project) {
-    HapticFeedback.selectionClick();
-    // Handle project tap - navigate to project details
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Opening ${project.name}'),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        margin: EdgeInsets.all(16),
-      ),
-    );
-  }
-
-  void addFolderAndFiles() {
+  void addFolder() {
     final folderName = nameController.text.trim();
     if (folderName.isNotEmpty) {
-      createFolderAndFilesExternal(widget.siteObject.siteName!, folderName,"", []);
-    }
-  }
-}
-
-enum ProjectType { folder, file }
-
-class ProjectItem {
-  final String name;
-  final ProjectType type;
-  // final IconData icon;
-  final String icon;
-  final Color color;
-  final int fileCount;
-  final String? filePath;
-  final int? fileSize;
-
-  ProjectItem({
-    required this.name,
-    required this.type,
-    required this.icon,
-    required this.color,
-    required this.fileCount,
-    this.filePath,
-    this.fileSize,
-  });
-
-  String get formattedFileSize {
-    if (fileSize == null) return '';
-
-    if (fileSize! < 1024) {
-      return '${fileSize} B';
-    } else if (fileSize! < 1024 * 1024) {
-      return '${(fileSize! / 1024).toStringAsFixed(1)} KB';
-    } else if (fileSize! < 1024 * 1024 * 1024) {
-      return '${(fileSize! / (1024 * 1024)).toStringAsFixed(1)} MB';
-    } else {
-      return '${(fileSize! / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
+      createFolderAndFilesExternal(
+        widget.siteObject.siteName!,
+        folderName,
+        "",
+        [],
+      );
+      context.read<PlansBloc>().add(
+        CreateLevelOneFileFetch(
+          levelId: 1,
+          isWhatCreating: "folder",
+          folderName: folderName,
+          siteId: widget.siteObject.id,
+          filePath: '',
+        ),
+      );
     }
   }
 }

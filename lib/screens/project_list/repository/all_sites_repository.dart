@@ -37,10 +37,7 @@ class AllSitesRepository {
     try {
       final formFields = bodyParams["form_data"];
       final imageFile = formFields["site_image"];
-      final imageName =
-          (imageFile is File && imageFile.path.isNotEmpty)
-              ? ""
-              : "schreenshoot.png";
+      final imageName = (imageFile is File && imageFile.path.isNotEmpty) ? "" : "schreenshoot.png";
 
       final Map<String, dynamic> formMap = {
         "form_data": jsonEncode({

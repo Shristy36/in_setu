@@ -6,7 +6,6 @@ import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
 import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
 import 'package:in_setu/screens/material_view/bloc/material_stock_bloc.dart';
 import 'package:in_setu/screens/material_view/model/MaterialSearchKeyword.dart';
-import 'package:in_setu/screens/material_view/model/MaterialStockReponse.dart';
 import 'package:in_setu/screens/material_view/model/SearchUnitResponse.dart';
 import 'package:in_setu/screens/material_view/tab_views/intend_content_screen.dart';
 import 'package:in_setu/screens/material_view/tab_views/stock_content_screen.dart';
@@ -96,7 +95,7 @@ class _StockManagementScreenState extends State<StockManagementScreen>
                   tooltip: 'Add Indent',
                   child: Icon(Icons.add, color: Colors.white),
                 ),
-        backgroundColor: Color(0xFFF5F5F5),
+        backgroundColor: const Color(0xFFF5F5F5),
         body: BlocListener<MaterialStockBloc, GlobalApiResponseState>(
             listener: (context, state){
               switch (state.status) {

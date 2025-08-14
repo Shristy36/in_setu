@@ -11,6 +11,7 @@ class DashboardLoadingScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          SizedBox(height: 10,),
           _buildImageSliderPlaceholder(),
           const SizedBox(height: 20),
           _buildMaterialSectionPlaceholder(),
@@ -31,8 +32,16 @@ class DashboardLoadingScreen extends StatelessWidget {
       height: 200,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.colorLightGray,
+        color: AppColors.skeletonHighlight,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.colorGray.withOpacity(0.2),
+            blurRadius: 5,
+            spreadRadius: 5,
+            offset: const Offset(0, 0),
+          ),
+        ],
       ),
     );
   }
@@ -43,8 +52,8 @@ class DashboardLoadingScreen extends StatelessWidget {
       children: [
         Container(
           width: 100,
-          height: 24,
-          color: AppColors.colorLightGray,
+          height: 15,
+          color: AppColors.skeletonBase,
         ),
         const SizedBox(height: 15),
         SizedBox(
@@ -97,16 +106,17 @@ class DashboardLoadingScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      SizedBox(height: 5,),
                       Container(
                         width: 60,
-                        height: 12,
-                        color: AppColors.colorLightGray,
+                        height: 10,
+                        color: AppColors.skeletonBase,
                       ),
                       const SizedBox(height: 4),
                       Container(
                         width: 40,
                         height: 12,
-                        color: AppColors.colorLightGray,
+                        color: AppColors.skeletonBase,
                       ),
                     ],
                   ),
@@ -128,44 +138,42 @@ class DashboardLoadingScreen extends StatelessWidget {
           children: [
             Container(
               width: 100,
-              height: 24,
-              color: AppColors.colorLightGray,
+              height: 15,
+              color: AppColors.skeletonHighlight,
             ),
             Container(
               width: 120,
-              height: 36,
+              height: 15,
               decoration: BoxDecoration(
-                color: AppColors.colorLightGray,
-                borderRadius: BorderRadius.circular(8),
+                color: AppColors.skeletonHighlight,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 15),
         SizedBox(
-          height: 120,
+          height: 100,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: 6,
             itemBuilder: (context, index) {
               return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 30),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      width: 80,
-                      height: 80,
+                      width: 60,
+                      height: 60,
                       decoration: BoxDecoration(
-                        color: AppColors.colorLightGray,
+                        color: AppColors.skeletonHighlight,
                         shape: BoxShape.circle,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Container(
-                      width: 80,
-                      height: 12,
-                      color: AppColors.colorLightGray,
+                      width: 60,
+                      height: 10,
+                      color: AppColors.skeletonHighlight,
                     ),
                   ],
                 ),
@@ -194,10 +202,9 @@ class DashboardLoadingScreen extends StatelessWidget {
       children: [
         Container(
           width: titleWidth,
-          height: titleHeight,
+          height: 15,
           decoration: BoxDecoration(
-            color: AppColors.colorLightGray,
-            borderRadius: BorderRadius.circular(4),
+            color: AppColors.skeletonHighlight,
           ),
         ),
         SizedBox(height: spacing),
@@ -224,7 +231,7 @@ class DashboardLoadingScreen extends StatelessWidget {
                     Container(
                       height: placeholderHeight,
                       decoration: BoxDecoration(
-                        color: AppColors.colorLightGray,
+                        color: AppColors.skeletonHighlight,
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
@@ -233,7 +240,7 @@ class DashboardLoadingScreen extends StatelessWidget {
                       width: subtitleWidth,
                       height: subtitleHeight,
                       decoration: BoxDecoration(
-                        color: AppColors.colorLightGray,
+                        color: AppColors.skeletonHighlight,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -254,7 +261,7 @@ class DashboardLoadingScreen extends StatelessWidget {
         Container(
           width: 100,
           height: 24,
-          color: AppColors.colorLightGray,
+          color: AppColors.skeletonHighlight,
         ),
         const SizedBox(height: 10),
         _buildProjectsListPlaceholder(),
@@ -294,7 +301,7 @@ class DashboardLoadingScreen extends StatelessWidget {
                 Container(
                   width: 100,
                   height: 20,
-                  color: AppColors.colorLightGray,
+                  color: AppColors.skeletonHighlight,
                 ),
               ],
             ),
@@ -326,7 +333,7 @@ class DashboardLoadingScreen extends StatelessWidget {
           Container(
             width: 80,
             height: 16,
-            color: AppColors.colorLightGray,
+            color: AppColors.skeletonHighlight,
           ),
           const SizedBox(height: 2),
           ...List.generate(itemCount, (index) {
@@ -335,7 +342,7 @@ class DashboardLoadingScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.all(Radius.circular(10)),
-                color: AppColors.colorLightGray,
+                color: AppColors.skeletonHighlight,
               ),
               child: Row(
                 children: [

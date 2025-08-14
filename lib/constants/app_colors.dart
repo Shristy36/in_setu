@@ -14,4 +14,18 @@ class AppColors {
   static const Color colorGray = Color(0xFFA9A9A9);
   static const Color colorLightGray = Color(0xFFF2F0EF);
 
+
+
+  static const Color skeletonBase = Color(0xFFFBF6E5);
+  static const Color skeletonHighlight = Color(0xFFFFFDE7);
+
 }
+
+
+/*
+-ion-color-primary: #fbbe37;
+--ion-color-primary-rgb: 255, 219, 1;
+--ion-color-primary-contrast: #273C5B;
+--ion-color-primary-contrast-rgb: 255, 255, 255;
+--ion-color-primary-shade: #e0c101;
+--ion-color-primary-tint: #ffdf1a;*/

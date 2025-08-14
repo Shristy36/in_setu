@@ -86,7 +86,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
       },
       child: Scaffold(
         drawer: getDrawerItems(context),
-        backgroundColor: Color(0xFFF5F5F5),
+        backgroundColor: const Color(0xFFF5F5F5),
         body:BlocBuilder<ChatsBloc, GlobalApiResponseState>(
           builder: (context, state) {
             if (state.status == GlobalApiStatus.loading && state.data == null) {

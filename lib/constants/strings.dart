@@ -1,5 +1,5 @@
 
-const String loginTitle = "Builder App";
+const String loginTitle = "inSetu";
 const String signUpTitle = "Create An Account";
 const String forgotPassTItle = "Forgot Password";
 const String loginDescription = "Lets Us Help You Create";

@@ -16,6 +16,7 @@ import 'package:in_setu/screens/material_view/material_stock_summary_screen.dart
 import 'package:in_setu/screens/material_view/model/MaterialStockReponse.dart';
 import 'package:in_setu/screens/material_view/widget/update_stock_consumption.dart';
 import 'package:in_setu/screens/project_list/model/AllSitesResponse.dart';
+import 'package:in_setu/screens/project_list/project_list_loading_screen.dart';
 import 'package:in_setu/widgets/add_material_widget.dart';
 import 'package:in_setu/widgets/intent_management.dart';
 
@@ -168,7 +169,7 @@ class _StockContentScreenState extends State<StockContentScreen> {
             setState(() => _isLoading = false);
         }
       },
-      child: _isLoading ? LoadingScreen() : getStockDetails(stockItemsList),
+      child: _isLoading ? ProjectListLoadingScreen() : getStockDetails(stockItemsList),
     );
   }
 

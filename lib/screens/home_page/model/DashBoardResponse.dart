@@ -203,7 +203,7 @@ class MaterialItem {
   String requirement1;
   String requirement2;
   String unit;
-  int qty;
+  String qty;
 
   MaterialItem({
     required this.id,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/screens/login_view/account_delete_dialog/account_delete_dialog.dart';
 import 'package:in_setu/screens/login_view/account_delete_dialog/logout_dialog.dart';
@@ -7,123 +8,136 @@ import 'package:in_setu/screens/user/profile_screen.dart';
 import 'package:in_setu/supports/share_preference_manager.dart';
 
 Widget getDrawerItems(BuildContext context) {
-  return Drawer(
-    child: Column(
-      children: [
-        // Your header content
-        ClipPath(
-          clipper: BottomLeftRoundedClipper(),
-          child: Container(
-            width: double.infinity,
-            height: 200,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary50.withOpacity(1), // Shadow color
-                  offset: Offset(4, 4), // Shadow offset
-                  blurRadius: 10, // Shadow blur radius
-                  spreadRadius: 2, // Shadow spread radius
-                ),
-              ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  /*CircleAvatar(
-                    radius: 35,
-                    backgroundColor: AppColors.colorAccent,
-                    child: Icon(Icons.person, size: 35, color: Colors.white),
-                  ),*/
-                  Padding(
+  return FutureBuilder<User?>(
+      future: getUserDetails(),
+      builder: (context, snapshot){
+        if (!snapshot.hasData) {
+          return const Drawer(child: Center(child: CircularProgressIndicator()));
+        }
+        User user = snapshot.data!;
+        return Drawer(
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.zero
+          ),
+          child: Column(
+            children: [
+              // Your header content
+              ClipPath(
+                clipper: BottomLeftRoundedClipper(),
+                child: Container(
+                  width: double.infinity,
+                  height: 200,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary50.withOpacity(1), // Shadow color
+                        offset: Offset(4, 4), // Shadow offset
+                        blurRadius: 10, // Shadow blur radius
+                        spreadRadius: 2, // Shadow spread radius
+                      ),
+                    ],
+                  ),
+                  child: Padding(
                     padding: const EdgeInsets.all(10.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Align(
-                          alignment: Alignment.topLeft,
-                          child: Text(
-                            "Kurshid Kulmani",
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 5),
-                        Align(
-                          alignment: Alignment.topLeft,
-                          child: Text(
-                            "CTO",
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Align(
+                                alignment: Alignment.topLeft,
+                                child: Text(
+                                  "${user.firstName} ${user.lastName}",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 5),
+                              Align(
+                                alignment: Alignment.topLeft,
+                                child: Text(
+                                  "${user.designation}",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
-        ),
 
-        // Your list items
-        ListTile(
-          leading: Icon(Icons.home, color: AppColors.primary),
-          title: Text('Home', style: TextStyle(color: AppColors.primary)),
-          onTap:
-              () =>
-                  {Navigator.of(context).pop()} /*Navigator.push(context, MaterialPageRoute(builder: (context) => BottomNavScreen()))*/,
-        ),
-        ListTile(
-          leading: Icon(Icons.person),
-          title: Text('Profile'),
-          onTap:
-              () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ProfilePage()),
+              // Your list items
+              ListTile(
+                leading: Image.asset("assets/icons/home_outline_icon.png", width: 25,height: 25, color: AppColors.primary,),
+                title: Text('Home', style: TextStyle(color: AppColors.primary)),
+                onTap:
+                    () =>
+                {Navigator.of(context).pop()} /*Navigator.push(context, MaterialPageRoute(builder: (context) => BottomNavScreen()))*/,
               ),
-        ),
-        Spacer(),
-        ListTile(
-          leading: Icon(Icons.exit_to_app),
-          title: Text('Logout'),
-          onTap: (){
-              LogoutDialog.showLogoutDialog(context);
-          },
-        ),
-        ListTile(
-          leading: Icon(Icons.delete_forever, color: Colors.redAccent),
-          title: Text(
-            'Delete Account',
-            style: TextStyle(color: Colors.redAccent, fontSize: 16),
+              ListTile(
+                leading: SvgPicture.asset("assets/svg/person_out.svg", width: 25, height: 25,),
+                title: Text('Profile'),
+                onTap:
+                    () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ProfilePage()),
+                ),
+              ),
+              Spacer(),
+              ListTile(
+                leading: SvgPicture.asset("assets/svg/logout_icon.svg", width: 25, height: 25,),
+                title: Text('Logout'),
+                onTap: (){
+                  LogoutDialog.showLogoutDialog(context);
+                },
+              ),
+              ListTile(
+                leading: SvgPicture.asset("assets/svg/delete_icon.svg", width: 25, height: 25, color: Colors.red,),
+                title: Text(
+                  'Delete Account',
+                  style: TextStyle(color: Colors.redAccent, fontSize: 16),
+                ),
+                onTap: () async{
+                  LoginAuthModel? oAuth = await SharedPreferenceManager.getOAuth();
+                  if (oAuth != null && oAuth.user != null) {
+                    AccountDeleteDialog.showAccountDeleteDialog(context, oAuth.user!.userToken!);
+                  }
+                },
+              ),
+              SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 70.0),
+                child: Text(
+                  "App Version 1.0.0",
+                  style: TextStyle(color: Colors.blue, fontSize: 14),
+                ),
+              ),
+            ],
           ),
-          onTap: () async{
-            LoginAuthModel? oAuth = await SharedPreferenceManager.getOAuth();
-            if (oAuth != null && oAuth.user != null) {
-              AccountDeleteDialog.showAccountDeleteDialog(context, oAuth.user!.userToken!);
-            }
-           },
-        ),
-        SizedBox(height: 20),
-        Padding(
-          padding: const EdgeInsets.only(bottom: 70.0),
-          child: Text(
-            "App Version 1.0.0",
-            style: TextStyle(color: Colors.blue, fontSize: 14),
-          ),
-        ),
-      ],
-    ),
-  );
+        );
+      });
+
+}
+
+Future<User?> getUserDetails() async {
+  LoginAuthModel? loginModel = await SharedPreferenceManager.getOAuth();
+  return loginModel?.user;
 }
 
 class BottomLeftRoundedClipper extends CustomClipper<Path> {

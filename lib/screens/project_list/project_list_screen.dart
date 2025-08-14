@@ -7,7 +7,7 @@ import 'package:in_setu/constants/strings.dart';
 import 'package:in_setu/networkSupport/ApiConstants.dart';
 import 'package:in_setu/networkSupport/ErrorHandler.dart';
 import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
-import 'package:in_setu/screens/login_view/model/register_model/RegisterResponse.dart' hide User;
+import 'package:in_setu/screens/project_list/project_list_loading_screen.dart';
 import 'package:in_setu/supports/DialogManager.dart';
 import 'package:in_setu/supports/share_preference_manager.dart';
 import 'package:in_setu/supports/utility.dart';
@@ -135,7 +135,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
     return BlocBuilder<SitesBloc, GlobalApiResponseState>(
       builder: (context, state) {
         if (state.status == GlobalApiStatus.loading && state.data == null) {
-          return Utility.getLoadingView(context);
+          return ProjectListLoadingScreen()/*Utility.getLoadingView(context)*/;
         }
 
         if (state is AllSiteStateSuccess) {

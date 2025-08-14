@@ -1,8 +1,15 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:in_setu/commonWidget/no_data_found.dart';
 import 'package:in_setu/constants/app_colors.dart';
-import 'package:in_setu/screens/plans_view/add_files_screen.dart';
+import 'package:in_setu/networkSupport/ApiConstants.dart';
+import 'package:in_setu/networkSupport/ErrorHandler.dart';
+import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
+import 'package:in_setu/screens/plans_view/bloc/plans_bloc.dart';
+import 'package:in_setu/screens/plans_view/loading_screens/level_one_loading_screen.dart';
+import 'package:in_setu/screens/plans_view/model/DocumentLevelOneResponse.dart';
 import 'package:in_setu/screens/plans_view/storageManager/create_folder.dart';
 import 'package:in_setu/supports/utility.dart';
 
@@ -11,7 +18,14 @@ import '../project_list/model/AllSitesResponse.dart';
 class PlanDetailsScreen extends StatefulWidget {
   final String folderName;
   final Data siteObject;
-  const PlanDetailsScreen({super.key, required this.folderName, required this.siteObject});
+  final Document documentObj;
+
+  const PlanDetailsScreen({
+    super.key,
+    required this.folderName,
+    required this.siteObject,
+    required this.documentObj,
+  });
 
   @override
   State<PlanDetailsScreen> createState() => _PlanDetailsScreenState();
@@ -20,108 +34,321 @@ class PlanDetailsScreen extends StatefulWidget {
 class _PlanDetailsScreenState extends State<PlanDetailsScreen> {
   bool _isGridView = true;
   final nameController = TextEditingController();
+  List<Document> listOfDocuments = [];
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<PlansBloc>().add(
+      DocumentLevelSecFetch(
+        siteId: widget.siteObject.id,
+        folderName: widget.folderName,
+        levelNo: 2,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return BlocListener<PlansBloc, GlobalApiResponseState>(
+      listener: (context, state) {
+        if (state.status == GlobalApiStatus.completed &&
+            state is LevelSecondCreateFileStateSuccess) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            context.read<PlansBloc>().add(
+              DocumentLevelSecFetch(
+                siteId: widget.siteObject.id,
+                folderName: widget.folderName,
+                levelNo: 2,
+              ),
+            );
+          });
+        } else if (state.status == GlobalApiStatus.error) {
+          ErrorHandler.errorHandle(state.message, "Something wrong", context);
+        }
+      },
+      child: Scaffold(
         backgroundColor: Color(0xFFF5F5F5),
-      appBar: AppBar(
-        backgroundColor: Color(0xFFF5F5F5),
-        title: Center(
-          child: Text(
-            widget.folderName,
-            style: TextStyle(color: Colors.black, fontSize: 16),
+        appBar: AppBar(
+          backgroundColor: Color(0xFFF5F5F5),
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: Center(
+            child: Text(
+              widget.folderName,
+              style: TextStyle(color: Colors.black, fontSize: 16),
+            ),
+          ),
+          iconTheme: IconThemeData(color: AppColors.colorBlack),
+        ),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(15.0),
+            child: getSubPlanView(),
           ),
         ),
-        iconTheme: IconThemeData(color: AppColors.colorBlack),
+        floatingActionButton: _buildFloatingActionButton(),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(15.0),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    child: Icon(Icons.person, size: 25, color: AppColors.colorBlack,),
-                  ),
-                  SizedBox(width: 20,),
-                  Expanded(
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Adapt Ganesh Height", style: TextStyle(color: AppColors.colorBlack, fontSize: 16),),
-                          SizedBox(height: 5,),
-                          Text("Adalaj Gujrat 03434444", style: TextStyle(color: AppColors.colorBlack, fontSize: 14),),
-                        ],
-                      ),
-                    ),
-                  )
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.all(5),
-                child: Row(
+    );
+  }
+
+  Widget getSubPlanView() {
+    return Column(
+      children: [
+        Row(
+          children: [
+            CircleAvatar(
+              radius: 30,
+              child: Icon(Icons.person, size: 25, color: AppColors.colorBlack),
+            ),
+            SizedBox(width: 20),
+            Expanded(
+              child: SizedBox(
+                width: double.infinity,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Project Plans',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey[800],
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                        ],
+                    Text(
+                      "Adapt Ganesh Height",
+                      style: TextStyle(
+                        color: AppColors.colorBlack,
+                        fontSize: 16,
                       ),
                     ),
-                    Row(
-                      children: [
-                        SizedBox(width: 8),
-                        IconButton(
-                          onPressed: () {
-                            setState(() {
-                              _isGridView = !_isGridView;
-                            });
-                            HapticFeedback.selectionClick();
-                          },
-                          icon: Icon(
-                            _isGridView ? Icons.view_list : Icons.grid_view,
-                            color: Colors.grey[700],
-                          ),
-                          style: IconButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            shape: CircleBorder(),
-                            padding: EdgeInsets.all(12),
-                          ),
-                        ),
-                      ],
+                    SizedBox(height: 5),
+                    Text(
+                      "Adalaj Gujrat 03434444",
+                      style: TextStyle(
+                        color: AppColors.colorBlack,
+                        fontSize: 14,
+                      ),
                     ),
                   ],
                 ),
               ),
-              Padding(
+            ),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.all(5),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Project Plans',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[800],
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Row(
+                children: [
+                  SizedBox(width: 8),
+                  IconButton(
+                    onPressed: () {
+                      // setState(() {
+                      //   _isGridView = !_isGridView;
+                      // });
+                      // HapticFeedback.selectionClick();
+                    },
+                    icon: Icon(
+                      _isGridView ? Icons.view_list : Icons.grid_view,
+                      color: Colors.grey[700],
+                    ),
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      shape: CircleBorder(),
+                      padding: EdgeInsets.all(12),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: BlocBuilder<PlansBloc, GlobalApiResponseState>(
+            builder: (context, state) {
+              if (state.status == GlobalApiStatus.loading) {
+                return LevelOneLoadingScreen();
+              } else if (state.status == GlobalApiStatus.completed) {
+                if (state is LevelSecDocumentStateSuccess) {
+                  if (state.data.document.isNotEmpty) {
+                    listOfDocuments = state.data.document;
+                    return _buildGridView(listOfDocuments);
+                  } else {
+                    return Center(
+                      child: NoDataFound(
+                        noDataFoundTxt: "Documents are not available",
+                      ),
+                    );
+                  }
+                }
+              } else if (state.status == GlobalApiStatus.error) {
+                return ErrorHandler.builderErr(
+                  state.message,
+                  "Something wrong",
+                  context,
+                );
+              }
+              return _buildGridView(listOfDocuments);
+            },
+          ),
+        ),
+        /*Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: GestureDetector(onTap: (){
                   Navigator.push(context, MaterialPageRoute(builder: (context)=> AddFilesScreen(folderName: widget.folderName, subFolderName: "Testing", siteObject: widget.siteObject)));
                 },child: Image.asset("assets/icons/folder.png", width: 80,height: 80,)),
-              )
+              )*/
+      ],
+    );
+  }
+
+  Widget _buildGridView(List<Document> projects) {
+    return Expanded(
+      child: Padding(
+        padding: EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 20),
+        child: GridView.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 8,
+            childAspectRatio: 0.80,
+            // childAspectRatio: 0.85,
+          ),
+          itemCount: projects.length,
+          itemBuilder: (context, index) {
+            return Padding(
+              padding: const EdgeInsets.all(5.0),
+              child: _buildProjectCard(projects[index]),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProjectCard(Document project) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(5),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.colorGray.withOpacity(0.2),
+            blurRadius: 5,
+            spreadRadius: 2,
+            offset: const Offset(0, 0),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            /*if(project.isFile == 0){
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder:
+                      (context) => PlanDetailsScreen(
+                    folderName: project.documentName!,
+                    siteObject: widget.siteObject,
+                  ),
+                ),
+              );
+            }*/
+          },
+          borderRadius: BorderRadius.circular(15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    width: 140,
+                    height: 150,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.all(Radius.circular(5)),
+                      border: Border.all(
+                        color: AppColors.colorGray,
+                        width: 0.5,
+                      ),
+                    ),
+                    padding: EdgeInsets.all(5),
+                    child: Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Image.asset(
+                        "assets/icons/folder.png",
+                        width: 90,
+                        height: 90,
+                      ) /*buildFileImage(project.path)*/,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 5), // Half of image height (90/2)
+              Align(
+                alignment: Alignment.center,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 8.0, right: 8),
+                  child: Text(
+                    "${project.documentName}",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: AppColors.colorBlack,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
       ),
-      floatingActionButton: _buildFloatingActionButton(),
-
     );
   }
+
+  Widget buildFileImage(String? path) {
+    if (path == null || path.isEmpty) {
+      return Image.asset("assets/icons/folder.png", width: 90, height: 90);
+    } else if (path.endsWith(".jpg") ||
+        path.endsWith(".jpeg") ||
+        path.endsWith(".png")) {
+      return Image.network(
+        "${ApiConstants.baseUrl}$path",
+        width: 90,
+        height: 90,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Image.asset("assets/icons/folder.png", width: 90, height: 90);
+        },
+      );
+    } else if (path.endsWith(".pdf")) {
+      return Image.asset("assets/icons/pdf.png", width: 90, height: 90);
+    } else if (path.endsWith(".dwg")) {
+      return Image.network(
+        "${ApiConstants.baseUrl}${path}",
+        width: 90,
+        height: 90,
+      );
+    } else {
+      return Image.asset("assets/icons/folder.png", width: 90, height: 90);
+    }
+  }
+
+
   Widget _buildFloatingActionButton() {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20.0, right: 20),
@@ -134,6 +361,7 @@ class _PlanDetailsScreenState extends State<PlanDetailsScreen> {
       ),
     );
   }
+
   void _showAddDialog() {
     showDialog(
       context: context,
@@ -186,6 +414,7 @@ class _PlanDetailsScreenState extends State<PlanDetailsScreen> {
       },
     );
   }
+
   Widget _buildAddOption({
     required IconData icon,
     required String title,
@@ -241,82 +470,234 @@ class _PlanDetailsScreenState extends State<PlanDetailsScreen> {
       ),
     );
   }
+
   void _addFolder() {
     _showNameDialog('Create Folder', 'Enter folder name', (name) {
       HapticFeedback.lightImpact();
     });
   }
+
   void _showNameDialog(String title, String hint, Function(String) onConfirm) {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: Text(title),
-        content: TextField(
-          controller: nameController,
-          decoration: InputDecoration(
-            hintText: hint,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+      builder: (context) {
+        return BlocListener<PlansBloc, GlobalApiResponseState>(
+          listenWhen: (previous, current) => current.status != previous.status,
+          listener: (context, state) {
+            if (state.status == GlobalApiStatus.completed &&
+                state is LevelSecondCreateFileStateSuccess) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Utility.showToast(state.data.message);
+                Navigator.of(context).pop();
+                context.read<PlansBloc>().add(
+                  DocumentLevelSecFetch(
+                    siteId: widget.siteObject.id,
+                    folderName: widget.folderName,
+                    levelNo: 2,
+                  ),
+                );
+                onConfirm("confirmed");
+              });
+            } else if (state.status == GlobalApiStatus.error) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Navigator.of(context).pop();
+                ErrorHandler.showErrorDialog(
+                  state.message,
+                  "Something wrong",
+                  context,
+                );
+              });
+            }
+          },
+          child: AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Theme.of(context).primaryColor),
-            ),
-          ),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (nameController.text.trim().isNotEmpty) {
-                addFolderAndFiles();
-                Navigator.pop(context);
-                onConfirm(nameController.text.trim());
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+            title: Text(title),
+            content: TextField(
+              controller: nameController,
+              decoration: InputDecoration(
+                hintText: hint,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                ),
               ),
+              autofocus: true,
             ),
-            child: Text('Create'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  if (nameController.text.trim().isNotEmpty) {
+                    addFolder();
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text('Create'),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
+
+  /*void _showNameDialog(String title, String hint, Function(String) onConfirm) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => BlocListener<PlansBloc, GlobalApiResponseState>(
+            listener: (context, state) {
+              switch (state.status) {
+                case GlobalApiStatus.completed:
+                  if (state is LevelSecondCreateFileStateSuccess) {
+                    Utility.showToast(state.data.message);
+                    Navigator.of(context).pop();
+                    context.read<PlansBloc>().add(
+                      DocumentLevelSecFetch(
+                        siteId: widget.siteObject.id,
+                        folderName: widget.folderName,
+                        levelNo: 2,
+                      ),
+                    );
+                    onConfirm("confirmed");
+                  }
+                  break;
+                case GlobalApiStatus.error:
+                  Navigator.of(context).pop();
+                  ErrorHandler.showErrorDialog(
+                    state.message,
+                    "Something wrong",
+                    context,
+                  );
+                  break;
+                default:
+                  Navigator.of(context).pop();
+              // Handle other states if needed
+              }
+            },
+            child: AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Text(title),
+              content: TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  hintText: hint,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                ),
+                autofocus: true,
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (nameController.text.trim().isNotEmpty) {
+                      addFolder();
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text('Create'),
+                ),
+              ],
+            ),
+          ),
+    );
+  }*/
+
   void _addFile() async {
+    final List<String> allowedExtensions = ['jpg', 'jpeg', 'png', 'dwg', 'pdf'];
+
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.any,
+        type: FileType.custom,
         allowMultiple: true,
-        allowedExtensions: null,
+        allowedExtensions: allowedExtensions,
       );
 
       if (result != null) {
         for (PlatformFile file in result.files) {
           String fileName = file.name;
           String fileExtension = fileName.split('.').last.toLowerCase();
-          await createFolderAndFilesExternal(widget.siteObject.siteName!, widget.folderName ,"", result.files);
+
+          if (!allowedExtensions.contains(fileExtension)) {
+            Utility.showToast("This file type is not allowed: ${file.name}");
+            continue; // skip this file
+          }
+
+          await createFolderAndFilesExternal(
+            widget.siteObject.siteName!,
+            widget.folderName,
+            "",
+            result.files,
+          );
+
+          context.read<PlansBloc>().add(
+            CreateLevelSecondFileFetch(
+              comingFromLevel: 1,
+              isWhatCreating: "file",
+              folderName: fileName,
+              dirId: widget.documentObj.id,
+              currentFolderName: widget.documentObj.documentName!,
+              siteId: widget.siteObject.id,
+              filePath: file.path,
+            ),
+          );
+          print("second filepath :${file.path}");
         }
       }
     } catch (e) {
       Utility.showToast('Error uploading file: ${e.toString()}');
     }
   }
-  void addFolderAndFiles() {
+
+  void addFolder() {
     final newFolderName = nameController.text.trim();
     if (newFolderName.isNotEmpty) {
-      createFolderAndFilesExternal(widget.siteObject.siteName!, widget.folderName, newFolderName, []);
+      createFolderAndFilesExternal(
+        widget.siteObject.siteName!,
+        widget.folderName,
+        newFolderName,
+        [],
+      );
     }
+    context.read<PlansBloc>().add(
+      CreateLevelSecondFileFetch(
+        comingFromLevel: 1,
+        isWhatCreating: "folder",
+        folderName: newFolderName,
+        dirId: widget.documentObj.id,
+        currentFolderName: widget.documentObj.documentName!,
+        siteId: widget.siteObject.id,
+        filePath: '',
+      ),
+    );
   }
-
 }
