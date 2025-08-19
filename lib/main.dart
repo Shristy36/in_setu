@@ -1,6 +1,9 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:in_setu/constants/strings.dart';
+import 'package:in_setu/networkSupport/ConnectivityService.dart';
 import 'package:in_setu/screens/cash_details_view/cash_repo/cash_book_repository.dart';
 import 'package:in_setu/screens/chat/bloc/chats_bloc.dart';
 import 'package:in_setu/screens/chat/chats_repo/chats_repo.dart';
@@ -19,6 +22,7 @@ import 'package:in_setu/screens/user/bloc/profile_bloc.dart';
 import 'package:in_setu/screens/user/profile_repo/profile_repository.dart';
 import 'package:in_setu/screens/walkthrough_screen/onboarding_screen.dart';
 import 'package:in_setu/screens/walkthrough_screen/walkthrough_screen.dart';
+import 'package:in_setu/supports/DialogManager.dart';
 
 import 'constants/app_colors.dart';
 import 'screens/mainpower_screen/bloc/man_power_bloc.dart';
@@ -54,6 +58,7 @@ class MyApp extends StatelessWidget {
           RepositoryProvider<MaterialRepository>(create: (context) => MaterialRepository()),
           RepositoryProvider<PlansRepository>(create: (context) => PlansRepository()),
         ],
+
         child: MultiBlocProvider(
             providers: [
               BlocProvider<SigninBloc>(create: (context) => SigninBloc(signInRepository: SignInRepository())),
@@ -86,12 +91,20 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   bool _hasSeenOnboarding = false;
+  final connectivityService = ConnectivityService();
 
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 3), () {
-      _checkOnboardingStatus();
+    connectivityService.connectivityStream.stream.listen((result) {
+      if (result == ConnectivityResult.none) {
+        DialogManager.showInternetDialog(context, noInternetConnection);
+      } else {
+        print("Connected via $result");
+        Future.delayed(const Duration(seconds: 3), () {
+          _checkOnboardingStatus();
+        });
+      }
     });
   }
   Future<void> _checkOnboardingStatus() async {
@@ -124,6 +137,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
     }
   }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -146,7 +160,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 }
 
-// Existing MyHomePage remains unchanged
+/*// Existing MyHomePage remains unchanged
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
   final String title;
@@ -197,4 +211,5 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
-}
+
+}*/

@@ -28,6 +28,16 @@ class PlansRepository{
       return ApiResult.failure(error: e);
     }
   }
+
+  Future<ApiResult<DocumentLevelOneResponse>> getLevelThirdDocument(dynamic paramsArgs) async{
+    try{
+      final response = await networkService.get(ApiConstants.getThirdLevelFileEndPoint, paramsArgs, null);
+      return ApiResult.success(data: DocumentLevelOneResponse.fromJson(response));
+    }on AppException catch(e){
+      return ApiResult.failure(error: e);
+    }
+  }
+
   Future<ApiResult<FileCreateResponse>> createFileResponse(dynamic bodyParams) async{
     try{
       final response = await networkService.post(ApiConstants.createFileLevelOneEndPoint, null, null, bodyParams);

@@ -35,3 +35,10 @@ class LevelThirdCreateFileStateSuccess<T> extends GlobalApiResponseState<T>{
     String message = '',
   }): super(status: GlobalApiStatus.completed, message: message, data: data);
 }
+class LevelThirdDocumentStateSuccess<T> extends GlobalApiResponseState<T>{
+  LevelThirdDocumentStateSuccess({
+    T? data,
+    String message = '',
+  }): super(status: GlobalApiStatus.completed, message: message, data: data);
+
+}

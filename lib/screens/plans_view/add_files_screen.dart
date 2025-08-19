@@ -2,18 +2,34 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:in_setu/commonWidget/no_data_found.dart';
 import 'package:in_setu/constants/app_colors.dart';
+import 'package:in_setu/networkSupport/ErrorHandler.dart';
+import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
 import 'package:in_setu/screens/plans_view/bloc/plans_bloc.dart';
+import 'package:in_setu/screens/plans_view/loading_screens/level_one_loading_screen.dart';
+import 'package:in_setu/screens/plans_view/model/DocumentLevelOneResponse.dart';
 import 'package:in_setu/screens/plans_view/storageManager/create_folder.dart';
 import 'package:in_setu/supports/utility.dart';
 
+import '../../networkSupport/ApiConstants.dart';
 import '../project_list/model/AllSitesResponse.dart';
 
 class AddFilesScreen extends StatefulWidget {
   final String folderName;
   final String subFolderName;
   final Data siteObject;
-  const AddFilesScreen({super.key, required this.folderName, required this.siteObject, required this.subFolderName});
+  final Document documentObj;
+
+  const AddFilesScreen({
+    super.key,
+    required this.folderName,
+    required this.siteObject,
+    required this.subFolderName,
+    required this.documentObj,
+  });
 
   @override
   State<AddFilesScreen> createState() => _PlanDetailsScreenState();
@@ -22,115 +38,195 @@ class AddFilesScreen extends StatefulWidget {
 class _PlanDetailsScreenState extends State<AddFilesScreen> {
   bool _isGridView = true;
   final nameController = TextEditingController();
+  List<Document> listOfDocuments = [];
+
+  @override
+  void initState() {
+    super.initState();
+
+    context.read<PlansBloc>().add(
+      DocumentLevelThirdFetch(
+        siteId: widget.siteObject.id,
+        folderName: widget.subFolderName,
+        levelNo: 3,
+        dirId: widget.documentObj.id,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xFFF5F5F5),
-      appBar: AppBar(
+    return BlocListener<PlansBloc, GlobalApiResponseState>(
+      listener: (context, state) {
+        if (state.status == GlobalApiStatus.completed &&
+            state is LevelThirdCreateFileStateSuccess) {
+          Utility.showToast("Successfully create file");
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            context.read<PlansBloc>().add(
+              DocumentLevelThirdFetch(
+                siteId: widget.siteObject.id,
+                folderName: widget.subFolderName,
+                levelNo: 3,
+                dirId: widget.documentObj.id,
+              ),
+            );
+          });
+        } else if (state.status == GlobalApiStatus.error) {
+          /*Utility.showToast(state.message);*/
+          /*ErrorHandler.showErrorDialog(state.message, "Something wrong", context);*/
+        }
+      },
+      child: Scaffold(
         backgroundColor: Color(0xFFF5F5F5),
-        title: Center(
-          child: Text(
-            widget.folderName,
-            style: TextStyle(color: Colors.black, fontSize: 16),
+        appBar: AppBar(
+          backgroundColor: Color(0xFFF5F5F5),
+          title: Center(
+            child: Text(
+              widget.subFolderName,
+              style: TextStyle(color: Colors.black, fontSize: 16),
+            ),
           ),
+          iconTheme: IconThemeData(color: AppColors.colorBlack),
         ),
-        iconTheme: IconThemeData(color: AppColors.colorBlack),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(15.0),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    child: Icon(Icons.person, size: 25, color: AppColors.colorBlack,),
-                  ),
-                  SizedBox(width: 20,),
-                  Expanded(
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Adapt Ganesh Height", style: TextStyle(color: AppColors.colorBlack, fontSize: 16),),
-                          SizedBox(height: 5,),
-                          Text("Adalaj Gujrat 03434444", style: TextStyle(color: AppColors.colorBlack, fontSize: 14),),
-                        ],
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(15.0),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      child: Icon(
+                        Icons.person,
+                        size: 25,
+                        color: AppColors.colorBlack,
                       ),
                     ),
-                  )
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.all(5),
-                child: Row(
-                  children: [
+                    SizedBox(width: 20),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Adapt Ganesh Height",
+                              style: TextStyle(
+                                color: AppColors.colorBlack,
+                                fontSize: 16,
+                              ),
+                            ),
+                            SizedBox(height: 5),
+                            Text(
+                              "Adalaj Gujrat 03434444",
+                              style: TextStyle(
+                                color: AppColors.colorBlack,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(5),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Project Plans',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.normal,
+                                color: Colors.grey[800],
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Row(
                         children: [
-                          Text(
-                            'Project Plans',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey[800],
-                              letterSpacing: -0.5,
+                          SizedBox(width: 8),
+                          IconButton(
+                            onPressed: () {
+                              setState(() {
+                                _isGridView = !_isGridView;
+                              });
+                              HapticFeedback.selectionClick();
+                            },
+                            icon: Icon(
+                              _isGridView ? Icons.view_list : Icons.grid_view,
+                              color: AppColors.colorGray,
+                            ),
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              shape: CircleBorder(),
+                              padding: EdgeInsets.all(12),
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    Row(
-                      children: [
-                        SizedBox(width: 8),
-                        IconButton(
-                          onPressed: () {
-                            setState(() {
-                              _isGridView = !_isGridView;
-                            });
-                            HapticFeedback.selectionClick();
-                          },
-                          icon: Icon(
-                            _isGridView ? Icons.view_list : Icons.grid_view,
-                            color: Colors.grey[700],
-                          ),
-                          style: IconButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            shape: CircleBorder(),
-                            padding: EdgeInsets.all(12),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                Expanded(
+                  child: BlocConsumer<PlansBloc, GlobalApiResponseState>(
+                    listener: (context, state) {
+                      if (state.status == GlobalApiStatus.error) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          // ErrorHandler.showErrorDialog(state.message, "Something wrong", context);
+                        });
+                      }
+                    },
+                    builder: (context, state) {
+                      if (state.status == GlobalApiStatus.loading) {
+                        return LevelOneLoadingScreen();
+                      } else if (state.status == GlobalApiStatus.completed) {
+                        if (state is LevelThirdDocumentStateSuccess) {
+                          if (state.data.document.isNotEmpty) {
+                            listOfDocuments = state.data.document;
+                            return _buildGridView(listOfDocuments);
+                          } else {
+                            return Center(
+                              child: NoDataFound(
+                                noDataFoundTxt: "Documents are not available",
+                              ),
+                            );
+                          }
+                        }
+                      }
+
+                      // Default
+                      return _buildGridView(listOfDocuments);
+                    },
+                  )
+                ),
+              ],
+            ),
           ),
         ),
+        floatingActionButton: _buildFloatingActionButton(),
       ),
-      floatingActionButton: _buildFloatingActionButton(),
-
     );
   }
 
-  /*Widget _buildGridView(List<Document> projects) {
+  Widget _buildGridView(List<Document> projects) {
     return Expanded(
       child: Padding(
         padding: EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 20),
-        child: GridView.builder(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 8,
-            childAspectRatio: 0.80,
-            // childAspectRatio: 0.85,
-          ),
+        child: MasonryGridView.count(
+          shrinkWrap: true,
+          crossAxisCount: 2,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 8,
           itemCount: projects.length,
           itemBuilder: (context, index) {
             return Padding(
@@ -142,6 +238,7 @@ class _PlanDetailsScreenState extends State<AddFilesScreen> {
       ),
     );
   }
+
   Widget _buildProjectCard(Document project) {
     return Container(
       decoration: BoxDecoration(
@@ -156,73 +253,119 @@ class _PlanDetailsScreenState extends State<AddFilesScreen> {
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            *//*if(project.isFile == 0){
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder:
-                      (context) => PlanDetailsScreen(
-                    folderName: project.documentName!,
-                    siteObject: widget.siteObject,
-                  ),
-                ),
-              );
-            }*//*
-          },
-          borderRadius: BorderRadius.circular(15),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                    width: 140,
-                    height: 150,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(5)),
-                      border: Border.all(
-                        color: AppColors.colorGray,
-                        width: 0.5,
+      child: Stack(
+        children: [
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                if (project.isFile == 0) {}
+              },
+              borderRadius: BorderRadius.circular(15),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Container(
+                        width: 140,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(5)),
+                          border: Border.all(
+                            color: AppColors.colorGray,
+                            width: 0.5,
+                          ),
+                        ),
+                        padding: EdgeInsets.all(5),
+                        child: Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: buildFileImage(project.path),
+                        ),
                       ),
                     ),
-                    padding: EdgeInsets.all(5),
+                  ),
+                  SizedBox(height: 5), // Half of image height (90/2)
+                  Align(
+                    alignment: Alignment.center,
                     child: Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Image.asset(
-                        "assets/icons/folder.png",
-                        width: 90,
-                        height: 90,
-                      ) *//*buildFileImage(project.path)*//*,
+                      padding: const EdgeInsets.only(left: 8.0, right: 8),
+                      child: Text(
+                        "${project.documentName}",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.colorBlack,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
-                ),
+                  SizedBox(height: 10),
+                ],
               ),
-              SizedBox(height: 5), // Half of image height (90/2)
-              Align(
-                alignment: Alignment.center,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 8.0, right: 8),
-                  child: Text(
-                    "${project.documentName}",
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: AppColors.colorBlack,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
+          project.isFile == 1 ? Positioned(
+            top: 0,
+            right: 0,
+            child: Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                  child: SvgPicture.asset("assets/svg/delete_icon.svg", width: 15, height: 15, color: Colors.red,)
+              ),
+            ),
+          ): SizedBox.shrink()
+        ],
+      )
     );
-  }*/
+  }
+
+  Widget buildFileImage(String? path) {
+    if (path == null || path.isEmpty) {
+      return Image.asset(
+        "assets/images/default_gallery_icon.png",
+        width: 90,
+        height: 90,
+      );
+    } else if (path.endsWith(".jpg") ||
+        path.endsWith(".jpeg") ||
+        path.endsWith(".png")) {
+      return Image.network(
+        "${ApiConstants.baseUrl}$path",
+        width: 90,
+        height: 90,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Image.asset(
+            "assets/images/default_gallery_icon.png",
+            width: 90,
+            height: 90,
+          );
+        },
+      );
+    } else if (path.endsWith(".pdf")) {
+      return Image.asset("assets/icons/icon_pdf.png", width: 90, height: 90);
+    } else if (path.endsWith(".dwg")) {
+      return Image.network(
+        "${ApiConstants.baseUrl}${path}",
+        width: 90,
+        height: 90,
+      );
+    } else {
+      return Image.asset(
+        "assets/images/default_gallery_icon.png",
+        width: 90,
+        height: 90,
+      );
+    }
+  }
 
   Widget _buildFloatingActionButton() {
     return Padding(
@@ -236,6 +379,7 @@ class _PlanDetailsScreenState extends State<AddFilesScreen> {
       ),
     );
   }
+
   void _showAddDialog() {
     showDialog(
       context: context,
@@ -280,6 +424,7 @@ class _PlanDetailsScreenState extends State<AddFilesScreen> {
       },
     );
   }
+
   Widget _buildAddOption({
     required IconData icon,
     required String title,
@@ -355,19 +500,23 @@ class _PlanDetailsScreenState extends State<AddFilesScreen> {
             Utility.showToast("This file type is not allowed: ${file.name}");
             continue; // skip this file
           }
-          await createFolderAndFilesExternal(widget.siteObject.siteName!, widget.folderName ,widget.subFolderName, result.files);
+          await createFolderAndFilesExternal(
+            widget.siteObject.siteName!,
+            widget.folderName,
+            widget.subFolderName,
+            result.files,
+          );
 
-          // context.read<PlansBloc>().add(
-          //   CreateLevelSecondFileFetch(
-          //     comingFromLevel: 2,
-          //     isWhatCreating: "file",
-          //     folderName: fileName,
-          //     dirId: widget.documentObj.id,
-          //     currentFolderName: widget.documentObj.documentName!,
-          //     siteId: widget.siteObject.id,
-          //     filePath: file.path,
-          //   ),
-          // );
+          context.read<PlansBloc>().add(
+            CreateLevelThirdFileFetch(
+              comingFromLevel: 3,
+              isWhatCreating: "file",
+              folderName: widget.subFolderName,
+              dirId: widget.documentObj.id,
+              siteId: widget.siteObject.id,
+              filePath: file.path,
+            ),
+          );
           print("second filepath :${file.path}");
         }
       }
@@ -375,11 +524,16 @@ class _PlanDetailsScreenState extends State<AddFilesScreen> {
       Utility.showToast('Error uploading file: ${e.toString()}');
     }
   }
+
   void addFolderAndFiles() {
     final newFolderName = nameController.text.trim();
     if (newFolderName.isNotEmpty) {
-      createFolderAndFilesExternal(widget.siteObject.siteName!, widget.folderName, newFolderName, []);
+      createFolderAndFilesExternal(
+        widget.siteObject.siteName!,
+        widget.folderName,
+        newFolderName,
+        [],
+      );
     }
   }
-
 }

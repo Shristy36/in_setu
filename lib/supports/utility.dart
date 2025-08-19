@@ -249,7 +249,12 @@ class Utility {
                 recognizer:
                     TapGestureRecognizer()
                       ..onTap = () {
-                        // Navigate to Terms screen or launch URL
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PrivacyPolicyWidget(),
+                          ),
+                        );
                       },
               ),
               const TextSpan(text: " of the builder's Application."),

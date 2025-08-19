@@ -9,7 +9,6 @@ import 'package:in_setu/screens/user/model/ProfileUserResponse.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class EditProfileScreen extends StatefulWidget {
-
   ProfileUserResponse? profileObj;
   EditProfileScreen({super.key, required this.profileObj});
 
@@ -185,13 +184,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    if(widget.profileObj!.data != null){
-      firstName.text = widget.profileObj!.data!.firstName!;
-      lastName.text = widget.profileObj!.data!.lastName!;
-      contactNo.text = widget.profileObj!.data!.userMobile!;
-      designerTxt.text = widget.profileObj!.data!.designation!;
-      emailId.text = widget.profileObj!.data!.emailId!;
+    if (widget.profileObj?.data != null) {
+      firstName.text = widget.profileObj!.data!.firstName ?? '';
+      lastName.text = widget.profileObj!.data!.lastName ?? '';
+      contactNo.text = widget.profileObj!.data!.userMobile ?? '';
+      designerTxt.text = widget.profileObj!.data!.designation ?? '';
+      emailId.text = widget.profileObj!.data!.emailId ?? '';
+    } else {
+      // Optional: reset all fields to empty if data is null
+      firstName.text = '';
+      lastName.text = '';
+      contactNo.text = '';
+      designerTxt.text = '';
+      emailId.text = '';
     }
+
   }
 
   @override

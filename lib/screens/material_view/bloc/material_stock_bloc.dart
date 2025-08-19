@@ -8,15 +8,19 @@ import 'package:in_setu/screens/material_view/model/MaterialSearchKeyword.dart';
 import 'package:in_setu/screens/material_view/model/MaterialStockReponse.dart';
 import 'package:in_setu/screens/material_view/model/SearchUnitResponse.dart';
 import 'package:in_setu/supports/AppException.dart';
+import 'package:in_setu/supports/share_preference_manager.dart';
 import 'package:meta/meta.dart';
 
 part 'material_stock_event.dart';
+
 part 'material_stock_state.dart';
 
-class MaterialStockBloc extends Bloc<MaterialStockEvent, GlobalApiResponseState> {
+class MaterialStockBloc
+    extends Bloc<MaterialStockEvent, GlobalApiResponseState> {
   MaterialRepository materialRepository = MaterialRepository();
 
-  MaterialStockBloc({required this.materialRepository}) : super(const InitialState()) {
+  MaterialStockBloc({required this.materialRepository})
+    : super(const InitialState()) {
     on<MaterialStockFetchEvent>(onMaterialStockFetch);
     on<DeleteIntentEvent>(onDeleteIntent);
     on<DeleteStockEvent>(onDeleteStock);
@@ -25,13 +29,20 @@ class MaterialStockBloc extends Bloc<MaterialStockEvent, GlobalApiResponseState>
     on<SearchKeywordEvent>(onSearchKeyword);
     on<SearchUnitEvent>(onSearchUnitKeyword);
   }
-  onDeleteIntent(MaterialStockEvent event, Emitter<GlobalApiResponseState> emit) async{
-    if(event is DeleteIntentEvent){
+
+  onDeleteIntent(
+    MaterialStockEvent event,
+    Emitter<GlobalApiResponseState> emit,
+  ) async {
+    if (event is DeleteIntentEvent) {
       emit(const ApiLoadingState());
       try {
-        ApiResult<DeleteIntentReponse> deleteResponse = await materialRepository.deleteIntentResponse(event.id);
+        ApiResult<DeleteIntentReponse> deleteResponse = await materialRepository
+            .deleteIntentResponse(event.id);
         deleteResponse.when(
-          success:(DeleteIntentReponse updateResponse) => emit(DeleteIntentStateSuccess(data: updateResponse)),
+          success:
+              (DeleteIntentReponse updateResponse) =>
+                  emit(DeleteIntentStateSuccess(data: updateResponse)),
           failure: (AppException ex) => emit(ApiErrorState(exception: ex)),
         );
       } on AppException catch (e) {
@@ -39,13 +50,20 @@ class MaterialStockBloc extends Bloc<MaterialStockEvent, GlobalApiResponseState>
       }
     }
   }
-  onDeleteStock(MaterialStockEvent event, Emitter<GlobalApiResponseState> emit) async{
-    if(event is DeleteStockEvent){
+
+  onDeleteStock(
+    MaterialStockEvent event,
+    Emitter<GlobalApiResponseState> emit,
+  ) async {
+    if (event is DeleteStockEvent) {
       emit(const ApiLoadingState());
       try {
-        ApiResult<DeleteIntentReponse> deleteResponse = await materialRepository.deleteStockResponse(event.id);
+        ApiResult<DeleteIntentReponse> deleteResponse = await materialRepository
+            .deleteStockResponse(event.id);
         deleteResponse.when(
-          success:(DeleteIntentReponse updateResponse) => emit(DeleteIntentStateSuccess(data: updateResponse)),
+          success:
+              (DeleteIntentReponse updateResponse) =>
+                  emit(DeleteIntentStateSuccess(data: updateResponse)),
           failure: (AppException ex) => emit(ApiErrorState(exception: ex)),
         );
       } on AppException catch (e) {
@@ -53,16 +71,21 @@ class MaterialStockBloc extends Bloc<MaterialStockEvent, GlobalApiResponseState>
       }
     }
   }
-  onMaterialStockFetch(MaterialStockEvent event, Emitter<GlobalApiResponseState> emit) async{
-    if(event is MaterialStockFetchEvent){
+
+  onMaterialStockFetch(
+    MaterialStockEvent event,
+    Emitter<GlobalApiResponseState> emit,
+  ) async {
+    if (event is MaterialStockFetchEvent) {
       emit(const ApiLoadingState());
-      final params = {
-        "site_id": event.siteId
-      };
+      final params = {"site_id": event.siteId};
       try {
-        ApiResult<MaterialStockReponse> stockResponse = await materialRepository.getMaterialStockDetails(params);
+        ApiResult<MaterialStockReponse> stockResponse = await materialRepository
+            .getMaterialStockDetails(params);
         stockResponse.when(
-          success:(MaterialStockReponse updateResponse) => emit(MaterialStockStateSuccess(data: updateResponse)),
+          success:
+              (MaterialStockReponse updateResponse) =>
+                  emit(MaterialStockStateSuccess(data: updateResponse)),
           failure: (AppException ex) => emit(ApiErrorState(exception: ex)),
         );
       } on AppException catch (e) {
@@ -70,7 +93,11 @@ class MaterialStockBloc extends Bloc<MaterialStockEvent, GlobalApiResponseState>
       }
     }
   }
-  onCreateStock(MaterialStockEvent event, Emitter<GlobalApiResponseState> emit) async {
+
+  onCreateStock(
+    MaterialStockEvent event,
+    Emitter<GlobalApiResponseState> emit,
+  ) async {
     if (event is CreateStockEvent) {
       emit(const ApiLoadingState());
       final bodyParams = {
@@ -85,28 +112,35 @@ class MaterialStockBloc extends Bloc<MaterialStockEvent, GlobalApiResponseState>
           "value": "51",
           "categoryId": 3,
           "categoryName": "Civil Work Materials",
-          "created_at": event.createDate
+          "created_at": event.createDate,
         },
         "unit": event.unit,
         "unit_data": {
           "id": 15,
           "name": event.unit,
-          "created_at": event.createDate
+          "created_at": event.createDate,
         },
-        "qty": event.quantity
+        "qty": event.quantity,
       };
       try {
-        ApiResult<CreateStockMaterialResponse> stockResponse = await materialRepository.createStockMaterial(bodyParams);
+        ApiResult<CreateStockMaterialResponse> stockResponse =
+            await materialRepository.createStockMaterial(bodyParams);
         stockResponse.when(
-          success:(CreateStockMaterialResponse updateResponse) => emit(CreateStockStateSuccess(data: updateResponse)),
+          success:
+              (CreateStockMaterialResponse updateResponse) =>
+                  emit(CreateStockStateSuccess(data: updateResponse)),
           failure: (AppException ex) => emit(ApiErrorState(exception: ex)),
         );
       } on AppException catch (e) {
-         emit(ApiErrorState(exception: e));
+        emit(ApiErrorState(exception: e));
       }
     }
   }
-  onUpdateStock(MaterialStockEvent event, Emitter<GlobalApiResponseState> emit) async {
+
+  onUpdateStock(
+    MaterialStockEvent event,
+    Emitter<GlobalApiResponseState> emit,
+  ) async {
     if (event is UpdateStockEvent) {
       emit(const ApiLoadingState());
       final bodyParams = {
@@ -121,60 +155,79 @@ class MaterialStockBloc extends Bloc<MaterialStockEvent, GlobalApiResponseState>
           "value": "51",
           "categoryId": 3,
           "categoryName": "Civil Work Materials",
-          "created_at": event.createDate
+          "created_at": event.createDate,
         },
         "unit": event.unit,
         "unit_data": {
           "id": 15,
           "name": event.unit,
-          "created_at": event.createDate
+          "created_at": event.createDate,
         },
-        "qty": event.quantity
+        "qty": event.quantity,
       };
       try {
-        ApiResult<CreateStockMaterialResponse> stockResponse = await materialRepository.updateStockMaterial(event.id, bodyParams);
+        ApiResult<CreateStockMaterialResponse> stockResponse =
+            await materialRepository.updateStockMaterial(event.id, bodyParams);
         stockResponse.when(
-          success:(CreateStockMaterialResponse updateResponse) => emit(CreateStockStateSuccess(data: updateResponse)),
+          success:
+              (CreateStockMaterialResponse updateResponse) =>
+                  emit(CreateStockStateSuccess(data: updateResponse)),
           failure: (AppException ex) => emit(ApiErrorState(exception: ex)),
         );
       } on AppException catch (e) {
-         emit(ApiErrorState(exception: e));
+        emit(ApiErrorState(exception: e));
       }
     }
   }
-  onSearchKeyword(MaterialStockEvent event, Emitter<GlobalApiResponseState> emit) async {
+
+  onSearchKeyword(
+    MaterialStockEvent event,
+    Emitter<GlobalApiResponseState> emit,
+  ) async {
     if (event is SearchKeywordEvent) {
       emit(const ApiLoadingState());
       final params = {
         "search_text": event.searchText,
-        "request_type": event.requestType
+        "request_type": event.requestType,
       };
       try {
-        ApiResult<MaterialSearchKeyword> stockResponse = await materialRepository.getMaterialSearchKeyword(params);
+        ApiResult<MaterialSearchKeyword> stockResponse =
+            await materialRepository.getMaterialSearchKeyword(params);
         stockResponse.when(
-          success:(MaterialSearchKeyword searchKeyword) => emit(MaterialSearchKeywordStateSuccess(data: searchKeyword)),
+          success: (MaterialSearchKeyword searchKeyword) {
+            SharedPreferenceManager.saveSearchDataList(searchKeyword.data);
+            emit(MaterialSearchKeywordStateSuccess(data: searchKeyword));
+          },
           failure: (AppException ex) => emit(ApiErrorState(exception: ex)),
         );
       } on AppException catch (e) {
-         emit(ApiErrorState(exception: e));
+        emit(ApiErrorState(exception: e));
       }
     }
   }
-  onSearchUnitKeyword(MaterialStockEvent event, Emitter<GlobalApiResponseState> emit) async {
+
+  onSearchUnitKeyword(
+    MaterialStockEvent event,
+    Emitter<GlobalApiResponseState> emit,
+  ) async {
     if (event is SearchUnitEvent) {
       emit(const ApiLoadingState());
       final params = {
         "search_text": event.searchText,
-        "request_type": event.requestType
+        "request_type": event.requestType,
       };
       try {
-        ApiResult<SearchUnitResponse> stockResponse = await materialRepository.getSearchUnit(params);
+        ApiResult<SearchUnitResponse> stockResponse = await materialRepository
+            .getSearchUnit(params);
         stockResponse.when(
-          success:(SearchUnitResponse searchUnitResponse) => emit(SearchUnitStateSuccess(data: searchUnitResponse)),
+          success: (SearchUnitResponse searchUnitResponse) {
+            SharedPreferenceManager.saveSearchUnitDataList(searchUnitResponse.data);
+            emit(SearchUnitStateSuccess(data: searchUnitResponse));
+          },
           failure: (AppException ex) => emit(ApiErrorState(exception: ex)),
         );
       } on AppException catch (e) {
-         emit(ApiErrorState(exception: e));
+        emit(ApiErrorState(exception: e));
       }
     }
   }

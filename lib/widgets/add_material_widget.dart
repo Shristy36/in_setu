@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:in_setu/commonWidget/no_data_found.dart';
 import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/networkSupport/ErrorHandler.dart';
 import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
@@ -10,11 +11,11 @@ import 'package:in_setu/screens/material_view/model/MaterialSearchKeyword.dart';
 import 'package:in_setu/screens/material_view/model/MaterialStockReponse.dart';
 import 'package:in_setu/screens/material_view/model/SearchUnitResponse.dart';
 import 'package:in_setu/supports/LoadingDialog.dart';
+import 'package:in_setu/supports/share_preference_manager.dart';
 import 'package:in_setu/supports/utility.dart';
 import 'package:intl/intl.dart';
 
 import '../screens/project_list/model/AllSitesResponse.dart';
-
 
 class MaterialRequirementsPopup extends StatefulWidget {
   final String buttonTxt;
@@ -24,9 +25,15 @@ class MaterialRequirementsPopup extends StatefulWidget {
   final List<SearchData> searchDataList;
   final List<SearchUnitData> searchUnitData;
 
-  const MaterialRequirementsPopup(
-      {Key? key, required this.buttonTxt, required this.siteObject, required this.searchDataList, required this.searchUnitData, required this.stockMaterialAdded, this.initialStockData,})
-      : super(key: key);
+  const MaterialRequirementsPopup({
+    Key? key,
+    required this.buttonTxt,
+    required this.siteObject,
+    required this.searchDataList,
+    required this.searchUnitData,
+    required this.stockMaterialAdded,
+    this.initialStockData,
+  }) : super(key: key);
 
   @override
   State<MaterialRequirementsPopup> createState() =>
@@ -34,7 +41,6 @@ class MaterialRequirementsPopup extends StatefulWidget {
 }
 
 class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
-
   Color mainColor = Color(0xFFFBBF24);
   final deliveryDate = TextEditingController();
   final materialController = TextEditingController();
@@ -47,33 +53,39 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
   List<SearchUnitData> searchUnitList = [];
   List<SearchUnitData> filteredUnitSuggestions = [];
   bool _isButtonEnabled = true;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
 
   void _saveRequirements() {
     if (stockCreateFormKey.currentState!.validate()) {
-      if(_isButtonEnabled) {
+      if (_isButtonEnabled) {
         setState(() {
           _isButtonEnabled = false;
         });
         if (widget.initialStockData == null) {
-          context.read<MaterialStockBloc>().add(CreateStockEvent(
-            siteId: widget.siteObject.id,
-            requirement: materialController.text,
-            additionalRequirement: additionalMaterialController.text,
-            createDate: deliveryDate.text,
-            unit: unitController.text,
-            quantity: quantityController.text,
-          ));
+          context.read<MaterialStockBloc>().add(
+            CreateStockEvent(
+              siteId: widget.siteObject.id,
+              requirement: materialController.text,
+              additionalRequirement: additionalMaterialController.text,
+              createDate: deliveryDate.text,
+              unit: unitController.text,
+              quantity: quantityController.text,
+            ),
+          );
         } else {
-          context.read<MaterialStockBloc>().add(UpdateStockEvent(
-            id: widget.initialStockData!.id,
-            siteId: widget.siteObject.id,
-            requirement: materialController.text,
-            additionalRequirement: additionalMaterialController.text,
-            createDate: deliveryDate.text,
-            unit: unitController.text,
-            quantity: quantityController.text,
-          ));
+          context.read<MaterialStockBloc>().add(
+            UpdateStockEvent(
+              id: widget.initialStockData!.id,
+              siteId: widget.siteObject.id,
+              requirement: materialController.text,
+              additionalRequirement: additionalMaterialController.text,
+              createDate: deliveryDate.text,
+              unit: unitController.text,
+              quantity: quantityController.text,
+            ),
+          );
         }
       }
     }
@@ -94,8 +106,7 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
   @override
   void initState() {
     super.initState();
-    searchDataList = widget.searchDataList;
-    searchUnitList = widget.searchUnitData;
+    _loadSavedData();
     if (widget.initialStockData != null) {
       materialController.text = widget.initialStockData?.requirement1 ?? '';
       additionalMaterialController.text =
@@ -103,6 +114,18 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
       quantityController.text = widget.initialStockData?.qty?.toString() ?? '';
       unitController.text = widget.initialStockData?.unit ?? '';
     }
+  }
+
+  Future<void> _loadSavedData() async {
+    final savedSearchData = await SharedPreferenceManager.getSearchDataList();
+    final savedUnitData = await SharedPreferenceManager.getSearchUnitDataList();
+
+    setState(() {
+      searchDataList =
+      savedSearchData.isNotEmpty ? savedSearchData : widget.searchDataList;
+      searchUnitList =
+      savedUnitData.isNotEmpty ? savedUnitData : widget.searchUnitData;
+    });
   }
 
   @override
@@ -117,43 +140,46 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
     return Material(
       color: Colors.black54,
       child: Center(
-          child: BlocListener<MaterialStockBloc, GlobalApiResponseState>(
-            listener: (context, state) {
-              switch (state.status) {
-                case GlobalApiStatus.loading:
-                // LoadingDialog.show(context, key: const ObjectKey("requesting sign in.."),);
-                  break;
-                case GlobalApiStatus.completed:
-                  LoadingDialog.hide(context);
-                  if (state is CreateStockStateSuccess) {
-                    Utility.showToast(state.data.message);
-                    widget.stockMaterialAdded();
-                    Navigator.of(context).pop();
-                    setState(() {
-                      _isButtonEnabled = true;
-                    });
-                  }
-                  break;
-
-                case GlobalApiStatus.error:
-                  LoadingDialog.hide(context);
-                  FocusScope.of(context).unfocus();
-                  ErrorHandler.errorHandle(
-                      state.message, "Invalid Auth", context);
+        child: BlocListener<MaterialStockBloc, GlobalApiResponseState>(
+          listener: (context, state) {
+            switch (state.status) {
+              case GlobalApiStatus.loading:
+              // LoadingDialog.show(context, key: const ObjectKey("requesting sign in.."),);
+                break;
+              case GlobalApiStatus.completed:
+                LoadingDialog.hide(context);
+                if (state is CreateStockStateSuccess) {
+                  Utility.showToast(state.data.message);
+                  widget.stockMaterialAdded();
+                  Navigator.of(context).pop();
                   setState(() {
                     _isButtonEnabled = true;
                   });
-                  break;
+                }
+                break;
 
-                default:
-                  setState(() {
-                    _isButtonEnabled = true;
-                  });
-                  LoadingDialog.hide(context);
-              }
-            },
-            child: _buildBody(),
-          )
+              case GlobalApiStatus.error:
+                LoadingDialog.hide(context);
+                FocusScope.of(context).unfocus();
+                ErrorHandler.errorHandle(
+                  state.message,
+                  "Invalid Auth",
+                  context,
+                );
+                setState(() {
+                  _isButtonEnabled = true;
+                });
+                break;
+
+              default:
+                setState(() {
+                  _isButtonEnabled = true;
+                });
+                LoadingDialog.hide(context);
+            }
+          },
+          child: _buildBody(),
+        ),
       ),
     );
   }
@@ -162,56 +188,57 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
     return Stack(
       children: [
         Container(
-        margin: const EdgeInsets.all(20),
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery
-              .of(context)
-              .size
-              .height * 0.85,
-          maxWidth: MediaQuery
-              .of(context)
-              .size
-              .width * 0.95,
-        ),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(5),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildHeader(),
-            Flexible(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSection(
-                      title: 'Requirements',
-                      subTitle: 'Additional Requirements',
-                      icon: Icons.inventory_2_outlined,
-                      isAdditional: false,
-                      validator: (value) =>
-                      value?.isEmpty ?? true
-                          ? 'Please enter requirement'
-                          : null,
-                    ),
-                  ],
+          margin: const EdgeInsets.all(20),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery
+                .of(context)
+                .size
+                .height * 0.85,
+            maxWidth: MediaQuery
+                .of(context)
+                .size
+                .width * 0.95,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildHeader(),
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSection(
+                        title: 'Requirements',
+                        subTitle: 'Additional Requirements',
+                        icon: Icons.inventory_2_outlined,
+                        isAdditional: false,
+                        validator:
+                            (value) =>
+                        value?.isEmpty ?? true
+                            ? 'Please enter requirement'
+                            : null,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            _buildFooter(),
-          ],
+              _buildFooter(),
+            ],
+          ),
         ),
-      ),
         if (!_isButtonEnabled)
           Positioned.fill(
             child: Container(
@@ -227,7 +254,9 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.primary,
+                        ),
                       ),
                       SizedBox(height: 10),
                       Text(
@@ -272,7 +301,10 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
-                  Icons.close, color: AppColors.colorBlack, size: 20),
+                Icons.close,
+                color: AppColors.colorBlack,
+                size: 20,
+              ),
             ),
           ),
         ],
@@ -292,9 +324,7 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -311,15 +341,9 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
             TextFormField(
               controller: materialController,
               validator: validator,
-              style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.colorGray
-              ),
+              style: TextStyle(fontSize: 14, color: AppColors.colorGray),
               decoration: InputDecoration(
-                labelStyle: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.colorGray
-                ),
+                labelStyle: TextStyle(fontSize: 14, color: AppColors.colorGray),
                 labelText: 'Name of Material',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -327,10 +351,7 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(
-                    color: AppColors.primary,
-                    width: 2,
-                  ),
+                  borderSide: BorderSide(color: AppColors.primary, width: 2),
                 ),
                 filled: true,
                 fillColor: Colors.white,
@@ -351,147 +372,180 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
             ),
             const SizedBox(height: 15),
             TextFormField(
-              validator: validator,
-              controller: additionalMaterialController,
-              style: TextStyle(fontSize: 14, color: AppColors.colorGray),
-              decoration: InputDecoration(
-                labelText: 'Name of Material',
-                labelStyle: TextStyle(fontSize: 14, color: AppColors.colorGray),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.vertical(
-                    top: const Radius.circular(10),
-                    bottom: Radius.circular(
-                        filteredSuggestions.isNotEmpty ? 0 : 10),
+                readOnly: true,
+                validator: validator,
+                controller: additionalMaterialController,
+                style: TextStyle(fontSize: 14, color: AppColors.colorGray),
+                decoration: InputDecoration(
+                  labelText: 'Name of Material',
+                  labelStyle: TextStyle(
+                      fontSize: 14, color: AppColors.colorGray),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.vertical(
+                      top: const Radius.circular(10),
+                      bottom: Radius.circular(
+                        filteredSuggestions.isNotEmpty ? 0 : 10,
+                      ),
+                    ),
+                    borderSide: BorderSide(color: Colors.black),
                   ),
-                  borderSide: BorderSide(color: Colors.black),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.vertical(
-                    top: const Radius.circular(10),
-                    bottom: Radius.circular(
-                        filteredSuggestions.isNotEmpty ? 0 : 10),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.vertical(
+                      top: const Radius.circular(10),
+                      bottom: Radius.circular(
+                        filteredSuggestions.isNotEmpty ? 0 : 10,
+                      ),
+                    ),
+                    borderSide: BorderSide(color: Colors.black),
                   ),
-                  borderSide: BorderSide(color: Colors.black),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.vertical(
-                    top: const Radius.circular(10),
-                    bottom: Radius.circular(
-                        filteredSuggestions.isNotEmpty ? 0 : 10),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.vertical(
+                      top: const Radius.circular(10),
+                      bottom: Radius.circular(
+                        filteredSuggestions.isNotEmpty ? 0 : 10,
+                      ),
+                    ),
+                    borderSide: BorderSide(color: AppColors.primary, width: 2),
                   ),
-                  borderSide: BorderSide(color: AppColors.primary, width: 2),
-                ),
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 12),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  filteredSuggestions = searchDataList
-                      .where((item) =>
-                      item.name!.toLowerCase().contains(value.toLowerCase()))
-                      .toList();
-                });
-              },
-            ),
-            if (filteredSuggestions.isNotEmpty)
-              Container(
-                height: 200,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(10),
-                    bottomRight: Radius.circular(10),
-                  ),
-                  color: Colors.white,
-                ),
-                child: ListView.builder(
-                  itemCount: filteredSuggestions.length,
-                  itemBuilder: (context, index) {
-                    final item = filteredSuggestions[index];
-                    return Padding(padding: const EdgeInsets.all(10.0), child: GestureDetector(onTap: (){
-                      setState(() {
-                        additionalMaterialController.text = item.name!;
-                        filteredSuggestions.clear();
-                      });
-                    },child: Text(item.name!, style: TextStyle(fontSize: 14))),);
-
-                  },
-                ),
-              ),
-
-
-            /*TextFormField(
-              validator: validator,
-              controller: additionalMaterialController,
-              style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.colorGray
-              ),
-              decoration: InputDecoration(
-                labelText: 'Name of Material',
-                labelStyle: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.colorGray
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(
-                    color: AppColors.primary,
-                    width: 2,
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
                   ),
                 ),
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  filteredSuggestions = searchDataList
-                      .where((item) => item.name!.toLowerCase().contains(value.toLowerCase()))
-                      .toList();
-                });
-              },
-            ),
-            if (filteredSuggestions.isNotEmpty)
-              Card(
-                color: AppColors.colorWhite,
-                child: SizedBox(
-                  height: 250,
-                  child: ListView.builder(
-                      itemCount: filteredSuggestions.length,
-                      itemBuilder: (context, index){
-                        final searchItem = filteredSuggestions[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                additionalMaterialController.text = searchItem.name!;
-                                filteredSuggestions.clear();
-                              });
-                            },
-                            child: SizedBox(
-                              height: 30,
-                              */ /*decoration: BoxDecoration(
-                                borderRadius: BorderRadius.all(Radius.circular(10)),
-                                border: Border.all(color: AppColors.colorGray, width: 1)
-                              ),*/ /*
-                              child:Text("${searchItem.name}", style: TextStyle(fontSize: 12, color: AppColors.colorBlack,),textAlign: TextAlign.start,),
+                onTap: () {
+                  setState(() {
+                    _searchQuery = '';
+                    _searchController.clear();
+                  });
+                  FocusScope.of(context).unfocus(); // Hide keyboard if active
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: AppColors.colorWhite,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(25)),
+                    ),
+                    builder: (context) {
+                      return StatefulBuilder(
+                        builder: (context, bottomSheetSetState) {
+                          return Container(
+                            height: MediaQuery
+                                .of(context)
+                                .size
+                                .height * 0.7,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.black12,
+                                    borderRadius: BorderRadius.vertical(
+                                        top: Radius.circular(25)),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                        top: 15.0,
+                                        right: 15,
+                                        left: 15,
+                                        bottom: 10),
+                                    child: Column(
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment
+                                              .spaceBetween,
+                                          children: [
+                                            const Padding(
+                                              padding: EdgeInsets.all(16),
+                                              child: Text(
+                                                "Select Additional Material",
+                                                style: TextStyle(fontSize: 16,
+                                                    fontWeight: FontWeight
+                                                        .normal),
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                  right: 10.0),
+                                              child: GestureDetector(
+                                                onTap: () =>
+                                                    Navigator.of(context).pop(),
+                                                child: Container(
+                                                  padding: const EdgeInsets.all(
+                                                      8),
+                                                  decoration: BoxDecoration(
+                                                    color: AppColors.primary
+                                                        .withOpacity(0.2),
+                                                    borderRadius: BorderRadius
+                                                        .circular(8),
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.close,
+                                                    color: AppColors.colorBlack,
+                                                    size: 20,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 10),
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius: BorderRadius
+                                                  .circular(8),
+                                              border: Border.all(
+                                                  color: AppColors.colorGray,
+                                                  width: 1),
+                                            ),
+                                            child: TextField(
+                                              autofocus: false,
+                                              controller: _searchController,
+                                              onChanged: (value) {
+                                                bottomSheetSetState(() {
+                                                  _searchQuery = value;
+                                                });
+                                              },
+                                              decoration: InputDecoration(
+                                                hintText: 'Search',
+                                                prefixIcon: Icon(Icons.search,
+                                                    color: Colors.grey[500]),
+                                                border: InputBorder.none,
+                                                isDense: true,
+                                                contentPadding: EdgeInsets
+                                                    .symmetric(
+                                                    vertical: 12),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 15.0, right: 15),
+                                    child: getSuggestionListItemsWithSearch(
+                                        searchDataList),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        );
-                      }),
-                ),
-              ),*/
+                          );
+                        }
+                      );
+                    },
+                  );
+                }
+            ),
+
             const SizedBox(height: 15),
             IntrinsicHeight(
               child: Row(
@@ -502,9 +556,15 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
                     child: TextFormField(
                       validator: validator,
                       controller: quantityController,
-                      style: TextStyle(fontSize: 14, color: AppColors.colorGray),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.colorGray,
+                      ),
                       decoration: InputDecoration(
-                        labelStyle: TextStyle(fontSize: 14, color: AppColors.colorGray),
+                        labelStyle: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.colorGray,
+                        ),
                         labelText: 'Quantity',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -512,11 +572,17 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: AppColors.primary, width: 2),
+                          borderSide: BorderSide(
+                            color: AppColors.primary,
+                            width: 2,
+                          ),
                         ),
                         filled: true,
                         fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                       ),
                       keyboardType: TextInputType.number,
                     ),
@@ -528,33 +594,176 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         TextFormField(
+                          readOnly: true,
+                          // Prevent keyboard from showing
                           validator: validator,
                           controller: unitController,
-                          style: TextStyle(fontSize: 14, color: AppColors.colorGray),
+                          style: TextStyle(fontSize: 14, color: AppColors
+                              .colorGray),
                           decoration: InputDecoration(
-                            labelStyle: TextStyle(fontSize: 14, color: AppColors.colorGray),
+                            labelStyle: TextStyle(
+                                fontSize: 14, color: AppColors.colorGray),
                             labelText: 'Unit',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
+                              borderSide: BorderSide(
+                                  color: Colors.grey.shade300),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: AppColors.primary, width: 2),
+                              borderSide: BorderSide(
+                                  color: AppColors.primary, width: 2),
                             ),
                             filled: true,
                             fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
                           ),
-                          onChanged: (value) {
+                          onTap: () {
                             setState(() {
-                              filteredUnitSuggestions = searchUnitList
-                                  .where((item) => item.name!.toLowerCase().contains(value.toLowerCase()))
-                                  .toList();
+                              _searchQuery = '';
+                              _searchController.clear();
                             });
+                            FocusScope.of(context).unfocus(); // Hide keyboard if active
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: AppColors.colorWhite,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(25)),
+                              ),
+                              builder: (context) {
+                                return StatefulBuilder(
+                                  builder: (context, bottomSheetSetState) {
+                                    return Container(
+                                      height: MediaQuery
+                                          .of(context)
+                                          .size
+                                          .height * 0.7,
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.black12,
+                                              borderRadius: BorderRadius
+                                                  .vertical(
+                                                  top: Radius.circular(25)),
+                                            ),
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(
+                                                  top: 15.0,
+                                                  right: 15,
+                                                  left: 15,
+                                                  bottom: 10),
+                                              child: Column(
+                                                children: [
+                                                  Row(
+                                                    mainAxisAlignment: MainAxisAlignment
+                                                        .spaceBetween,
+                                                    children: [
+                                                      const Padding(
+                                                        padding: EdgeInsets.all(
+                                                            16),
+                                                        child: Text(
+                                                          "Select Unit",
+                                                          style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontWeight: FontWeight
+                                                                  .normal),
+                                                        ),
+                                                      ),
+
+                                                      Padding(
+                                                        padding: const EdgeInsets
+                                                            .only(right: 10.0),
+                                                        child: GestureDetector(
+                                                          onTap: () =>
+                                                              Navigator
+                                                                  .of(context)
+                                                                  .pop(),
+                                                          child: Container(
+                                                            padding: const EdgeInsets
+                                                                .all(8),
+                                                            decoration: BoxDecoration(
+                                                              color: AppColors
+                                                                  .primary
+                                                                  .withOpacity(
+                                                                  0.2),
+                                                              borderRadius: BorderRadius
+                                                                  .circular(8),
+                                                            ),
+                                                            child: const Icon(
+                                                              Icons.close,
+                                                              color: AppColors
+                                                                  .colorBlack,
+                                                              size: 20,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  Padding(
+                                                    padding: EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 10),
+                                                    child: Container(
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.white,
+                                                        borderRadius: BorderRadius
+                                                            .circular(8),
+                                                        border: Border.all(
+                                                            color: AppColors
+                                                                .colorGray,
+                                                            width: 1),
+                                                      ),
+                                                      child: TextField(
+                                                        autofocus: false,
+                                                        controller: _searchController,
+                                                        onChanged: (value) {
+                                                          bottomSheetSetState(() {
+                                                            _searchQuery =
+                                                                value;
+                                                          });
+                                                        },
+                                                        decoration: InputDecoration(
+                                                          hintText: 'Search',
+                                                          prefixIcon: Icon(
+                                                              Icons.search,
+                                                              color: Colors
+                                                                  .grey[500]),
+                                                          border: InputBorder
+                                                              .none,
+                                                          isDense: true,
+                                                          contentPadding: EdgeInsets
+                                                              .symmetric(
+                                                              vertical: 12),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(left: 20.0, right: 15),
+                                              child: searchunitList(searchUnitList),),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }
+                                );
+                              },
+                            );
                           },
-                        ),
-                        if (filteredUnitSuggestions.isNotEmpty)
+                        )
+
+                        /*if (filteredUnitSuggestions.isNotEmpty)
                           Container(
                             height: 150,
                             margin: const EdgeInsets.only(top: 4),
@@ -588,7 +797,7 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
                                 );
                               },
                             ),
-                          ),
+                          ),*/
                       ],
                     ),
                   ),
@@ -714,21 +923,15 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
                       );
                     }),
               ),*/
-            const SizedBox(height: 15,),
+            const SizedBox(height: 15),
             TextFormField(
               validator: validator,
               controller: deliveryDate,
-              style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.colorGray
-              ),
+              style: TextStyle(fontSize: 14, color: AppColors.colorGray),
               readOnly: true,
               // Important - allows tap but prevents keyboard
               decoration: InputDecoration(
-                labelStyle: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.colorGray
-                ),
+                labelStyle: TextStyle(fontSize: 14, color: AppColors.colorGray),
                 labelText: 'Delivery Date',
                 prefixIcon: Icon(
                   Icons.calendar_month,
@@ -740,10 +943,7 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(
-                    color: AppColors.primary,
-                    width: 2,
-                  ),
+                  borderSide: BorderSide(color: AppColors.primary, width: 2),
                 ),
                 filled: true,
                 fillColor: Colors.white,
@@ -753,8 +953,9 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
                 ),
               ),
               onTap: () async {
-                FocusScope.of(context).requestFocus(
-                    FocusNode()); // Remove keyboard focus
+                FocusScope.of(
+                  context,
+                ).requestFocus(FocusNode()); // Remove keyboard focus
                 DateTime? pickedDate = await showDatePicker(
                   context: context,
                   initialDate: DateTime.now(),
@@ -763,8 +964,9 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
                 );
 
                 if (pickedDate != null) {
-                  String formattedDate = DateFormat('yyyy-MM-dd').format(
-                      pickedDate);
+                  String formattedDate = DateFormat(
+                    'yyyy-MM-dd',
+                  ).format(pickedDate);
                   setState(() {
                     deliveryDate.text = formattedDate;
                   });
@@ -776,7 +978,6 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
       ),
     );
   }
-
 
   Widget _buildFooter() {
     return GestureDetector(
@@ -816,4 +1017,64 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
     );
   }
 
+  getSuggestionListItemsWithSearch(List<SearchData> searchDataList) {
+    final searchFilterData = _searchQuery.isEmpty
+        ? searchDataList
+        : searchDataList.where((item) =>
+        item.name!.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+    return ListView.builder(
+      itemCount: searchFilterData.length,
+      itemBuilder: (context, index) {
+        final materialDataList = searchFilterData[index];
+        return Container(
+          width: double.infinity,
+          child: Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: GestureDetector(
+                onTap: (){
+                  setState(() {
+                    additionalMaterialController.text = materialDataList.name ?? "";
+                  });
+                  Navigator.pop(context);
+                },
+                child: Text(materialDataList.name ?? "", style: TextStyle(fontSize: 16, color: AppColors.colorBlack),)),
+          ),
+        );
+      },
+    );
+  }
+
+  searchunitList(List<SearchUnitData> searchUnitList) {
+    final searchFilterData = _searchQuery.isEmpty
+        ? searchUnitList
+        : searchUnitList.where((item) =>
+        item.name!.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+    return ListView.builder(
+      itemCount: searchFilterData.length,
+      itemBuilder: (context, index) {
+        final unitData = searchFilterData[index];
+        return Container(
+          width: double.infinity,
+          child: Padding(
+            padding: const EdgeInsets.all(
+                8.0),
+            child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    unitController.text =
+                        unitData.name ?? "";
+                  });
+                  Navigator.pop(context);
+                },
+                child: Text(
+                  unitData.name ?? "",
+                  style: TextStyle(
+                      fontSize: 16,
+                      color: AppColors
+                          .colorBlack),)),
+          ),
+        );
+      },
+    );
+  }
 }

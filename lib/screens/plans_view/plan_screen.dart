@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:in_setu/commonWidget/no_data_found.dart';
 import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/networkSupport/ApiConstants.dart';
@@ -210,35 +212,27 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
     }
   }
 
-  /* $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf', 'application/dwg'];*/
-
   void _showNameDialog(String title, String hint, Function(String) onConfirm) {
     showDialog(
       context: context,
       builder:
           (context) => BlocListener<PlansBloc, GlobalApiResponseState>(
+            listenWhen: (previous, current) => current.status != previous.status,
             listener: (context, state) {
               switch (state.status) {
                 case GlobalApiStatus.completed:
                   if (state is LevelOneCreateFileStateSuccess) {
                     Utility.showToast(state.data.message);
                     Navigator.of(context).pop();
-                    context.read<PlansBloc>().add(
-                      DocumentLevelOneFetch(
-                        siteId: widget.siteObject.id,
-                        folderName: "document",
-                        levelNo: 1,
-                      ),
-                    );
+                    triggerRefreshData();
                     onConfirm("confirmed");
                   }
                   break;
                 case GlobalApiStatus.error:
-                  ErrorHandler.errorHandle(
-                    state.message,
-                    "Something wrong",
-                    context,
-                  );
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    // triggerRefreshData();
+                    ErrorHandler.errorHandle(state.message, "Server Error", context);
+                  });
                   break;
                 default:
                 // Handle other states if needed
@@ -289,6 +283,16 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
     );
   }
 
+  void triggerRefreshData() {
+    context.read<PlansBloc>().add(
+      DocumentLevelOneFetch(
+        siteId: widget.siteObject.id,
+        folderName: "document",
+        levelNo: 1,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<PlansBloc, GlobalApiResponseState>(
@@ -305,7 +309,8 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
             );
           });
         } else if (state.status == GlobalApiStatus.error) {
-          ErrorHandler.errorHandle(state.message, "Something wrong", context);
+          /*Utility.showToast(state.message);*/
+          // ErrorHandler.errorHandle(state.message, "Something wrong", context);
         }
       },
       child: WillPopScope(
@@ -344,11 +349,9 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
                     }
                   }
                 } else if (state.status == GlobalApiStatus.error) {
-                  return ErrorHandler.builderErr(
-                    state.message,
-                    "Something wrong",
-                    context,
-                  );
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+
+                  });
                 }
                 return getPlansView(listOfDocument);
               },
@@ -430,14 +433,11 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
   Widget _buildGridView(List<Document> projects) {
     return Padding(
       padding: EdgeInsets.only(left: 10, right: 10, top: 5, bottom: 20),
-      child: GridView.builder(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 8,
-          childAspectRatio: 0.80,
-          // childAspectRatio: 0.85,
-        ),
+      child: MasonryGridView.count(
+        shrinkWrap: true,
+        crossAxisCount: 2,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 8,
         itemCount: projects.length,
         itemBuilder: (context, index) {
           return Padding(
@@ -475,64 +475,85 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
       ),
       child: Material(
         color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            if (project.isFile == 0) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder:
-                      (context) => PlanDetailsScreen(
+        child: Stack(
+          children: [
+            InkWell(
+              onTap: () {
+                if (project.isFile == 0) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (context) => PlanDetailsScreen(
                         folderName: project.documentName!,
                         siteObject: widget.siteObject,
                         documentObj: project,
                       ),
-                ),
-              );
-            }
-          },
-          borderRadius: BorderRadius.circular(15),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Container(
-                    width: 140,
-                    height: 150,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(5)),
-                      border: Border.all(
-                        color: AppColors.colorGray,
-                        width: 0.5,
+                    ),
+                  );
+                }
+              },
+              borderRadius: BorderRadius.circular(15),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Container(
+                        width: 140,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(5)),
+                          border: Border.all(
+                            color: AppColors.colorGray,
+                            width: 0.5,
+                          ),
+                        ),
+                        padding: EdgeInsets.all(5),
+                        child: Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: buildFileImage(project.path),
+                        ),
                       ),
                     ),
-                    padding: EdgeInsets.all(5),
+                  ),
+                  SizedBox(height: 5), // Half of image height (90/2)
+                  Align(
+                    alignment: Alignment.center,
                     child: Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: buildFileImage(project.path),
+                      padding: const EdgeInsets.only(left: 8.0, right: 8),
+                      child: Text(
+                        "${project.documentName}",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.colorBlack,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
+                  SizedBox(height: 10),
+                ],
+              ),
+            ),
+            project.isFile == 1 ? Positioned(
+              top: 0,
+              right: 0,
+              child: Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                    child: SvgPicture.asset("assets/svg/delete_icon.svg", width: 15, height: 15, color: Colors.red,)
                 ),
               ),
-              SizedBox(height: 5), // Half of image height (90/2)
-              Align(
-                alignment: Alignment.center,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 8.0, right: 8),
-                  child: Text(
-                    "${project.documentName}",
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: AppColors.colorBlack,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ): SizedBox.shrink(),
+          ],
         ),
       ),
     );
@@ -550,11 +571,15 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
         height: 90,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
-          return Image.asset("assets/icons/folder.png", width: 90, height: 90);
+          return Image.asset(
+            "assets/images/default_gallery_icon.png",
+            width: 90,
+            height: 90,
+          );
         },
       );
     } else if (path.endsWith(".pdf")) {
-      return Image.asset("assets/icons/pdf.png", width: 90, height: 90);
+      return Image.asset("assets/icons/icon_pdf.png", width: 90, height: 90);
     } else if (path.endsWith(".dwg")) {
       return Image.network(
         "${ApiConstants.baseUrl}${path}",
@@ -578,7 +603,11 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
         height: 35,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
-          return Image.asset("assets/icons/folder.png", width: 35, height: 35);
+          return Image.asset(
+            "assets/images/default_gallery_icon.png",
+            width: 35,
+            height: 35,
+          );
         },
       );
     } else if (path.endsWith(".pdf")) {
@@ -603,11 +632,25 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
         border: Border.all(color: AppColors.colorGray, width: 0.5),
       ),
       child: ListTile(
-        onTap: () => {} /*_onProjectTap(project)*/,
+        onTap: () {
+          if (project.isFile == 0) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder:
+                    (context) => PlanDetailsScreen(
+                      folderName: project.documentName!,
+                      siteObject: widget.siteObject,
+                      documentObj: project,
+                    ),
+              ),
+            );
+          }
+        },
         leading: buildFileImage(project.path),
         title: Text(
           "${project.documentName}",
-          style: TextStyle(fontSize: 16, color: AppColors.colorBlack),
+          style: TextStyle(fontSize: 12, color: AppColors.colorBlack),
         ),
         trailing: Icon(Icons.chevron_right, color: Colors.grey[400]),
         contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
@@ -645,5 +688,6 @@ class _ProjectPlansScreenState extends State<ProjectPlansScreen>
         ),
       );
     }
+    Navigator.of(context).pop();
   }
 }

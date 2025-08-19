@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:in_setu/constants/app_colors.dart';
 
 class LoadingScreens{
   static Widget buildProfileLoadingView() {
@@ -9,7 +10,7 @@ class LoadingScreens{
           // Top section with gray background
           Container(
             width: double.infinity,
-            decoration: const BoxDecoration(color: Colors.grey),
+            decoration: const BoxDecoration(color: AppColors.skeletonHighlight),
             child: Column(
               children: [
                 const SizedBox(height: 20),
@@ -17,11 +18,11 @@ class LoadingScreens{
                 Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.grey[300]!, width: 4),
+                    border: Border.all(color: AppColors.skeletonBase, width: 4),
                   ),
                   child: CircleAvatar(
                     radius: 60,
-                    backgroundColor: Colors.grey[300],
+                    backgroundColor: AppColors.skeletonHighlight,
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -51,7 +52,7 @@ class LoadingScreens{
                           Container(
                             width: 150,
                             height: 24,
-                            color: Colors.grey[300],
+                            color: AppColors.skeletonHighlight,
                           ),
                           const SizedBox(height: 8),
                           Column(

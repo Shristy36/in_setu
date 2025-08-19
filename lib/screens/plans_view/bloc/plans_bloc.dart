@@ -23,6 +23,7 @@ class PlansBloc extends Bloc<PlansEvent, GlobalApiResponseState> {
     on<CreateLevelOneFileFetch>(onCreateFileLevelOne);
     on<DocumentLevelSecFetch>(onLevelSec);
     on<CreateLevelSecondFileFetch>(onCreateFileLevelSecond);
+    on<DocumentLevelThirdFetch>(onLevelThird);
     on<CreateLevelThirdFileFetch>(onCreateFileLevelThird);
   }
 
@@ -57,6 +58,7 @@ class PlansBloc extends Bloc<PlansEvent, GlobalApiResponseState> {
         'site_id': event.siteId,
         'current_folder_name': event.folderName,
         'level_no': event.levelNo,
+        'dir_id': event.dirId
       };
       try {
         ApiResult<DocumentLevelOneResponse> secLevelFilesFetch =
@@ -65,6 +67,31 @@ class PlansBloc extends Bloc<PlansEvent, GlobalApiResponseState> {
           success:
               (DocumentLevelOneResponse levelSecResponse) =>
                   emitter(LevelSecDocumentStateSuccess(data: levelSecResponse)),
+          failure: (AppException ex) async {
+            emitter(ApiErrorState(exception: ex));
+          },
+        );
+      } on AppException catch (e) {
+        emitter(ApiErrorState(exception: e));
+      }
+    }
+  }
+  onLevelThird(PlansEvent event, Emitter<GlobalApiResponseState> emitter) async {
+    if (event is DocumentLevelThirdFetch) {
+      emitter(const ApiLoadingState());
+      final paramsArg = {
+        'site_id': event.siteId,
+        'current_folder_name': event.folderName,
+        'level_no': event.levelNo,
+        'plan_dir_id': event.dirId
+      };
+      try {
+        ApiResult<DocumentLevelOneResponse> thirdLevelFilesFetch =
+            await plansRepository.getLevelThirdDocument(paramsArg);
+        thirdLevelFilesFetch.when(
+          success:
+              (DocumentLevelOneResponse levelSecResponse) =>
+                  emitter(LevelThirdDocumentStateSuccess(data: levelSecResponse)),
           failure: (AppException ex) async {
             emitter(ApiErrorState(exception: ex));
           },
@@ -167,8 +194,7 @@ class PlansBloc extends Bloc<PlansEvent, GlobalApiResponseState> {
           'coming_from_level': event.comingFromLevel,
           'is_what_creating': event.isWhatCreating,
           'folder_name': event.folderName,
-          'dir_id': event.dirId,
-          'current_folder_name': event.currentFolderName,
+          'plan_dir_id': event.dirId,
           'site_id': event.siteId,
         };
 

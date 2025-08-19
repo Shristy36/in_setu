@@ -1,8 +1,8 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:in_setu/constants/app_colors.dart';
+
 import 'package:in_setu/networkSupport/ErrorHandler.dart';
 import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
 import 'package:in_setu/screens/home_page/bloc/home_bloc.dart';
@@ -41,6 +41,7 @@ class _HomeScreenState extends State<HomeScreen>
   DashboardResponse? dashboardResponse;
   late ScrollController _scrollController;
 
+
   @override
   void initState() {
     super.initState();
@@ -57,8 +58,8 @@ class _HomeScreenState extends State<HomeScreen>
         }
       }
     });
-
     context.read<HomeBloc>().add(GetDashBoardApi(widget.siteObject.id));
+
   }
 
   @override

@@ -7,7 +7,7 @@ class DashboardResponse {
   List<MaterialItem> materials;
   // Map<String, TeamMember> teams;
   List<TeamMember> teams;
-  List<dynamic> sitePlans;
+  List<SitePlan> sitePlans;
   List<Manpower> manpower;
 
   DashboardResponse({
@@ -34,7 +34,8 @@ class DashboardResponse {
       teams: List<TeamMember>.from(
           json['teams'].map((x) => TeamMember.fromJson(x))),
 
-      sitePlans: List<dynamic>.from(json['sitePlans']),
+      sitePlans: List<SitePlan>.from(
+          json['sitePlans'].map((x) => SitePlan.fromJson(x))),
       manpower: List<Manpower>.from(
           json['manpower'].map((x) => Manpower.fromJson(x))),
     );
@@ -253,7 +254,37 @@ class TeamMember {
     );
   }
 }
+class SitePlan {
+  final int? id;
+  final int? userId;
+  final int? siteId;
+  final String? documentName;
+  final String? path;
+  final int? isFile;
+  final List<dynamic>? plans;
 
+  SitePlan({
+    this.id,
+    this.userId,
+    this.siteId,
+    this.documentName,
+    this.path,
+    this.isFile,
+    this.plans,
+  });
+
+  factory SitePlan.fromJson(Map<String, dynamic> json) {
+    return SitePlan(
+      id: json['id'] as int?,
+      userId: json['user_id'] as int?,
+      siteId: json['site_id'] as int?,
+      documentName: json['document_name'] as String?,
+      path: json['path'] as String?,
+      isFile: json['is_file'] as int?,
+      plans: json['plans'] as List?,
+    );
+  }
+}
 class Manpower {
   int id;
   int userId;
@@ -319,3 +350,5 @@ class Staff {
     );
   }
 }
+
+

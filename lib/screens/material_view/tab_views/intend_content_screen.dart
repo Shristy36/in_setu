@@ -8,12 +8,15 @@ import 'package:in_setu/screens/material_view/bloc/material_stock_bloc.dart';
 import 'package:in_setu/screens/material_view/delete_intent_item_dialog/delete_intent_dialog.dart';
 import 'package:in_setu/screens/material_view/loading_screen.dart';
 import 'package:in_setu/screens/material_view/model/MaterialStockReponse.dart';
+import 'package:in_setu/screens/material_view/model/SearchUnitResponse.dart';
 import 'package:in_setu/screens/project_list/model/AllSitesResponse.dart';
+import 'package:in_setu/screens/project_list/project_list_loading_screen.dart';
 import 'package:in_setu/widgets/updated_indent_material_widget.dart';
 
 class IntendContentScreen extends StatefulWidget {
   final Data siteObject;
-  const IntendContentScreen({super.key, required this.siteObject});
+  final List<SearchUnitData> searchUnitData;
+  const IntendContentScreen({super.key, required this.siteObject, required this.searchUnitData});
 
   @override
   State<IntendContentScreen> createState() => _IntendContentScreenState();
@@ -70,7 +73,7 @@ class _IntendContentScreenState extends State<IntendContentScreen> {
             setState(() => _isLoading = false);
         }
       },
-      child: _isLoading ? LoadingScreen() : getIntentListItems(intentsDataList),
+      child: _isLoading ? ProjectListLoadingScreen() : getIntentListItems(intentsDataList),
     );
   }
 
@@ -146,7 +149,9 @@ class _IntendContentScreenState extends State<IntendContentScreen> {
                               context: context,
                               builder:
                                   (context) =>
-                                      const UpdatedIndentMaterialWidget(),
+                                      UpdatedIndentMaterialWidget(
+                                        searchUnitData: widget.searchUnitData,
+                                      ),
                             ),
                           },
                       child: Icon(Icons.edit, color: Colors.white, size: 20),

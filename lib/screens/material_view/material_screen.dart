@@ -89,7 +89,9 @@ class _StockManagementScreenState extends State<StockManagementScreen>
                   onPressed: () {
                     showDialog(
                       context: context,
-                      builder: (context) => UpdatedIndentMaterialWidget(),
+                      builder: (context) => UpdatedIndentMaterialWidget(
+                          searchUnitData: searchUnitList
+                      ),
                     );
                   },
                   tooltip: 'Add Indent',
@@ -169,7 +171,7 @@ class _StockManagementScreenState extends State<StockManagementScreen>
                 controller: _tabController,
                 children: [
                   StockContentScreen(siteObject: widget.siteObject, searchDataList: searchList, searchUnitData: searchUnitList,searchQuery: _searchQuery,),
-                  IntendContentScreen(siteObject: widget.siteObject),
+                  IntendContentScreen(siteObject: widget.siteObject,searchUnitData: searchUnitList ),
                 ],
               ),
             ),

@@ -4,6 +4,8 @@ import 'package:in_setu/constants/strings.dart';
 import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
 import 'package:in_setu/screens/login_view/model/register_model/RegisterResponse.dart';
 import 'package:in_setu/screens/mainpower_screen/model/ManPowerModelResponse.dart';
+import 'package:in_setu/screens/material_view/model/MaterialSearchKeyword.dart';
+import 'package:in_setu/screens/material_view/model/SearchUnitResponse.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
@@ -14,6 +16,8 @@ class SharedPreferenceManager {
   static const String walkthrough = "walkthrough";
   static const String saveDateList = "saveDateList";
   static const String siteNumber = "siteNumber";
+  static const String searchDataListKey = "searchDataList";
+  static const String searchUnitDataKey = "searchUnitData";
 
   static Future<SharedPreferences> get prefs => SharedPreferences.getInstance();
 
@@ -22,21 +26,6 @@ class SharedPreferenceManager {
     await preferences.clear();
   }
 
-/*
-  static getBoolValue(String key, bool defaultValue) async {
-    return (await prefs).getBool(key) ?? defaultValue;
-  }
-
-
-  //FingerPrintDialogAtFirstLogin
-  static setFingerPrintDialog(bool oneTime) async {
-    (await prefs).setBool(fingerPrintDialog, oneTime);
-  }
-
-  static getFingerPrintDialog() async {
-    return (await prefs).getBool(fingerPrintDialog) ?? false;
-  }
-*/
 
   static Future<List<AllDates>> getDateList() async {
     String dateList = (await prefs).getString(saveDateList) ?? '';
@@ -95,4 +84,64 @@ class SharedPreferenceManager {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(siteNumber) ?? prefs.getDouble(siteNumber) ?? 0;
   }
+
+  // For SearchData list
+  static Future<void> saveSearchDataList(List<SearchData>? list) async {
+    if (list == null) {
+      await (await prefs).remove(searchDataListKey);
+      return;
+    }
+
+    try {
+      final jsonList = list.map((item) => item.toJson()).toList();
+      await (await prefs).setString(searchDataListKey, jsonEncode(jsonList));
+    } catch (e) {
+      print('Error saving searchDataList: $e');
+      await (await prefs).remove(searchDataListKey);
+    }
+  }
+
+  static Future<List<SearchData>> getSearchDataList() async {
+    try {
+      final jsonString = (await prefs).getString(searchDataListKey);
+      if (jsonString == null || jsonString.isEmpty) return [];
+
+      final jsonList = jsonDecode(jsonString) as List;
+      return jsonList.map((json) => SearchData.fromJson(json)).toList();
+    } catch (e) {
+      print('Error loading searchDataList: $e');
+      await (await prefs).remove(searchDataListKey);
+      return [];
+    }
+  }
+
+// For SearchUnitData list
+  static Future<void> saveSearchUnitDataList(List<SearchUnitData>? list) async {
+    if (list == null) {
+      await (await prefs).remove(searchUnitDataKey);
+      return;
+    }
+
+    try {
+      final jsonList = list.map((item) => item.toJson()).toList();
+      await (await prefs).setString(searchUnitDataKey, jsonEncode(jsonList));
+    } catch (e) {
+      print('Error saving searchUnitDataList: $e');
+      await (await prefs).remove(searchUnitDataKey);
+    }
+  }
+
+  static Future<List<SearchUnitData>> getSearchUnitDataList() async {
+    final jsonString = (await prefs).getString(searchUnitDataKey) ?? '';
+    if (jsonString.isEmpty) return [];
+
+    try {
+      final jsonList = jsonDecode(jsonString) as List;
+      return jsonList.map((json) => SearchUnitData.fromJson(json)).toList();
+    } catch (e) {
+      print('Error parsing searchUnitDataList: $e');
+      return [];
+    }
+  }
+
 }

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:in_setu/networkSupport/ApiConstants.dart';
+import 'package:in_setu/networkSupport/errorResponse/ErrorResponse.dart';
 import 'package:in_setu/networkSupport/errorResponse/OAuthError.dart';
 import 'package:in_setu/networkSupport/errorResponse/ResponseError.dart';
 import 'package:in_setu/networkSupport/errorResponse/auth_error.dart';
@@ -18,27 +19,32 @@ class NetworkService {
   late final Dio dioNetworkService;
 
   NetworkService()
-      : dioNetworkService = Dio(
+    : dioNetworkService = Dio(
           BaseOptions(
             baseUrl: ApiConstants.baseUrl,
             connectTimeout: const Duration(seconds: timeoutDuration),
             receiveTimeout: const Duration(seconds: timeoutDuration),
             responseType: ResponseType.json,
           ),
-        )..interceptors.addAll([
-            AuthorizationInterceptor(),
-            //LoggerInterceptor(),
-            PrettyDioLogger(
-              requestHeader: true,
-              requestBody: true,
-              filter: (options, args) {
-                //  return !options.uri.path.contains('posts');
-                return !args.isResponse || !args.hasUint8ListData;
-              },
-            ),
-          ]);
+        )
+        ..interceptors.addAll([
+          AuthorizationInterceptor(),
+          //LoggerInterceptor(),
+          PrettyDioLogger(
+            requestHeader: true,
+            requestBody: true,
+            filter: (options, args) {
+              //  return !options.uri.path.contains('posts');
+              return !args.isResponse || !args.hasUint8ListData;
+            },
+          ),
+        ]);
 
-  Future<dynamic> get(String endpointUrl, Map<String, dynamic>? params, Map<String, dynamic>? headers) async {
+  Future<dynamic> get(
+    String endpointUrl,
+    Map<String, dynamic>? params,
+    Map<String, dynamic>? headers,
+  ) async {
     if (headers != null) {
       dioNetworkService.options.headers = headers;
     }
@@ -76,21 +82,22 @@ class NetworkService {
       );
       return handleResponse(response);
     } on DioException catch (error) {
-      // String errorBody = "${error.response}";
-      String errorBody = jsonEncode(error.response?.data ?? {});
+      errorHandlingCode(error.response);
+      /*String errorBody = jsonEncode(error.response?.data ?? {});
       print("errorResponse :$errorBody");
-      handleError(errorBody);
+      handleError(errorBody);*/
     } on Exception catch (error) {
       AppLog.e("Network service", "Error on post method : " + error.toString());
       throw AppException(error.toString());
     }
   }
+
   Future<dynamic> put(
-      String endpointUrl,
-      Map<String, dynamic>? params,
-      Map<String, dynamic>? headers,
-      dynamic bodyParams,
-      ) async {
+    String endpointUrl,
+    Map<String, dynamic>? params,
+    Map<String, dynamic>? headers,
+    dynamic bodyParams,
+  ) async {
     if (headers != null) {
       dioNetworkService.options.headers = headers;
     }
@@ -112,12 +119,13 @@ class NetworkService {
       throw AppException(error.toString());
     }
   }
+
   Future<dynamic> delete(
-      String endpointUrl,
-      Map<String, dynamic>? params,
-      Map<String, dynamic>? headers,
-      dynamic bodyParams,
-      ) async {
+    String endpointUrl,
+    Map<String, dynamic>? params,
+    Map<String, dynamic>? headers,
+    dynamic bodyParams,
+  ) async {
     if (headers != null) {
       dioNetworkService.options.headers = headers;
     }
@@ -138,19 +146,12 @@ class NetworkService {
     }
   }
 
-
-  Future<dynamic> postMultiPart(
-    String endpointUrl,
-    File image,
-  ) async {
+  Future<dynamic> postMultiPart(String endpointUrl, File image) async {
     try {
       var formData = FormData.fromMap({
         'image': await MultipartFile.fromFile(image.path, filename: 'image'),
       });
-      final response = await Dio().post(
-        endpointUrl,
-        data: formData,
-      );
+      final response = await Dio().post(endpointUrl, data: formData);
       if (response.statusCode == 200) {
       } else if (response.statusCode == 200) {
         //BotToast is a package for toasts available on pub.dev
@@ -191,7 +192,9 @@ class NetworkService {
       case 500:
         throw InternalServerException(response.data.toString());
       default:
-        throw FetchDataException('Error occured while connecting with Server with StatusCode : ${response.statusCode}');
+        throw FetchDataException(
+          'Error occured while connecting with Server with StatusCode : ${response.statusCode}',
+        );
     }
   }
 
@@ -224,48 +227,102 @@ class NetworkService {
     }
   }
 
-  /*handleError(String errorBody) {
+  handleError(String errorBody) {
     OAuthError? oAuthError;
     try {
       oAuthError = OAuthError.fromJson(jsonDecode(errorBody));
       AppLog.d("NetworkService", "parsed as oauth");
-    } catch (e) {
-      AppLog.d("NetworkService", "unable to parse OAuthError ");
-    }
+    } catch (_) {}
 
-    ResponseError? responseError;
+    AuthError? authError;
     try {
-      responseError = ResponseError.fromJson(jsonDecode(errorBody));
-    } catch (e) {
-      AppLog.d("NetworkService", "unable to parse Response error");
-    }
+      authError = AuthError.fromJson(jsonDecode(errorBody));
+      AppLog.d("NetworkService", "parsed as auth error");
+    } catch (_) {}
 
-    String errorMsg = "This is error";
+    Map<String, dynamic>? genericError;
+    try {
+      genericError = jsonDecode(errorBody);
+    } catch (_) {}
+
+    String errorMsg = pleaseTryAgain;
+
     if (oAuthError != null) {
       errorMsg = oAuthError.errorDescription;
-    } else if (responseError != null) {
-      if (responseError.message != null) {
-        errorMsg = responseError.message!;
-      } else {
-        errorMsg = pleaseTryAgain;
-      }
-    } else {
-      errorMsg = pleaseTryAgain;
+    } else if (authError?.message != null) {
+      errorMsg = authError!.message!;
+    } else if (genericError?['message'] != null) {
+      errorMsg = genericError!['message'];
     }
 
-    //msg for access token expired
-    //errorMsg = '{"error":"invalid_token","error_description":"Access token expired: 270f7b1e-072d-4703-aac5-f9c6b7879ffd"}';
+    // Map specific messages to exceptions
     if (errorMsg.contains("Bad credentials")) {
       throw BadRequestException(errorMsg);
     } else if (errorMsg.contains("unauthorized device.")) {
       throw UnauthorisedException(errorMsg);
-    } else if (errorMsg.contains("Access token expired") || errorMsg.contains("Invalid access token") || errorMsg.contains("invalid_token")) {
+    } else if (errorMsg.contains("Access token expired") ||
+        errorMsg.contains("Invalid access token") ||
+        errorMsg.contains("invalid_token")) {
       throw AccessTokenExpiredException("Access token expired");
     } else {
       throw AppException(errorMsg);
     }
-  }*/
-  handleError(String errorBody) {
+  }
+
+  void errorHandlingCode(Response<dynamic>? response) {
+    if (response != null) {
+      if (response.data is Map<String, dynamic>) {
+        String errorBody = jsonEncode(response.data ?? {});
+        print("errorResponse :$errorBody");
+        handleError(errorBody);
+      } else if (response.data is String) {
+        // raw string (maybe HTML or plain error text)
+        if(response.statusMessage != null) {
+          errorHandling(response.statusMessage!);
+        }
+      } else {
+        // fallback
+        errorHandling(jsonEncode({"message": response.statusMessage ?? "Unknown error"}));
+      }
+    }
+  }
+
+
+  errorHandling(String errorBody) {
+    String errorMsg = pleaseTryAgain;
+
+    try {
+      final decoded = jsonDecode(errorBody);
+
+      if (decoded is Map<String, dynamic>) {
+        final errorResponse = ErrorResponse.fromJson(decoded);
+        if (errorResponse.message != null && errorResponse.message!.isNotEmpty) {
+          errorMsg = errorResponse.message!;
+        } else if (decoded['message'] != null) {
+          errorMsg = decoded['message'];
+        }
+      }
+    } catch (e) {
+      AppLog.d("NetworkService", "Failed to parse error as JSON, using raw text");
+      errorMsg = errorBody; // fallback to raw string
+    }
+
+    // Map specific messages to exceptions
+    if (errorMsg.contains("Bad credentials")) {
+      throw BadRequestException(errorMsg);
+    } else if (errorMsg.contains("unauthorized device.")) {
+      throw UnauthorisedException(errorMsg);
+    } else if (errorMsg.contains("Access token expired") ||
+        errorMsg.contains("Invalid access token") ||
+        errorMsg.contains("invalid_token")) {
+      throw AccessTokenExpiredException("Access token expired");
+    } else {
+      throw AppException(errorMsg);
+    }
+  }
+
+
+/* handleError(String errorBody) {
     OAuthError? oAuthError;
     try {
       oAuthError = OAuthError.fromJson(jsonDecode(errorBody));
@@ -305,5 +362,5 @@ class NetworkService {
     } else {
       throw AppException(errorMsg);
     }
-  }
+  }*/
 }

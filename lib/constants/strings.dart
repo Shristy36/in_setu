@@ -40,3 +40,4 @@ const String accountDeleteMsg ="Are you sure to proceed?";
 const String logoutMsg ="Are you sure?";
 const String logoutTitle ="Logout !!!";
 const String deleteTitle ="Delete Account !!!";
+const String noInternetConnection ="No Internet Connection, Please try again later.";

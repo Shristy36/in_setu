@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:in_setu/constants/app_colors.dart';
+import 'package:in_setu/screens/material_view/model/SearchUnitResponse.dart';
+import 'package:in_setu/supports/share_preference_manager.dart';
 import 'package:intl/intl.dart';
 
 class IndentsMaterialRequirement {
@@ -15,7 +17,8 @@ class IndentsMaterialRequirement {
 }
 
 class UpdatedIndentMaterialWidget extends StatefulWidget {
-  const UpdatedIndentMaterialWidget({super.key});
+  final List<SearchUnitData> searchUnitData;
+  UpdatedIndentMaterialWidget({super.key, required this.searchUnitData});
 
   @override
   State<UpdatedIndentMaterialWidget> createState() =>
@@ -31,6 +34,10 @@ class _UpdatedIndentMaterialWidgetState
   final purposeTxtCntl = TextEditingController();
   final deliveryDate = TextEditingController();
   final formKey = GlobalKey<FormState>();
+  List<SearchUnitData> searchUnitList = [];
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+  final unitController = TextEditingController();
 
   void _addRequirement(bool isAdditional) {
     setState(() {
@@ -46,14 +53,29 @@ class _UpdatedIndentMaterialWidgetState
     });
   }
 
-  void _saveRequirements() {
-    // Handle save logic here
-    print(
-      'indentsMaterialRequirement: ${indentsMaterialRequirement.map((r) => '${r.material}: ${r.quantity} ${r.unit}').join(', ')}',
-    );
-    Navigator.of(context).pop();
+  @override
+  void didUpdateWidget(covariant UpdatedIndentMaterialWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.searchUnitData != widget.searchUnitData ) {
+      setState(() {
+        searchUnitList = widget.searchUnitData;
+      });
+    }
   }
 
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedData();
+  }
+
+  Future<void> _loadSavedData() async {
+    final savedUnitData = await SharedPreferenceManager.getSearchUnitDataList();
+
+    setState(() {
+      searchUnitList = savedUnitData.isNotEmpty ? savedUnitData : widget.searchUnitData;
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -465,6 +487,8 @@ class _UpdatedIndentMaterialWidgetState
                     Expanded(
                       flex: 3,
                       child: TextFormField(
+                        controller: unitController,
+                        readOnly: true,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter unit';
@@ -504,6 +528,150 @@ class _UpdatedIndentMaterialWidgetState
                             item.unit = value;
                           });
                         },
+                          onTap: () {
+                            setState(() {
+                              _searchQuery = '';
+                              _searchController.clear();
+                            });
+                            FocusScope.of(context).unfocus(); // Hide keyboard if active
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: AppColors.colorWhite,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(25)),
+                              ),
+                              builder: (context) {
+                                return StatefulBuilder(
+                                    builder: (context, bottomSheetSetState) {
+                                      return Container(
+                                        height: MediaQuery
+                                            .of(context)
+                                            .size
+                                            .height * 0.7,
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.black12,
+                                                borderRadius: BorderRadius
+                                                    .vertical(
+                                                    top: Radius.circular(25)),
+                                              ),
+                                              child: Padding(
+                                                padding: const EdgeInsets.only(
+                                                    top: 15.0,
+                                                    right: 15,
+                                                    left: 15,
+                                                    bottom: 10),
+                                                child: Column(
+                                                  children: [
+                                                    Row(
+                                                      mainAxisAlignment: MainAxisAlignment
+                                                          .spaceBetween,
+                                                      children: [
+                                                        const Padding(
+                                                          padding: EdgeInsets.all(
+                                                              16),
+                                                          child: Text(
+                                                            "Select Unit",
+                                                            style: TextStyle(
+                                                                fontSize: 16,
+                                                                fontWeight: FontWeight
+                                                                    .normal),
+                                                          ),
+                                                        ),
+
+                                                        Padding(
+                                                          padding: const EdgeInsets
+                                                              .only(right: 10.0),
+                                                          child: GestureDetector(
+                                                            onTap: () =>
+                                                                Navigator
+                                                                    .of(context)
+                                                                    .pop(),
+                                                            child: Container(
+                                                              padding: const EdgeInsets
+                                                                  .all(8),
+                                                              decoration: BoxDecoration(
+                                                                color: AppColors
+                                                                    .primary
+                                                                    .withOpacity(
+                                                                    0.2),
+                                                                borderRadius: BorderRadius
+                                                                    .circular(8),
+                                                              ),
+                                                              child: const Icon(
+                                                                Icons.close,
+                                                                color: AppColors
+                                                                    .colorBlack,
+                                                                size: 20,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    Padding(
+                                                      padding: EdgeInsets
+                                                          .symmetric(
+                                                          horizontal: 10),
+                                                      child: Container(
+                                                        decoration: BoxDecoration(
+                                                          color: Colors.white,
+                                                          borderRadius: BorderRadius
+                                                              .circular(8),
+                                                          border: Border.all(
+                                                              color: AppColors
+                                                                  .colorGray,
+                                                              width: 1),
+                                                        ),
+                                                        child: TextField(
+                                                          autofocus: false,
+                                                          controller: _searchController,
+                                                          onChanged: (value) {
+                                                            bottomSheetSetState(() {
+                                                              _searchQuery = value;
+                                                            });
+                                                          },
+                                                          decoration: InputDecoration(
+                                                            hintText: 'Search',
+                                                            prefixIcon: Icon(
+                                                                Icons.search,
+                                                                color: Colors
+                                                                    .grey[500]),
+                                                            border: InputBorder
+                                                                .none,
+                                                            isDense: true,
+                                                            contentPadding: EdgeInsets
+                                                                .symmetric(
+                                                                vertical: 12),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: Padding(
+                                                padding: const EdgeInsets.only(
+                                                    left: 20.0, right: 15),
+                                                child: searchunitList(
+                                                    searchUnitList, item),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }
+                                );
+                              },
+                            );
+                          }
                       ),
                     ),
                   ],
@@ -538,6 +706,39 @@ class _UpdatedIndentMaterialWidgetState
           ),
         ),
       ],
+    );
+  }
+  searchunitList(List<SearchUnitData> searchUnitList, IndentsMaterialRequirement item) {
+    final searchFilterData = _searchQuery.isEmpty
+        ? searchUnitList
+        : searchUnitList.where((item) =>
+        item.name!.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+    return ListView.builder(
+      itemCount: searchFilterData.length,
+      itemBuilder: (context, index) {
+        final unitData = searchFilterData[index];
+        return Container(
+          width: double.infinity,
+          child: Padding(
+            padding: const EdgeInsets.all(
+                8.0),
+            child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    item.unit= unitData.name ?? "";
+                    unitController.text = unitData.name ?? "";
+                  });
+                  Navigator.pop(context);
+                },
+                child: Text(
+                  unitData.name ?? "",
+                  style: TextStyle(
+                      fontSize: 16,
+                      color: AppColors
+                          .colorBlack),)),
+          ),
+        );
+      },
     );
   }
 }
