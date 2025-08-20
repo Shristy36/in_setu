@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:in_setu/commonWidget/custom_text_field.dart';
 import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/constants/strings.dart';
+import 'package:in_setu/main.dart';
 import 'package:in_setu/networkSupport/ErrorHandler.dart';
 import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
 import 'package:in_setu/supports/LoadingDialog.dart';
@@ -14,7 +15,8 @@ import 'package:in_setu/screens/login_view/signup_screen.dart';
 import 'package:in_setu/screens/project_list/project_list_screen.dart';
 
 class SignInScreen extends StatefulWidget {
-  const SignInScreen({super.key});
+  final String? errorMessage;
+  SignInScreen({super.key, this.errorMessage});
 
   @override
   State<SignInScreen> createState() => _SignInScreenState();
@@ -25,6 +27,19 @@ class _SignInScreenState extends State<SignInScreen> {
   final passwordTxt = TextEditingController();
   final signFormKey = GlobalKey<FormState>();
   bool _isPasswordVisible = false;
+
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.errorMessage != null && widget.errorMessage!.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Utility.showToast("Your session has expired. Please login again.");
+        // widget.errorMessage == null;
+        navigatorKey.currentState?.pushNamedAndRemoveUntil('/login', (route) => false);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

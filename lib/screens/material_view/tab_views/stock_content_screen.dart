@@ -4,14 +4,12 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:in_setu/commonWidget/no_data_found.dart';
 import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/constants/strings.dart';
-import 'package:in_setu/networkSupport/ErrorHandler.dart';
 import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
 import 'package:in_setu/screens/material_view/model/MaterialSearchKeyword.dart';
 import 'package:in_setu/screens/material_view/model/SearchUnitResponse.dart';
 import 'package:in_setu/screens/material_view/stock_details_screen.dart';
 import 'package:in_setu/screens/material_view/bloc/material_stock_bloc.dart';
 import 'package:in_setu/screens/material_view/delete_intent_item_dialog/delete_stock_item.dart';
-import 'package:in_setu/screens/material_view/loading_screen.dart';
 import 'package:in_setu/screens/material_view/material_stock_summary_screen.dart';
 import 'package:in_setu/screens/material_view/model/MaterialStockReponse.dart';
 import 'package:in_setu/screens/material_view/widget/update_stock_consumption.dart';
@@ -94,7 +92,7 @@ class _StockContentScreenState extends State<StockContentScreen> {
             break;
           case GlobalApiStatus.error:
             setState(() => _isLoading = false);
-            ErrorHandler.errorHandle(state.message, "Something wrong", context);
+            // ErrorHandler.errorHandle(state.message, "Something wrong", context);
             break;
           default:
             setState(() => _isLoading = false);

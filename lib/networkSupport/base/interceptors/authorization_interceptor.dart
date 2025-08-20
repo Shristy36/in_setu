@@ -8,6 +8,7 @@ import 'package:in_setu/supports/share_preference_manager.dart';
 // import 'package:in_setu/views/login_view/model/LoginAuthModel.dart';
 
 class AuthorizationInterceptor extends Interceptor {
+
   @override
   Future<void> onRequest(
       RequestOptions options, RequestInterceptorHandler handler) async {
@@ -32,3 +33,4 @@ class AuthorizationInterceptor extends Interceptor {
     super.onRequest(options, handler);
   }
 }
+

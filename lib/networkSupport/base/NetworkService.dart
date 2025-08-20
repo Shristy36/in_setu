@@ -2,12 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:in_setu/main.dart';
 import 'package:in_setu/networkSupport/ApiConstants.dart';
 import 'package:in_setu/networkSupport/errorResponse/ErrorResponse.dart';
 import 'package:in_setu/networkSupport/errorResponse/OAuthError.dart';
 import 'package:in_setu/networkSupport/errorResponse/ResponseError.dart';
 import 'package:in_setu/networkSupport/errorResponse/auth_error.dart';
 import 'package:in_setu/supports/AppException.dart';
+import 'package:in_setu/supports/share_preference_manager.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import '../../constants/strings.dart' show pleaseTryAgain;
 import '../../supports/AppLog.dart';
@@ -228,6 +230,7 @@ class NetworkService {
   }
 
   handleError(String errorBody) {
+    bool _isRedirecting = false;
     OAuthError? oAuthError;
     try {
       oAuthError = OAuthError.fromJson(jsonDecode(errorBody));
@@ -260,10 +263,18 @@ class NetworkService {
       throw BadRequestException(errorMsg);
     } else if (errorMsg.contains("unauthorized device.")) {
       throw UnauthorisedException(errorMsg);
-    } else if (errorMsg.contains("Access token expired") ||
-        errorMsg.contains("Invalid access token") ||
-        errorMsg.contains("invalid_token")) {
-      throw AccessTokenExpiredException("Access token expired");
+    } else if (errorMsg.contains("Access token expired") || errorMsg.contains("Invalid access token") || errorMsg.contains("invalid_token") || errorMsg.contains("JWT Expired OR Invalid")) {
+      _isRedirecting = true;
+      SharedPreferenceManager.clearOAuth();
+      navigatorKey.currentState?.pushNamedAndRemoveUntil(
+        '/login',
+            (route) => false,
+          arguments: "Your session has expired. Please login again."
+      ).then((_) {
+        // reset flag when login screen is loaded
+        _isRedirecting = false;
+      });
+      // throw AccessTokenExpiredException(errorMsg);
     } else {
       throw AppException(errorMsg);
     }
@@ -277,16 +288,17 @@ class NetworkService {
         handleError(errorBody);
       } else if (response.data is String) {
         // raw string (maybe HTML or plain error text)
-        if(response.statusMessage != null) {
+        if (response.statusMessage != null) {
           errorHandling(response.statusMessage!);
         }
       } else {
         // fallback
-        errorHandling(jsonEncode({"message": response.statusMessage ?? "Unknown error"}));
+        errorHandling(
+          jsonEncode({"message": response.statusMessage ?? "Unknown error"}),
+        );
       }
     }
   }
-
 
   errorHandling(String errorBody) {
     String errorMsg = pleaseTryAgain;
@@ -296,14 +308,18 @@ class NetworkService {
 
       if (decoded is Map<String, dynamic>) {
         final errorResponse = ErrorResponse.fromJson(decoded);
-        if (errorResponse.message != null && errorResponse.message!.isNotEmpty) {
+        if (errorResponse.message != null &&
+            errorResponse.message!.isNotEmpty) {
           errorMsg = errorResponse.message!;
         } else if (decoded['message'] != null) {
           errorMsg = decoded['message'];
         }
       }
     } catch (e) {
-      AppLog.d("NetworkService", "Failed to parse error as JSON, using raw text");
+      AppLog.d(
+        "NetworkService",
+        "Failed to parse error as JSON, using raw text",
+      );
       errorMsg = errorBody; // fallback to raw string
     }
 
@@ -321,8 +337,7 @@ class NetworkService {
     }
   }
 
-
-/* handleError(String errorBody) {
+  /* handleError(String errorBody) {
     OAuthError? oAuthError;
     try {
       oAuthError = OAuthError.fromJson(jsonDecode(errorBody));

@@ -63,11 +63,11 @@ class _IntendContentScreenState extends State<IntendContentScreen> {
             break;
           case GlobalApiStatus.error:
             setState(() => _isLoading = false);
-            ErrorHandler.errorHandle(
+            /*ErrorHandler.errorHandle(
               state.message,
               "Something wrong",
               context,
-            );
+            );*/
             break;
           default:
             setState(() => _isLoading = false);

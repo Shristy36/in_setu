@@ -5,6 +5,7 @@ import 'package:in_setu/constants/strings.dart';
 import 'package:in_setu/networkSupport/ErrorHandler.dart';
 import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
 import 'package:in_setu/supports/LoadingDialog.dart';
+import 'package:in_setu/supports/share_preference_manager.dart';
 import 'package:in_setu/supports/utility.dart';
 import 'package:in_setu/screens/login_view/sign_in_screen.dart';
 import 'package:get/get.dart';
@@ -61,7 +62,7 @@ class DialogManager {
         /* Get.dialog(const Dialog(
         child: LoginDialog(),
       ));*/
-        Get.offAll(() => const SignInScreen());
+        Get.offAll(() => SignInScreen());
       },
     );
   }
@@ -154,7 +155,9 @@ class DialogManager {
                     Align(
                       alignment: Alignment.bottomRight,
                       child: GestureDetector(
-                        onTap: () => Navigator.of(context).pop(),
+                        onTap: () {
+                          Navigator.of(context).pop();
+                        },
                         child: Padding(
                           padding: const EdgeInsets.only(right: 15.0),
                           child: Utility.subTitle("Yes", AppColors.primary),
@@ -199,7 +202,7 @@ class DialogManager {
     String message,
     String title,
     dynamic userId,
-  )async {
+  ) async {
     bool deleted = false;
     await showDialog(
       context: context,
@@ -216,9 +219,9 @@ class DialogManager {
                   break;
                 case GlobalApiStatus.completed:
                   if (state is SiteDeleteStateSuccess) {
-                     Navigator.of(context).pop();
-                     Utility.showToast(state.data!.message);
-                     deleted = true;
+                    Navigator.of(context).pop();
+                    Utility.showToast(state.data!.message);
+                    deleted = true;
                   }
                   break;
                 case GlobalApiStatus.error:
@@ -332,7 +335,7 @@ class DialogManager {
     return deleted;
   }
 
-  static void showInternetDialog(BuildContext context, String message){
+  static void showInternetDialog(BuildContext context, String message) {
     showDialog(
       context: context,
       builder: (context) {
@@ -354,7 +357,10 @@ class DialogManager {
                       alignment: Alignment.center,
                       child: Padding(
                         padding: const EdgeInsets.only(top: 15.0),
-                        child: Utility.title("Internet Connection", Colors.redAccent),
+                        child: Utility.title(
+                          "Internet Connection",
+                          Colors.redAccent,
+                        ),
                       ),
                     ),
                     SizedBox(height: 10),

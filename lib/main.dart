@@ -21,7 +21,6 @@ import 'package:in_setu/screens/project_list/repository/all_sites_repository.dar
 import 'package:in_setu/screens/user/bloc/profile_bloc.dart';
 import 'package:in_setu/screens/user/profile_repo/profile_repository.dart';
 import 'package:in_setu/screens/walkthrough_screen/onboarding_screen.dart';
-import 'package:in_setu/screens/walkthrough_screen/walkthrough_screen.dart';
 import 'package:in_setu/supports/DialogManager.dart';
 
 import 'constants/app_colors.dart';
@@ -32,53 +31,115 @@ import 'supports/share_preference_manager.dart';
 import 'screens/cash_details_view/bloc/cashbook_bloc.dart';
 import 'screens/home_page/bloc/home_bloc.dart';
 
-void main() async{
-  /*SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: AppColors.primary50, // Different from AppBar
-      statusBarIconBrightness: Brightness.light, // Light icons (for dark bg)
-    ),
-  );*/
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarIconBrightness: Brightness.dark, // Android → dark = black icons
+    statusBarBrightness: Brightness.light, // iOS → light = black icons
+  ));
+
   runApp(const MyApp());
 }
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
-        providers: [
-          RepositoryProvider<SignInRepository>(create: (context) => SignInRepository()),
-          RepositoryProvider<AllSitesRepository>(create: (context) => AllSitesRepository()),
-          RepositoryProvider<HomeRepository>(create: (context) => HomeRepository()),
-          RepositoryProvider<ProfileRepository>(create: (context) => ProfileRepository()),
-          RepositoryProvider<CashbookRepository>(create: (context) => CashbookRepository()),
-          RepositoryProvider<ChatsRepository>(create: (context) => ChatsRepository()),
-          RepositoryProvider<ManPowerRepository>(create: (context) => ManPowerRepository()),
-          RepositoryProvider<MaterialRepository>(create: (context) => MaterialRepository()),
-          RepositoryProvider<PlansRepository>(create: (context) => PlansRepository()),
-        ],
+      providers: [
+        RepositoryProvider<SignInRepository>(
+          create: (context) => SignInRepository(),
+        ),
+        RepositoryProvider<AllSitesRepository>(
+          create: (context) => AllSitesRepository(),
+        ),
+        RepositoryProvider<HomeRepository>(
+          create: (context) => HomeRepository(),
+        ),
+        RepositoryProvider<ProfileRepository>(
+          create: (context) => ProfileRepository(),
+        ),
+        RepositoryProvider<CashbookRepository>(
+          create: (context) => CashbookRepository(),
+        ),
+        RepositoryProvider<ChatsRepository>(
+          create: (context) => ChatsRepository(),
+        ),
+        RepositoryProvider<ManPowerRepository>(
+          create: (context) => ManPowerRepository(),
+        ),
+        RepositoryProvider<MaterialRepository>(
+          create: (context) => MaterialRepository(),
+        ),
+        RepositoryProvider<PlansRepository>(
+          create: (context) => PlansRepository(),
+        ),
+      ],
 
-        child: MultiBlocProvider(
-            providers: [
-              BlocProvider<SigninBloc>(create: (context) => SigninBloc(signInRepository: SignInRepository())),
-              BlocProvider<SitesBloc>(create: (context) => SitesBloc(sitesRepository: AllSitesRepository())),
-              BlocProvider<HomeBloc>(create: (context) => HomeBloc(homeRepository: HomeRepository())),
-              BlocProvider<ProfileBloc>(create: (context) => ProfileBloc(profileRepository: ProfileRepository())),
-              BlocProvider<CashbookBloc>(create: (context) => CashbookBloc(cashbookRepository: CashbookRepository())),
-              BlocProvider<ChatsBloc>(create: (context) => ChatsBloc(chatsRepository: ChatsRepository())),
-              BlocProvider<ManPowerBloc>(create: (context) => ManPowerBloc(manPowerRepository: ManPowerRepository())),
-              BlocProvider<MaterialStockBloc>(create: (context) => MaterialStockBloc(materialRepository: MaterialRepository())),
-              BlocProvider<PlansBloc>(create: (context) => PlansBloc(plansRepository: PlansRepository())),
-            ],
-            child: MaterialApp(
-              debugShowCheckedModeBanner: false,
-              title: 'Flutter Demo',
-              theme: ThemeData(
-                colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-              ),
-              home: const SplashScreen(),
-            )));
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<SigninBloc>(
+            create:
+                (context) => SigninBloc(signInRepository: SignInRepository()),
+          ),
+          BlocProvider<SitesBloc>(
+            create:
+                (context) => SitesBloc(sitesRepository: AllSitesRepository()),
+          ),
+          BlocProvider<HomeBloc>(
+            create: (context) => HomeBloc(homeRepository: HomeRepository()),
+          ),
+          BlocProvider<ProfileBloc>(
+            create:
+                (context) =>
+                    ProfileBloc(profileRepository: ProfileRepository()),
+          ),
+          BlocProvider<CashbookBloc>(
+            create:
+                (context) =>
+                    CashbookBloc(cashbookRepository: CashbookRepository()),
+          ),
+          BlocProvider<ChatsBloc>(
+            create: (context) => ChatsBloc(chatsRepository: ChatsRepository()),
+          ),
+          BlocProvider<ManPowerBloc>(
+            create:
+                (context) =>
+                    ManPowerBloc(manPowerRepository: ManPowerRepository()),
+          ),
+          BlocProvider<MaterialStockBloc>(
+            create:
+                (context) =>
+                    MaterialStockBloc(materialRepository: MaterialRepository()),
+          ),
+          BlocProvider<PlansBloc>(
+            create: (context) => PlansBloc(plansRepository: PlansRepository()),
+          ),
+        ],
+        child: MaterialApp(
+          navigatorKey: navigatorKey,
+          debugShowCheckedModeBanner: false,
+          title: 'Flutter Demo',
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          ),
+          home: const SplashScreen(),
+          onGenerateRoute: (settings) {
+            if (settings.name == '/login') {
+              final message = settings.arguments as String?;
+              return MaterialPageRoute(
+                builder: (_) => SignInScreen(errorMessage: message),
+              );
+            }
+            return null;
+          },
+        ),
+      ),
+    );
   }
 }
 
@@ -107,8 +168,10 @@ class _SplashScreenState extends State<SplashScreen> {
       }
     });
   }
+
   Future<void> _checkOnboardingStatus() async {
-    bool hasSeenOnboarding = await SharedPreferenceManager.getFirstCallOnboarding();
+    bool hasSeenOnboarding =
+        await SharedPreferenceManager.getFirstCallOnboarding();
     setState(() {
       _hasSeenOnboarding = hasSeenOnboarding;
     });
@@ -119,7 +182,8 @@ class _SplashScreenState extends State<SplashScreen> {
         MaterialPageRoute(builder: (context) => OnboardingScreen()),
       );
     } else {
-      final LoginAuthModel? savedAuth = await SharedPreferenceManager.getOAuth();
+      final LoginAuthModel? savedAuth =
+          await SharedPreferenceManager.getOAuth();
 
       if (savedAuth != null) {
         Navigator.pushReplacement(
@@ -134,10 +198,8 @@ class _SplashScreenState extends State<SplashScreen> {
           MaterialPageRoute(builder: (context) => SignInScreen()),
         );
       }
-
     }
   }
-  
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +210,11 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Replace with your logo or animation
-            Image.asset("assets/images/splash_logo.jpg", width: 100, height: 100,),
+            Image.asset(
+              "assets/images/splash_logo.jpg",
+              width: 100,
+              height: 100,
+            ),
             const SizedBox(height: 20),
             const Text('Welcome to InSetu App', style: TextStyle(fontSize: 24)),
             const SizedBox(height: 10),
