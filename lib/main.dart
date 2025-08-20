@@ -31,7 +31,7 @@ import 'supports/share_preference_manager.dart';
 import 'screens/cash_details_view/bloc/cashbook_bloc.dart';
 import 'screens/home_page/bloc/home_bloc.dart';
 
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+final GlobalKey<NavigatorState> mainNavigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -121,7 +121,7 @@ class MyApp extends StatelessWidget {
           ),
         ],
         child: MaterialApp(
-          navigatorKey: navigatorKey,
+          navigatorKey: mainNavigatorKey,
           debugShowCheckedModeBanner: false,
           title: 'Flutter Demo',
           theme: ThemeData(

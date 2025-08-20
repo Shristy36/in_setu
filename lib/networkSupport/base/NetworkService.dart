@@ -266,7 +266,7 @@ class NetworkService {
     } else if (errorMsg.contains("Access token expired") || errorMsg.contains("Invalid access token") || errorMsg.contains("invalid_token") || errorMsg.contains("JWT Expired OR Invalid")) {
       _isRedirecting = true;
       SharedPreferenceManager.clearOAuth();
-      navigatorKey.currentState?.pushNamedAndRemoveUntil(
+      mainNavigatorKey.currentState?.pushNamedAndRemoveUntil(
         '/login',
             (route) => false,
           arguments: "Your session has expired. Please login again."

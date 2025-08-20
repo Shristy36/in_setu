@@ -48,6 +48,10 @@ class _AddManpowerWidgetState extends State<AddManpowerWidget> {
   List<AddRequirementMemberItems> taskRequirements = [];
 
   final formKey = GlobalKey<FormState>();
+  final staffFormKey = GlobalKey<FormState>();
+  final manpowerFormKey = GlobalKey<FormState>();
+  final taskFormKey = GlobalKey<FormState>();
+
   final agencyNameController = TextEditingController();
   bool isButtonClick = true;
   void _addRequirement(bool isAdditional, String type) {
@@ -396,29 +400,41 @@ class _AddManpowerWidgetState extends State<AddManpowerWidget> {
                   const SizedBox(height: 10),
                   Padding(
                     padding: const EdgeInsets.only(left: 8.0, right: 8),
-                    child: _buildStaffSection(
-                      items: staffRequirements,
-                      isAdditional: false,
+                    child: Form(
+                      key: staffFormKey,
+                      child: _buildStaffSection(
+                        items: staffRequirements,
+                        isAdditional: false,
+                      ),
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(left: 8.0, right: 8),
-                    child: _buildManPowerSection(
-                      items: manpowerRequirements,
-                      isAdditional: false,
+                    child: Form(
+                      key: manpowerFormKey,
+                      child: _buildManPowerSection(
+                        items: manpowerRequirements,
+                        isAdditional: false,
+                      ),
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(left: 8.0, right: 8),
-                    child: _buildTaskSection(
-                      items: taskRequirements,
-                      isAdditional: false,
+                    child: Form(
+                      key: taskFormKey,
+                      child: _buildTaskSection(
+                        items: taskRequirements,
+                        isAdditional: false,
+                      ),
                     ),
                   ),
                   SizedBox(height: 10),
                   GestureDetector(
                     onTap: () {
-                      if (formKey.currentState!.validate()) {
+                      if (formKey.currentState!.validate() &&
+                          staffFormKey.currentState!.validate() &&
+                          manpowerFormKey.currentState!.validate() &&
+                          taskFormKey.currentState!.validate()) {
                         if(isButtonClick) {
                           setState(() {
                             isButtonClick = false;
@@ -462,41 +478,12 @@ class _AddManpowerWidgetState extends State<AddManpowerWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        /*Text(
-          "Staff",
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),*/
         ...items.asMap().entries.map((entry) {
           int index = entry.key;
           AddRequirementMemberItems item = entry.value;
 
           return Column(
             children: [
-              /*Row(
-                children: [
-                  if (items.length > 1)
-                    GestureDetector(
-                      onTap:
-                          () =>
-                              _removeRequirement(isAdditional, index, "staff"),
-                      child:
-                          index == items.length - 1 && items.length > 1
-                              ? CircleAvatar(
-                                backgroundColor: Colors.red.shade50,
-                                child: Icon(
-                                  Icons.remove,
-                                  color: Colors.red.shade600,
-                                  size: 16,
-                                ),
-                              )
-                              : const SizedBox.shrink(),
-                    ),
-                ],
-              ),*/
               const SizedBox(height: 5),
               Row(
                 children: [
@@ -621,33 +608,6 @@ class _AddManpowerWidgetState extends State<AddManpowerWidget> {
                         ),
                     ],
                   ),
-
-                  /*Row(
-                    children: [
-                      if (items.length > 1)
-                        GestureDetector(
-                          onTap:
-                              () =>
-                              _removeRequirement(isAdditional, index, "staff"),
-                          child:
-                          index == items.length - 1 && items.length > 1
-                              ? Container(
-                            height: 35,
-                            width: 35,
-                            decoration: BoxDecoration(
-                              color: Colors.red.shade50,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Icon(
-                              Icons.remove,
-                              color: Colors.red.shade600,
-                              size: 20,
-                            ),
-                          )
-                              : const SizedBox.shrink(),
-                        ),
-                    ],
-                  ),*/
                 ],
               ),
               const SizedBox(height: 5),
@@ -657,7 +617,7 @@ class _AddManpowerWidgetState extends State<AddManpowerWidget> {
         const SizedBox(height: 5),
         GestureDetector(
           onTap: () => {
-            if(formKey.currentState!.validate()){
+            if(staffFormKey.currentState!.validate()){
               _addRequirement(isAdditional, "staff")
             }
           },
@@ -893,7 +853,7 @@ class _AddManpowerWidgetState extends State<AddManpowerWidget> {
         const SizedBox(height: 8),
         GestureDetector(
           onTap: () => {
-            if(formKey.currentState!.validate()){
+            if(manpowerFormKey.currentState!.validate()){
               _addRequirement(isAdditional, "manpower")
             }
           },
@@ -1078,7 +1038,7 @@ class _AddManpowerWidgetState extends State<AddManpowerWidget> {
         const SizedBox(height: 8),
         GestureDetector(
           onTap: () => {
-            if(formKey.currentState!.validate()){
+            if(taskFormKey.currentState!.validate()){
               _addRequirement(isAdditional, "task")
             }
           },

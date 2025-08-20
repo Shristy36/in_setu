@@ -160,70 +160,75 @@ class _AddCashbookWidgetState extends State<AddCashbookWidget> {
         final cashBook = cashBooks[index];
         return Padding(
           padding: const EdgeInsets.all(10),
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.colorGray, width: 1),
-              borderRadius: BorderRadius.circular(5),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          _setAsDefault(cashBook, cashBooks);
-                        },
-                        child: Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color:
-                                  cashBook.isDefault == 1
-                                      ? AppColors.primary
-                                      : Colors.grey,
-                              width: 2,
+          child: GestureDetector(
+            onTap: (){
+              _setAsDefault(cashBook, cashBooks);
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.colorGray, width: 1),
+                borderRadius: BorderRadius.circular(5),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            _setAsDefault(cashBook, cashBooks);
+                          },
+                          child: Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color:
+                                    cashBook.isDefault == 1
+                                        ? AppColors.primary
+                                        : Colors.grey,
+                                width: 2,
+                              ),
                             ),
+                            child:
+                                cashBook.isDefault == 1
+                                    ? const Icon(
+                                      Icons.check,
+                                      size: 16,
+                                      color: AppColors.primary,
+                                    )
+                                    : null,
                           ),
-                          child:
-                              cashBook.isDefault == 1
-                                  ? const Icon(
-                                    Icons.check,
-                                    size: 16,
-                                    color: AppColors.primary,
-                                  )
-                                  : null,
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        cashBook.cashbookName ?? 'Unnamed',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.black,
+                        const SizedBox(width: 10),
+                        Text(
+                          cashBook.cashbookName ?? 'Unnamed',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.black,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                       GestureDetector(
-                         onTap: () => _editCashBook(context, cashBook),
-                         child: Image.asset("assets/icons/edit.png", width: 15, height: 15, color: AppColors.primary,)),
-                       Padding(
-                         padding: const EdgeInsets.only(left: 15.0, right: 5),
-                         child: GestureDetector(
-                           onTap: () => _deleteCashBook(context, cashBook),
-                           child: Icon(Icons.delete, size: 18, color: Colors.red,),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                         GestureDetector(
+                           onTap: () => _editCashBook(context, cashBook),
+                           child: Image.asset("assets/icons/edit.png", width: 15, height: 15, color: AppColors.primary,)),
+                         Padding(
+                           padding: const EdgeInsets.only(left: 15.0, right: 5),
+                           child: GestureDetector(
+                             onTap: () => _deleteCashBook(context, cashBook),
+                             child: Icon(Icons.delete, size: 18, color: Colors.red,),
+                           ),
                          ),
-                       ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -359,13 +364,7 @@ class _AddCashbookWidgetState extends State<AddCashbookWidget> {
                       vertical: 12,
                     ),
                   ),
-                )/*TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Name',
-                    border: OutlineInputBorder(),
-                  ),
-                )*/,
+                ),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
@@ -385,6 +384,7 @@ class _AddCashbookWidgetState extends State<AddCashbookWidget> {
                                       cashBookName: nameController.text,
                                     ),
                                   );
+                                  isOnlyListRefresh = false;
                                 },
                         child:
                             state.status == GlobalApiStatus.loading

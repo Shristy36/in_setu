@@ -35,8 +35,7 @@ class _SignInScreenState extends State<SignInScreen> {
     if (widget.errorMessage != null && widget.errorMessage!.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Utility.showToast("Your session has expired. Please login again.");
-        // widget.errorMessage == null;
-        navigatorKey.currentState?.pushNamedAndRemoveUntil('/login', (route) => false);
+        mainNavigatorKey.currentState?.pushNamedAndRemoveUntil('/login', (route) => false);
       });
     }
   }
