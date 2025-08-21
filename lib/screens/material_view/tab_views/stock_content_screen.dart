@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:in_setu/commonWidget/no_data_found.dart';
 import 'package:in_setu/constants/app_colors.dart';
 import 'package:in_setu/constants/strings.dart';
+import 'package:in_setu/networkSupport/ErrorHandler.dart';
 import 'package:in_setu/networkSupport/base/GlobalApiResponseState.dart';
 import 'package:in_setu/screens/material_view/model/MaterialSearchKeyword.dart';
 import 'package:in_setu/screens/material_view/model/SearchUnitResponse.dart';
@@ -92,7 +93,7 @@ class _StockContentScreenState extends State<StockContentScreen> {
             break;
           case GlobalApiStatus.error:
             setState(() => _isLoading = false);
-            // ErrorHandler.errorHandle(state.message, "Something wrong", context);
+            ErrorHandler.errorHandle(state.message, "Something wrong", context);
             break;
           default:
             setState(() => _isLoading = false);

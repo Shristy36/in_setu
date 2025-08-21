@@ -34,13 +34,6 @@ import 'screens/home_page/bloc/home_bloc.dart';
 final GlobalKey<NavigatorState> mainNavigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarIconBrightness: Brightness.dark, // Android → dark = black icons
-    statusBarBrightness: Brightness.light, // iOS → light = black icons
-  ));
-
   runApp(const MyApp());
 }
 

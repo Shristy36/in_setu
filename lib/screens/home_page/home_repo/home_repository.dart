@@ -3,13 +3,11 @@ import 'package:in_setu/networkSupport/base/ApiResult.dart';
 import 'package:in_setu/networkSupport/base/NetworkService.dart';
 import 'package:in_setu/screens/home_page/model/AddedSiteMemberResponse.dart';
 import 'package:in_setu/screens/home_page/model/DashBoardResponse.dart';
-import 'package:in_setu/screens/home_page/model/SiteMemberAddReponse.dart';
 import 'package:in_setu/screens/home_page/model/SiteTeamMemberResponse.dart';
 import 'package:in_setu/supports/AppException.dart';
 
 class HomeRepository{
   final NetworkService networkService = NetworkService();
-
   HomeRepository();
 
   Future<ApiResult<DashboardResponse>> getDashBoardApi(dynamic id) async{

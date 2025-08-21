@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:in_setu/constants/app_colors.dart';
+import 'package:in_setu/networkSupport/ConnectivityService.dart';
 import 'package:in_setu/screens/chat/chatlist_screen.dart';
 import 'package:in_setu/screens/home_page/homescreen.dart';
 import 'package:in_setu/screens/login_view/model/LoginAuthModel.dart';
@@ -29,16 +31,23 @@ class BottomNavScreen extends StatefulWidget {
 }
 
 class _BottomNavScreenState extends State<BottomNavScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin{
   late int _selectedIndex;
   late List<Widget> _screens;
   bool _isBarsVisible = true;
+  bool isHomeDrawerClick = false;
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  void openDrawer() {
+    _scaffoldKey.currentState?.openDrawer();
+  }
 
   @override
   void initState() {
     super.initState();
-    _selectedIndex = widget.selectedIndex ?? 2;
 
+    _selectedIndex = widget.selectedIndex ?? 2;
     _screens = [
       StockManagementScreen(siteObject: widget.siteObject, user: widget.user,),
       ManpowerScreen(siteObject: widget.siteObject, user: widget.user,),
@@ -46,6 +55,23 @@ class _BottomNavScreenState extends State<BottomNavScreen>
       ProjectPlansScreen(siteObject: widget.siteObject, user: widget.user,),
       ChatListScreen(siteObject: widget.siteObject, user: widget.user,),
     ];
+  }
+  void _handleDrawerStateChange(bool isOpened) {
+    if (isOpened) {
+      SystemChrome.setSystemUIOverlayStyle(
+        SystemUiOverlayStyle(
+          statusBarColor: AppColors.primary50,
+          statusBarIconBrightness: Brightness.dark,
+        ),
+      );
+    } else {
+      SystemChrome.setSystemUIOverlayStyle(
+        SystemUiOverlayStyle(
+          statusBarColor: AppColors.colorGray,
+          statusBarIconBrightness: Brightness.dark,
+        ),
+      );
+    }
   }
 
   Widget _buildHomeScreen() {
@@ -59,6 +85,7 @@ class _BottomNavScreenState extends State<BottomNavScreen>
           });
         }
       },
+      openDrawer: openDrawer,
     );
   }
 
@@ -116,7 +143,11 @@ class _BottomNavScreenState extends State<BottomNavScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       resizeToAvoidBottomInset: false,
+      onDrawerChanged: (isOpened) {
+        _handleDrawerStateChange(isOpened);
+      },
       drawer: getDrawerItems(context),
       backgroundColor: const Color(0xFFF5F5F5),
       body: SafeArea(

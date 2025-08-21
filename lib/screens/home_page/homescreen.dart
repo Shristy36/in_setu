@@ -20,12 +20,14 @@ class HomeScreen extends StatefulWidget {
   final Data siteObject;
   final User user;
   final Function(bool)? onScrollDirectionChanged;
+  final VoidCallback? openDrawer;
 
   const HomeScreen({
     super.key,
     required this.siteObject,
     required this.user,
     this.onScrollDirectionChanged,
+    this.openDrawer,
   });
 
   @override
@@ -40,7 +42,6 @@ class _HomeScreenState extends State<HomeScreen>
   UserData? userData;
   DashboardResponse? dashboardResponse;
   late ScrollController _scrollController;
-
 
   @override
   void initState() {
@@ -59,7 +60,6 @@ class _HomeScreenState extends State<HomeScreen>
       }
     });
     context.read<HomeBloc>().add(GetDashBoardApi(widget.siteObject.id));
-
   }
 
   @override
@@ -108,6 +108,7 @@ class _HomeScreenState extends State<HomeScreen>
                         user: widget.user,
                         siteName: widget.siteObject.siteName!,
                         siteId: widget.siteObject.id!,
+                        openDrawer: widget.openDrawer,
                       ),
                     ),
                     const SliverToBoxAdapter(child: SizedBox(height: 20)),

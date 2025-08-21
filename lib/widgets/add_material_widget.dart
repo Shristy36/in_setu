@@ -160,12 +160,12 @@ class _MaterialRequirementsPopupState extends State<MaterialRequirementsPopup> {
 
               case GlobalApiStatus.error:
                 LoadingDialog.hide(context);
-                FocusScope.of(context).unfocus();
+                /*FocusScope.of(context).unfocus();
                 ErrorHandler.errorHandle(
                   state.message,
                   "Invalid Auth",
                   context,
-                );
+                );*/
                 setState(() {
                   _isButtonEnabled = true;
                 });

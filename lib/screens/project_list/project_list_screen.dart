@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:in_setu/commonWidget/no_data_found.dart';
@@ -73,6 +74,24 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
     );
   }
 
+  void _handleDrawerStateChange(bool isOpened) {
+    if (isOpened) {
+      SystemChrome.setSystemUIOverlayStyle(
+        SystemUiOverlayStyle(
+          statusBarColor: AppColors.primary50,
+          statusBarIconBrightness: Brightness.dark,
+        ),
+      );
+    } else {
+      SystemChrome.setSystemUIOverlayStyle(
+        SystemUiOverlayStyle(
+          statusBarColor: AppColors.colorGray,
+          statusBarIconBrightness: Brightness.dark,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -80,6 +99,9 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
       child: Scaffold(
         resizeToAvoidBottomInset: false,
         drawer: getDrawerItems(context),
+        onDrawerChanged: (isOpen){
+          _handleDrawerStateChange(isOpen);
+        },
         backgroundColor: Color(0xFFF8FAFC),
         body: SafeArea(
           child: Column(

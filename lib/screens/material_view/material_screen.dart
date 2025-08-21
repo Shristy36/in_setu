@@ -115,7 +115,7 @@ class _StockManagementScreenState extends State<StockManagementScreen>
                   case GlobalApiStatus.error:
                     LoadingDialog.hide(context);
                     FocusScope.of(context).unfocus();
-                    ErrorHandler.errorHandle(state.message, "Invalid Auth", context);
+                    // ErrorHandler.errorHandle(state.message, "Invalid Auth", context);
                     break;
                 default:
                   LoadingDialog.hide(context);

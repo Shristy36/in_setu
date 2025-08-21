@@ -125,13 +125,14 @@ class APPBarWidget extends StatelessWidget {
   final User user;
   final String siteName;
   final num siteId;
-
+  final VoidCallback? openDrawer;
   APPBarWidget({
     super.key,
     required this.isSiteNameVisible,
     required this.user,
     required this.siteName,
     required this.siteId,
+    this.openDrawer
   });
 
   @override
@@ -143,7 +144,11 @@ class APPBarWidget extends StatelessWidget {
           // Profile section
           InkWell(
             onTap: () {
-              Scaffold.of(context).openDrawer();
+              if (openDrawer != null) {
+                openDrawer!();
+              } else {
+                Scaffold.of(context).openDrawer();
+              }
             },
             child: Container(
               padding: EdgeInsets.all(12),

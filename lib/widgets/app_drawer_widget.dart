@@ -19,116 +19,118 @@ Widget getDrawerItems(BuildContext context) {
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.zero
           ),
-          child: Column(
-            children: [
-              // Your header content
-              ClipPath(
-                clipper: BottomLeftRoundedClipper(),
-                child: Container(
-                  width: double.infinity,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary50.withOpacity(1), // Shadow color
-                        offset: Offset(4, 4), // Shadow offset
-                        blurRadius: 10, // Shadow blur radius
-                        spreadRadius: 2, // Shadow spread radius
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Align(
-                                alignment: Alignment.topLeft,
-                                child: Text(
-                                  "${user.firstName} ${user.lastName}",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              SizedBox(height: 5),
-                              Align(
-                                alignment: Alignment.topLeft,
-                                child: Text(
-                                  "${user.designation}",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+          child: SafeArea(
+            child: Column(
+              children: [
+                // Your header content
+                ClipPath(
+                  clipper: BottomLeftRoundedClipper(),
+                  child: Container(
+                    width: double.infinity,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary50.withOpacity(1), // Shadow color
+                          offset: Offset(4, 4), // Shadow offset
+                          blurRadius: 10, // Shadow blur radius
+                          spreadRadius: 2, // Shadow spread radius
                         ),
                       ],
                     ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Align(
+                                  alignment: Alignment.topLeft,
+                                  child: Text(
+                                    "${user.firstName} ${user.lastName}",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 5),
+                                Align(
+                                  alignment: Alignment.topLeft,
+                                  child: Text(
+                                    "${user.designation}",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-              ),
 
-              // Your list items
-              ListTile(
-                leading: Image.asset("assets/icons/home_outline_icon.png", width: 25,height: 25, color: AppColors.primary,),
-                title: Text('Home', style: TextStyle(color: AppColors.primary)),
-                onTap:
-                    () =>
-                {Navigator.of(context).pop()} /*Navigator.push(context, MaterialPageRoute(builder: (context) => BottomNavScreen()))*/,
-              ),
-              ListTile(
-                leading: SvgPicture.asset("assets/svg/person_out.svg", width: 25, height: 25,),
-                title: Text('Profile'),
-                onTap:
-                    () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => ProfilePage()),
+                // Your list items
+                ListTile(
+                  leading: Image.asset("assets/icons/home_outline_icon.png", width: 25,height: 25, color: AppColors.primary,),
+                  title: Text('Home', style: TextStyle(color: AppColors.primary)),
+                  onTap:
+                      () =>
+                  {Navigator.of(context).pop()} /*Navigator.push(context, MaterialPageRoute(builder: (context) => BottomNavScreen()))*/,
                 ),
-              ),
-              Spacer(),
-              ListTile(
-                leading: SvgPicture.asset("assets/svg/logout_icon.svg", width: 25, height: 25,),
-                title: Text('Logout'),
-                onTap: (){
-                  LogoutDialog.showLogoutDialog(context);
-                },
-              ),
-              ListTile(
-                leading: SvgPicture.asset("assets/svg/delete_icon.svg", width: 25, height: 25, color: Colors.red,),
-                title: Text(
-                  'Delete Account',
-                  style: TextStyle(color: Colors.redAccent, fontSize: 16),
+                ListTile(
+                  leading: SvgPicture.asset("assets/svg/person_out.svg", width: 25, height: 25,),
+                  title: Text('Profile'),
+                  onTap:
+                      () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ProfilePage()),
+                  ),
                 ),
-                onTap: () async{
-                  LoginAuthModel? oAuth = await SharedPreferenceManager.getOAuth();
-                  if (oAuth != null && oAuth.user != null) {
-                    AccountDeleteDialog.showAccountDeleteDialog(context, oAuth.user!.userToken!);
-                  }
-                },
-              ),
-              SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 70.0),
-                child: Text(
-                  "App Version 1.0.0",
-                  style: TextStyle(color: Colors.blue, fontSize: 14),
+                Spacer(),
+                ListTile(
+                  leading: SvgPicture.asset("assets/svg/logout_icon.svg", width: 25, height: 25,),
+                  title: Text('Logout'),
+                  onTap: (){
+                    LogoutDialog.showLogoutDialog(context);
+                  },
                 ),
-              ),
-            ],
+                ListTile(
+                  leading: SvgPicture.asset("assets/svg/delete_icon.svg", width: 25, height: 25, color: Colors.red,),
+                  title: Text(
+                    'Delete Account',
+                    style: TextStyle(color: Colors.redAccent, fontSize: 16),
+                  ),
+                  onTap: () async{
+                    LoginAuthModel? oAuth = await SharedPreferenceManager.getOAuth();
+                    if (oAuth != null && oAuth.user != null) {
+                      AccountDeleteDialog.showAccountDeleteDialog(context, oAuth.user!.userToken!);
+                    }
+                  },
+                ),
+                SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 70.0),
+                  child: Text(
+                    "App Version 1.0.0",
+                    style: TextStyle(color: Colors.blue, fontSize: 14),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       });
