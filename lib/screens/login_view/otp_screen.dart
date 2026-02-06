@@ -41,7 +41,6 @@ class _OtpScreenState extends State<OtpScreen> {
   late final List<FocusNode> _focusNodes;
   late final int otpLength;
 
-
   @override
   void dispose() {
     for (final c in _controllers) {
@@ -93,7 +92,9 @@ class _OtpScreenState extends State<OtpScreen> {
             ),
           ),
           onChanged: (value) => _onChanged(value, index),
-          validator: (value) => (value == null || value.isEmpty) ? '' : null,
+          validator: (value) => (value == null || value.isEmpty) ? '':
+          null,
+          
         ),
       ),
     );
@@ -103,24 +104,22 @@ class _OtpScreenState extends State<OtpScreen> {
   void initState() {
     super.initState();
     // Initialize lists first
-    otpLength = otp.isNotEmpty ? otp.length : (widget.requestResponse != null ? 6 : 4);
+    otpLength =
+        otp.isNotEmpty ? otp.length : (widget.requestResponse != null ? 6 : 4);
     _controllers = List.generate(otpLength, (_) => TextEditingController());
     _focusNodes = List.generate(otpLength, (_) => FocusNode());
 
     if (widget.signUpObj?.otp?.isNotEmpty == true) {
       otp = widget.signUpObj!.otp!;
-    }
-    else if (widget.requestResponse?.resetOtp?.isNotEmpty == true) {
+    } else if (widget.requestResponse?.resetOtp?.isNotEmpty == true) {
       otp = widget.requestResponse!.resetOtp!;
-    }
-    else {
+    } else {
       otp = "";
     }
     // Optional: auto-fill text boxes from otp
     if (otp.isNotEmpty) {
       for (int i = 0; i < otp.length && i < otpLength; i++) {
         _controllers[i].text = otp[i];
-
       }
     }
   }
@@ -142,8 +141,8 @@ class _OtpScreenState extends State<OtpScreen> {
             case GlobalApiStatus.completed:
               LoadingDialog.hide(context);
               if (state is SignUpStateSuccess) {
-                LoadingDialog.hide(context);
-                print("Reset password success");
+                // LoadingDialog.hide(context);
+                // print("Reset password success");
                 final User user = state.data.data.user;
                 Navigator.of(context).push(
                   MaterialPageRoute(
@@ -229,11 +228,14 @@ class _OtpScreenState extends State<OtpScreen> {
                   ),
                   onPressed: () {
                     if (otpFormKey.currentState!.validate()) {
-                      if (widget.requestResponse?.resetOtp?.isNotEmpty == true) {
+                      if (widget.requestResponse?.resetOtp?.isNotEmpty ==
+                          true) {
                         if (widget.requestResponse!.resetOtp == getOtp()) {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => ResetPasswordScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => ResetPasswordScreen(),
+                            ),
                           );
                         }
                       } else {
@@ -246,7 +248,6 @@ class _OtpScreenState extends State<OtpScreen> {
                           ),
                         );
                       }
-
                     }
                   },
                   child: const Text(

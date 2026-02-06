@@ -1,6 +1,6 @@
 class ApiConstants {
   static const bool isProductionMode = true;
-  static String baseUrl = "https://builder.webinovator.com/";
+  static String baseUrl = "https://glyska.com/builder/";
 
   static String authUrl = "api/auth/login";
   static String registerEndPoint = "/api/auth/register";
