@@ -15,6 +15,7 @@ import 'package:in_setu/screens/login_view/reset_password_screen.dart';
 import 'package:in_setu/screens/project_list/project_list_screen.dart';
 import 'package:in_setu/supports/LoadingDialog.dart';
 import 'package:in_setu/supports/utility.dart';
+import 'package:in_setu/screens/login_view/complete_profile_screen.dart';
 
 class OtpScreen extends StatefulWidget {
   final SignUpResponse? signUpObj;
@@ -144,9 +145,9 @@ class _OtpScreenState extends State<OtpScreen> {
                 // LoadingDialog.hide(context);
                 // print("Reset password success");
                 final User user = state.data.data.user;
-                Navigator.of(context).push(
+                Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
-                    builder: (context) => ProjectListScreen(user: user),
+                    builder: (context) => const CompleteProfileScreen(),
                   ),
                 );
               }
